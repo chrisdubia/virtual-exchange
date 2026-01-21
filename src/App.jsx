@@ -702,13 +702,21 @@ const VirtualExchangePlatform = () => {
             <div className="flex-1 relative">
               <Sparkles className="absolute left-4 top-4 text-gray-400" size={20} />
               <input
-                type="text"
-                value={aiSearchQuery}
-                onChange={(e) => setAiSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAISearch()}
-                placeholder="e.g., 'I'm a high school teacher in Spain looking for a US-based science class for a 4-week environmental project'"
-                className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-              />
+  type="text"
+  value={aiSearchQuery}
+  onChange={(e) => {
+    const value = e.target.value;
+    setAiSearchQuery(value);
+  }}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter') {
+      handleAISearch();
+    }
+  }}
+  placeholder="e.g., 'I'm a high school teacher in Spain looking for a US-based science class for a 4-week environmental project'"
+  className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+  autoComplete="off"
+/>
             </div>
             <button 
               onClick={handleAISearch}
