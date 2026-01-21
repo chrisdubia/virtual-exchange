@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Globe, Users, School, MessageSquare, Search, Filter, CheckCircle, X, Heart, Building, GraduationCap, BookOpen, Sparkles, Shield, Mail, Lock, User } from 'lucide-react';
 
 const VirtualExchangePlatform = () => {
@@ -8,6 +8,7 @@ const VirtualExchangePlatform = () => {
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [aiSearchQuery, setAiSearchQuery] = useState('');
+  const aiSearchInputRef = useRef(null);
   const [searchResults, setSearchResults] = useState([]);
 
   // MapWorks Logo Component
@@ -701,32 +702,49 @@ const VirtualExchangePlatform = () => {
           <div className="flex gap-3">
             <div className="flex-1 relative">
               <Sparkles className="absolute left-4 top-4 text-gray-400" size={20} />
-              <input
-                key="ai-search-input"
-                type="text"
-                 value={aiSearchQuery}
-                 onChange={(e) => {
-                    e.persist();
-                    setAiSearchQuery(e.target.value);
-               }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAISearch();
-                  }
-               }}
+<input
+  ref={aiSearchInputRef}
+  type="text"
+  defaultValue=""
+  onKeyDown={(e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const query = e.target.value;
+      if (query.trim()) {
+        const keywords = query.toLowerCase();
+        const filtered = organizations.filter(org => {
+          const searchText = `${org.name} ${org.description} ${org.interests.join(' ')} ${org.country}`.toLowerCase();
+          return searchText.includes(keywords) || 
+                 org.type.toLowerCase().includes(keywords) ||
+                 org.region.toLowerCase().includes(keywords);
+        });
+        setSearchResults(filtered);
+      }
+    }
+  }}
   placeholder="e.g., 'I'm a high school teacher in Spain looking for a US-based science class for a 4-week environmental project'"
   className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
   autoComplete="off"
-  spellCheck="false"
 />
             </div>
-            <button 
-              onClick={handleAISearch}
-              className="bg-[#666666] text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-700 transition whitespace-nowrap"
-            >
-              Find Matches
-            </button>
+        <button 
+  onClick={() => {
+    const query = aiSearchInputRef.current?.value || '';
+    if (query.trim()) {
+      const keywords = query.toLowerCase();
+      const filtered = organizations.filter(org => {
+        const searchText = `${org.name} ${org.description} ${org.interests.join(' ')} ${org.country}`.toLowerCase();
+        return searchText.includes(keywords) || 
+               org.type.toLowerCase().includes(keywords) ||
+               org.region.toLowerCase().includes(keywords);
+      });
+      setSearchResults(filtered);
+    }
+  }}
+  className="bg-[#666666] text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-700 transition whitespace-nowrap"
+>
+  Find Matches
+</button>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <span className="text-sm text-gray-500">Try:</span>
