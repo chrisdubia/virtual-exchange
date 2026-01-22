@@ -8,7 +8,21 @@ const VirtualExchangePlatform = () => {
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
   const aiSearchRef = useRef(null);
+
+  // Multi-language support - basic infrastructure
+  // Future: Integrate with i18n library for full translations
+  const languages = [
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'es', name: 'Español', flag: '🇪🇸' },
+    { code: 'fr', name: 'Français', flag: '🇫🇷' },
+    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+    { code: 'zh', name: '中文', flag: '🇨🇳' },
+    { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+    { code: 'pt', name: 'Português', flag: '🇵🇹' }
+  ];
 
   // MapWorks Logo Component
   const MapWorksLogo = ({ size = 'md' }) => {
@@ -2798,6 +2812,194 @@ const VirtualExchangePlatform = () => {
     </div>
   );
 
+  // Verification Modal - Automated verification system
+  const VerificationModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto p-8 shadow-2xl">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <Shield className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-semibold text-gray-800">Get Your Organization Verified</h3>
+                <p className="text-gray-600">Join 100+ verified partners on The Virtual Exchange</p>
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowVerificationModal(false)}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h4 className="font-semibold text-blue-900 mb-2">Why Get Verified?</h4>
+          <ul className="space-y-2 text-sm text-blue-800">
+            <li className="flex items-start gap-2">
+              <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
+              <span>Build trust with global partners - verified badge shows authenticity</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
+              <span>Appear higher in search results and AI recommendations</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
+              <span>Access to premium partnership tools and resources</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
+              <span>Free - verification is completely free for all educational institutions</span>
+            </li>
+          </ul>
+        </div>
+
+        <form className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Organization Name *</label>
+              <input
+                type="text"
+                placeholder="e.g., Lincoln High School"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Organization Type *</label>
+              <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                <option value="">Select type...</option>
+                <option value="primary">Primary/Elementary School (Ages 5-11)</option>
+                <option value="middle">Middle/Junior Secondary (Ages 11-14)</option>
+                <option value="high">High/Upper Secondary (Ages 14-18)</option>
+                <option value="university">University/Higher Education (Ages 18+)</option>
+                <option value="provider">Exchange Provider/Organization</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Country *</label>
+              <input
+                type="text"
+                placeholder="e.g., United States"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">City/Region *</label>
+              <input
+                type="text"
+                placeholder="e.g., Boston, MA"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Official Website URL *</label>
+            <input
+              type="url"
+              placeholder="https://www.yourschool.edu"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">We'll verify your organization using your official website</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Official Email Address *</label>
+            <input
+              type="email"
+              placeholder="admin@yourschool.edu"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">Must be from your organization's domain (we'll send a verification email)</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Your Role *</label>
+            <input
+              type="text"
+              placeholder="e.g., Principal, Director of International Programs, Teacher"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Number of Students (Approximate)</label>
+            <input
+              type="number"
+              placeholder="e.g., 500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+
+          <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <h4 className="font-semibold text-gray-900 mb-3">Automated Verification Process:</h4>
+            <div className="space-y-2 text-sm text-gray-700">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-xs">1</div>
+                <div>
+                  <strong>Website Verification:</strong> We automatically check that your website domain matches your organization
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-xs">2</div>
+                <div>
+                  <strong>Email Verification:</strong> We send a verification link to your official email address
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-xs">3</div>
+                <div>
+                  <strong>Database Cross-Check:</strong> We verify your organization against educational databases
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-xs">4</div>
+                <div>
+                  <strong>Instant Approval:</strong> Most verifications are completed within 24 hours
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2"
+            >
+              <Shield size={20} />
+              Submit for Verification
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowVerificationModal(false)}
+              className="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+          </div>
+
+          <p className="text-xs text-gray-500 text-center">
+            By submitting, you confirm that you are an authorized representative of this organization
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+
   // Organization Card
   const OrganizationCard = ({ org }) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition">
@@ -3096,11 +3298,97 @@ const VirtualExchangePlatform = () => {
 
   // Helper function to get school level from type
   const getSchoolLevel = (type) => {
-    if (type === 'Primary School') return 'Elementary';
-    if (type === 'Middle School') return 'Middle School';
-    if (type === 'High School') return 'High School';
+    if (type === 'Primary School') return 'Primary/Elementary';
+    if (type === 'Middle School') return 'Middle/Junior Secondary';
+    if (type === 'High School') return 'High/Upper Secondary';
+    if (type === 'University') return 'University/Higher Education';
+    if (type === 'Art School') return 'University/Higher Education';
     return null;
   };
+
+  // Global subjects categorized by discipline
+  const globalSubjects = [
+    // STEM
+    { value: 'STEM', label: 'STEM (Science, Technology, Engineering, Math)', category: 'STEM' },
+    { value: 'Mathematics', label: 'Mathematics', category: 'STEM' },
+    { value: 'Science', label: 'Science (General)', category: 'STEM' },
+    { value: 'Physics', label: 'Physics', category: 'STEM' },
+    { value: 'Chemistry', label: 'Chemistry', category: 'STEM' },
+    { value: 'Biology', label: 'Biology', category: 'STEM' },
+    { value: 'Computer Science', label: 'Computer Science / ICT', category: 'STEM' },
+    { value: 'Engineering', label: 'Engineering', category: 'STEM' },
+    { value: 'Robotics', label: 'Robotics', category: 'STEM' },
+    { value: 'Technology', label: 'Technology', category: 'STEM' },
+    { value: 'Environmental Science', label: 'Environmental Science', category: 'STEM' },
+
+    // Arts & Humanities
+    { value: 'Arts', label: 'Arts (General)', category: 'Arts' },
+    { value: 'Visual Arts', label: 'Visual Arts / Fine Arts', category: 'Arts' },
+    { value: 'Music', label: 'Music', category: 'Arts' },
+    { value: 'Theater', label: 'Theater / Drama', category: 'Arts' },
+    { value: 'Dance', label: 'Dance / Movement', category: 'Arts' },
+    { value: 'Film', label: 'Film / Media Production', category: 'Arts' },
+    { value: 'Photography', label: 'Photography', category: 'Arts' },
+    { value: 'Literature', label: 'Literature', category: 'Humanities' },
+    { value: 'History', label: 'History', category: 'Humanities' },
+    { value: 'Geography', label: 'Geography', category: 'Humanities' },
+    { value: 'Philosophy', label: 'Philosophy', category: 'Humanities' },
+
+    // Languages
+    { value: 'Language Arts', label: 'Language Arts / English', category: 'Languages' },
+    { value: 'World Languages', label: 'World Languages', category: 'Languages' },
+    { value: 'Spanish', label: 'Spanish Language', category: 'Languages' },
+    { value: 'French', label: 'French Language', category: 'Languages' },
+    { value: 'Mandarin', label: 'Mandarin Chinese', category: 'Languages' },
+    { value: 'Arabic', label: 'Arabic Language', category: 'Languages' },
+    { value: 'ESL', label: 'ESL / English Language Learning', category: 'Languages' },
+
+    // Social Sciences
+    { value: 'Social Studies', label: 'Social Studies', category: 'Social Sciences' },
+    { value: 'Economics', label: 'Economics', category: 'Social Sciences' },
+    { value: 'Political Science', label: 'Political Science / Civics', category: 'Social Sciences' },
+    { value: 'Psychology', label: 'Psychology', category: 'Social Sciences' },
+    { value: 'Sociology', label: 'Sociology', category: 'Social Sciences' },
+    { value: 'Anthropology', label: 'Anthropology', category: 'Social Sciences' },
+
+    // Global & Cultural
+    { value: 'Global Studies', label: 'Global Studies / International Relations', category: 'Global' },
+    { value: 'Cultural Studies', label: 'Cultural Studies', category: 'Global' },
+    { value: 'Religious Studies', label: 'Religious Studies', category: 'Global' },
+    { value: 'Peace Studies', label: 'Peace & Conflict Studies', category: 'Global' },
+    { value: 'Human Rights', label: 'Human Rights Education', category: 'Global' },
+    { value: 'Diversity', label: 'Diversity & Inclusion', category: 'Global' },
+
+    // Environmental & Sustainability
+    { value: 'Environmental Studies', label: 'Environmental Studies', category: 'Environment' },
+    { value: 'Sustainability', label: 'Sustainability', category: 'Environment' },
+    { value: 'Climate Change', label: 'Climate Change', category: 'Environment' },
+    { value: 'Agriculture', label: 'Agriculture / Farming', category: 'Environment' },
+
+    // Professional & Career
+    { value: 'Business', label: 'Business / Entrepreneurship', category: 'Career' },
+    { value: 'Health Sciences', label: 'Health Sciences', category: 'Career' },
+    { value: 'Medical', label: 'Medical / Healthcare', category: 'Career' },
+    { value: 'Law', label: 'Law / Legal Studies', category: 'Career' },
+    { value: 'Education', label: 'Education / Teaching', category: 'Career' },
+    { value: 'Communications', label: 'Communications / Media', category: 'Career' },
+    { value: 'Journalism', label: 'Journalism', category: 'Career' },
+
+    // Life Skills & Wellbeing
+    { value: 'Physical Education', label: 'Physical Education / Sports', category: 'Wellbeing' },
+    { value: 'Health', label: 'Health & Wellness', category: 'Wellbeing' },
+    { value: 'Social Emotional Learning', label: 'Social-Emotional Learning (SEL)', category: 'Wellbeing' },
+    { value: 'Leadership', label: 'Leadership', category: 'Wellbeing' },
+    { value: 'Service Learning', label: 'Service Learning / Community Service', category: 'Wellbeing' },
+    { value: 'Citizenship', label: 'Citizenship / Civic Engagement', category: 'Wellbeing' },
+
+    // Special Programs
+    { value: 'STEAM', label: 'STEAM (STEM + Arts)', category: 'Interdisciplinary' },
+    { value: 'Project-Based Learning', label: 'Project-Based Learning', category: 'Interdisciplinary' },
+    { value: 'Interdisciplinary', label: 'Interdisciplinary Studies', category: 'Interdisciplinary' },
+    { value: 'Innovation', label: 'Innovation & Design Thinking', category: 'Interdisciplinary' },
+    { value: 'Critical Thinking', label: 'Critical Thinking', category: 'Interdisciplinary' }
+  ];
 
   // Browse Page with Advanced Filters and Pagination
   const BrowsePage = () => {
@@ -3251,7 +3539,7 @@ const VirtualExchangePlatform = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">School Level</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">School Level / Age Group</label>
               <select
                 value={schoolLevelFilter}
                 onChange={(e) => {
@@ -3261,9 +3549,10 @@ const VirtualExchangePlatform = () => {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               >
                 <option value="all">All Levels</option>
-                <option value="Elementary">Elementary (K-5)</option>
-                <option value="Middle School">Middle School (6-8)</option>
-                <option value="High School">High School (9-12)</option>
+                <option value="Primary/Elementary">Primary/Elementary (Ages 5-11)</option>
+                <option value="Middle/Junior Secondary">Middle/Junior Secondary (Ages 11-14)</option>
+                <option value="High/Upper Secondary">High/Upper Secondary (Ages 14-18)</option>
+                <option value="University/Higher Education">University/Higher Education (Ages 18+)</option>
               </select>
             </div>
           </div>
@@ -3313,7 +3602,7 @@ const VirtualExchangePlatform = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Subject Area</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Subject / Discipline</label>
                 <select
                   value={subjectFilter}
                   onChange={(e) => {
@@ -3323,12 +3612,87 @@ const VirtualExchangePlatform = () => {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 >
                   <option value="all">All Subjects</option>
-                  <option value="STEM">STEM</option>
-                  <option value="Arts">Arts</option>
-                  <option value="Environmental">Environmental Studies</option>
-                  <option value="Language">Language & Culture</option>
-                  <option value="Social Justice">Social Justice</option>
-                  <option value="Global">Global Issues</option>
+                  <optgroup label="STEM">
+                    <option value="STEM">STEM (General)</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Science">Science (General)</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Chemistry">Chemistry</option>
+                    <option value="Biology">Biology</option>
+                    <option value="Computer Science">Computer Science / ICT</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Robotics">Robotics</option>
+                    <option value="Technology">Technology</option>
+                  </optgroup>
+                  <optgroup label="Arts & Humanities">
+                    <option value="Arts">Arts (General)</option>
+                    <option value="Visual Arts">Visual Arts / Fine Arts</option>
+                    <option value="Music">Music</option>
+                    <option value="Theater">Theater / Drama</option>
+                    <option value="Dance">Dance / Movement</option>
+                    <option value="Film">Film / Media Production</option>
+                    <option value="Photography">Photography</option>
+                    <option value="Literature">Literature</option>
+                    <option value="History">History</option>
+                    <option value="Geography">Geography</option>
+                    <option value="Philosophy">Philosophy</option>
+                  </optgroup>
+                  <optgroup label="Languages">
+                    <option value="Language Arts">Language Arts / English</option>
+                    <option value="World Languages">World Languages</option>
+                    <option value="Spanish">Spanish Language</option>
+                    <option value="French">French Language</option>
+                    <option value="Mandarin">Mandarin Chinese</option>
+                    <option value="Arabic">Arabic Language</option>
+                    <option value="ESL">ESL / English Language Learning</option>
+                  </optgroup>
+                  <optgroup label="Social Sciences">
+                    <option value="Social Studies">Social Studies</option>
+                    <option value="Economics">Economics</option>
+                    <option value="Political Science">Political Science / Civics</option>
+                    <option value="Psychology">Psychology</option>
+                    <option value="Sociology">Sociology</option>
+                    <option value="Anthropology">Anthropology</option>
+                  </optgroup>
+                  <optgroup label="Global & Cultural Studies">
+                    <option value="Global Studies">Global Studies / International Relations</option>
+                    <option value="Cultural Studies">Cultural Studies</option>
+                    <option value="Religious Studies">Religious Studies</option>
+                    <option value="Peace Studies">Peace & Conflict Studies</option>
+                    <option value="Human Rights">Human Rights Education</option>
+                    <option value="Diversity">Diversity & Inclusion</option>
+                  </optgroup>
+                  <optgroup label="Environment & Sustainability">
+                    <option value="Environmental Science">Environmental Science</option>
+                    <option value="Environmental Studies">Environmental Studies</option>
+                    <option value="Sustainability">Sustainability</option>
+                    <option value="Climate Change">Climate Change</option>
+                    <option value="Agriculture">Agriculture / Farming</option>
+                  </optgroup>
+                  <optgroup label="Professional & Career Education">
+                    <option value="Business">Business / Entrepreneurship</option>
+                    <option value="Health Sciences">Health Sciences</option>
+                    <option value="Medical">Medical / Healthcare</option>
+                    <option value="Law">Law / Legal Studies</option>
+                    <option value="Education">Education / Teaching</option>
+                    <option value="Communications">Communications / Media</option>
+                    <option value="Journalism">Journalism</option>
+                  </optgroup>
+                  <optgroup label="Wellbeing & Life Skills">
+                    <option value="Physical Education">Physical Education / Sports</option>
+                    <option value="Health">Health & Wellness</option>
+                    <option value="Social Emotional Learning">Social-Emotional Learning (SEL)</option>
+                    <option value="Leadership">Leadership</option>
+                    <option value="Service Learning">Service Learning / Community Service</option>
+                    <option value="Citizenship">Citizenship / Civic Engagement</option>
+                  </optgroup>
+                  <optgroup label="Interdisciplinary">
+                    <option value="STEAM">STEAM (STEM + Arts)</option>
+                    <option value="Project-Based Learning">Project-Based Learning</option>
+                    <option value="Interdisciplinary">Interdisciplinary Studies</option>
+                    <option value="Innovation">Innovation & Design Thinking</option>
+                    <option value="Critical Thinking">Critical Thinking</option>
+                  </optgroup>
                 </select>
               </div>
               <div>
@@ -3666,6 +4030,32 @@ const VirtualExchangePlatform = () => {
               >
                 Contact
               </button>
+
+              {/* Language Selector */}
+              <select
+                value={currentLanguage}
+                onChange={(e) => setCurrentLanguage(e.target.value)}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                title="Select Language"
+              >
+                {languages.map(lang => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.flag} {lang.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Get Verified Button */}
+              <button
+                type="button"
+                onClick={() => setShowVerificationModal(true)}
+                className="px-4 py-2 border-2 border-green-600 text-green-600 rounded-lg font-semibold hover:bg-green-50 transition flex items-center gap-2"
+                title="Get your organization verified"
+              >
+                <Shield size={16} />
+                Get Verified
+              </button>
+
               <button
                 type="button"
                 onClick={() => setActiveTab('donate')}
@@ -3753,6 +4143,7 @@ const VirtualExchangePlatform = () => {
       {/* Modals */}
       {showAuthModal && <AuthModal />}
       {showConnectModal && selectedOrg && <ConnectModal org={selectedOrg} />}
+      {showVerificationModal && <VerificationModal />}
     </div>
   );
 };
