@@ -1716,81 +1716,54 @@ const VirtualExchangePlatform = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#666666] text-white mt-20">
+      <footer className="bg-gray-50 border-t border-gray-200 mt-20">
         <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
+          <div className="grid md:grid-cols-4 gap-12 mb-10">
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <VirtualExchangeLogo size="sm" />
-                <div className="text-sm font-light">The Virtual Exchange</div>
+                <div className="text-base font-medium text-gray-800">The Virtual Exchange</div>
               </div>
-              <p className="text-gray-300 text-sm">
+              <p className="text-gray-600 text-sm leading-relaxed">
                 Breaking down borders through education
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-3">Platform</h4>
-              <div className="space-y-2 text-sm text-gray-300">
-                <div className="hover:text-white cursor-pointer">Browse Partners</div>
-                <div className="hover:text-white cursor-pointer">How It Works</div>
-                <div className="hover:text-white cursor-pointer">Verification</div>
+              <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wider">Platform</h4>
+              <div className="space-y-2.5">
+                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">Browse Partners</div>
+                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">How It Works</div>
+                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">Verification</div>
               </div>
             </div>
             <div>
-              <h4 className="font-semibold mb-3">About</h4>
-              <div className="space-y-2 text-sm text-gray-300">
-                <div className="hover:text-white cursor-pointer">Our Mission</div>
-                <div className="hover:text-white cursor-pointer">MapWorks Learning</div>
-                <div className="hover:text-white cursor-pointer">Contact Us</div>
+              <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wider">About</h4>
+              <div className="space-y-2.5">
+                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">Our Mission</div>
+                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">MapWorks Learning</div>
+                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">Contact Us</div>
               </div>
             </div>
             <div>
-              <h4 className="font-semibold mb-3">Support</h4>
-              <div className="space-y-2 text-sm text-gray-300">
-                <div className="hover:text-white cursor-pointer">Donate</div>
-                <div className="hover:text-white cursor-pointer">FAQ</div>
-                <div className="hover:text-white cursor-pointer">Resources</div>
+              <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wider">Support</h4>
+              <div className="space-y-2.5">
+                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">Donate</div>
+                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">FAQ</div>
+                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">Resources</div>
               </div>
             </div>
           </div>
-          <div className="border-t border-gray-500 pt-8">
-            <div className="bg-white py-8 px-6 rounded-xl">
-              <div className="flex flex-col items-center">
-                <svg width="300" height="77" viewBox="0 0 388.81 99.93" className="mb-4">
-                  <defs>
-                    <style>
-                      {`.cls-1{fill:none}.cls-1,.cls-2,.cls-3,.cls-4,.cls-5{stroke-width:0px}.cls-2{fill:#58595b}.cls-3{fill:#e2d7cf}.cls-4{fill:#fdc20f}.cls-5{fill:#010101}`}
-                    </style>
-                  </defs>
-                  <g>
-                    <g>
-                      <circle className="cls-1" cx="34.26" cy="32.09" r="10.79" transform="translate(-6.81 9.36) rotate(-14.16)"/>
-                      <polygon className="cls-5" points="40.6 89.63 27.93 89.63 34.26 99.93 40.6 89.63"/>
-                    </g>
-                    <path className="cls-4" d="m22.54,80.88c1.31-.92,2.9-1.46,4.62-1.46,3.06,0,5.73,1.71,7.1,4.22,1.37-2.51,4.04-4.22,7.1-4.22,1.72,0,3.31.54,4.62,1.46l.26-.42c9.97-17.44,22.28-37.78,22.28-48.36C68.53,7.42,47.85,0,34.28,0c0,0-.01,0-.02,0s-.01,0-.02,0C20.68,0,0,7.42,0,32.09c0,10.58,12.31,30.92,22.28,48.36l.26.42Zm11.72-59.58c5.96,0,10.79,4.83,10.79,10.79s-4.83,10.79-10.79,10.79-10.79-4.83-10.79-10.79,4.83-10.79,10.79-10.79Z"/>
-                    <path className="cls-3" d="m40.6,89.63l5.39-8.75c-1.31-.92-2.9-1.46-4.62-1.46-3.06,0-5.73,1.71-7.1,4.22-1.37-2.51-4.04-4.22-7.1-4.22-1.72,0-3.31.54-4.62,1.46l5.39,8.75h12.67Z"/>
-                  </g>
-                  <g>
-                    <path className="cls-2" d="m77.51,51.73c0-.67.58-1.25,1.25-1.25h.29c.54,0,.93.29,1.18.67l8,12.03,8-12.03c.26-.42.67-.67,1.18-.67h.29c.67,0,1.25.58,1.25,1.25v20.13c0,.7-.58,1.28-1.25,1.28s-1.28-.61-1.28-1.28v-16.7l-7.17,10.53c-.29.42-.61.64-1.06.64s-.8-.22-1.09-.64l-7.14-10.5v16.7c0,.7-.54,1.25-1.25,1.25s-1.22-.54-1.22-1.25v-20.16Z"/>
-                    <path className="cls-2" d="m103.63,68.18v-.06c0-3.49,2.88-5.34,7.07-5.34,2.11,0,3.62.29,5.09.7v-.58c0-2.98-1.82-4.51-4.93-4.51-1.66,0-3.07.38-4.29.93-.16.06-.32.1-.45.1-.58,0-1.09-.48-1.09-1.06,0-.51.35-.9.67-1.02,1.63-.7,3.3-1.12,5.41-1.12,2.34,0,4.13.61,5.34,1.82,1.12,1.12,1.7,2.72,1.7,4.83v9.05c0,.71-.51,1.22-1.18,1.22s-1.18-.51-1.18-1.15v-1.5c-1.15,1.5-3.07,2.85-5.98,2.85-3.07,0-6.18-1.76-6.18-5.15Zm12.19-1.28v-1.6c-1.22-.35-2.85-.7-4.86-.7-3.1,0-4.83,1.34-4.83,3.42v.06c0,2.08,1.92,3.3,4.16,3.3,3.04,0,5.54-1.86,5.54-4.48Z"/>
-                    <path className="cls-2" d="m123.4,57.52c0-.7.54-1.25,1.22-1.25s1.25.54,1.25,1.25v2.24c1.34-1.98,3.3-3.68,6.34-3.68,3.97,0,7.9,3.14,7.9,8.58v.06c0,5.41-3.9,8.61-7.9,8.61-3.07,0-5.06-1.66-6.34-3.52v7.2c0,.71-.51,1.25-1.22,1.25s-1.25-.54-1.25-1.25v-19.49Zm14.17,7.23v-.06c0-3.9-2.69-6.4-5.82-6.4s-5.98,2.59-5.98,6.37v.06c0,3.84,2.91,6.4,5.98,6.4s5.82-2.37,5.82-6.37Z"/>
-                    <path className="cls-2" d="m143.72,52.27c-.06-.19-.13-.38-.13-.58,0-.67.61-1.28,1.31-1.28.64,0,1.12.48,1.31,1.06l6.18,17.79,5.86-17.85c.19-.58.58-.99,1.25-.99h.16c.64,0,1.06.42,1.25.99l5.86,17.85,6.21-17.85c.19-.58.61-.99,1.22-.99.67,0,1.28.61,1.28,1.25,0,.19-.1.42-.16.61l-7.17,19.9c-.22.64-.67,1.09-1.31,1.09h-.19c-.64,0-1.09-.45-1.31-1.09l-5.82-17.21-5.79,17.21c-.22.64-.67,1.09-1.31,1.09h-.19c-.64,0-1.09-.42-1.31-1.09l-7.17-19.9Z"/>
-                    <path className="cls-2" d="m176.94,64.78v-.06c0-4.67,3.65-8.64,8.64-8.64s8.61,3.9,8.61,8.58v.06c0,4.67-3.68,8.64-8.67,8.64s-8.58-3.9-8.58-8.58Zm14.72,0v-.06c0-3.55-2.66-6.46-6.14-6.46s-6.05,2.91-6.05,6.4v.06c0,3.55,2.62,6.43,6.11,6.43s6.08-2.88,6.08-6.37Z"/>
-                    <path className="cls-2" d="m198.63,57.52c0-.67.54-1.25,1.22-1.25s1.25.54,1.25,1.25v3.1c1.22-2.75,3.62-4.42,5.7-4.42.74,0,1.22.54,1.22,1.25s-.45,1.15-1.09,1.25c-3.2.38-5.82,2.78-5.82,7.55v5.63c0,.67-.51,1.25-1.22,1.25s-1.25-.54-1.25-1.25v-14.37Z"/>
-                    <path className="cls-2" d="m211.59,50.71c0-.67.54-1.25,1.22-1.25s1.25.58,1.25,1.25v15.17l8.96-9.12c.29-.32.58-.48.96-.48.67,0,1.12.54,1.12,1.15,0,.38-.16.64-.48.96l-5.41,5.31,5.92,7.46c.22.29.32.51.32.83,0,.67-.51,1.15-1.18,1.15-.45,0-.74-.16-1.06-.58l-5.73-7.23-3.42,3.39v3.17c0,.7-.51,1.25-1.22,1.25s-1.25-.54-1.25-1.25v-21.18Z"/>
-                    <path className="cls-2" d="m228.87,71.22c-.22-.16-.45-.48-.45-.9,0-.58.48-1.06,1.09-1.06.22,0,.45.06.61.19,1.7,1.15,3.46,1.76,5.25,1.76,1.98,0,3.42-1.02,3.42-2.62v-.06c0-1.66-1.95-2.3-4.13-2.91-2.59-.74-5.47-1.63-5.47-4.67v-.06c0-2.85,2.37-4.73,5.63-4.73,1.76,0,3.68.54,5.28,1.41.32.19.61.54.61,1.02,0,.58-.48,1.06-1.09,1.06-.22,0-.42-.06-.54-.13-1.41-.8-2.91-1.28-4.32-1.28-1.95,0-3.2,1.02-3.2,2.4v.06c0,1.57,2.05,2.18,4.26,2.85,2.56.77,5.31,1.76,5.31,4.74v.06c0,3.14-2.59,4.96-5.89,4.96-2.18,0-4.58-.8-6.37-2.08Z"/>
-                    <path className="cls-2" d="m255.72,51.7c0-.7.58-1.28,1.25-1.28s1.28.58,1.28,1.28v18.94h11.62c.64,0,1.15.54,1.15,1.18s-.51,1.15-1.15,1.15h-12.89c-.67,0-1.25-.58-1.25-1.28v-20Z"/>
-                    <path className="cls-2" d="m282.02,73.36c-4.54,0-8.26-3.49-8.26-8.61v-.06c0-4.77,3.36-8.61,7.94-8.61,4.9,0,7.68,4,7.68,8.38,0,.67-.54,1.15-1.15,1.15h-11.97c.35,3.58,2.88,5.6,5.82,5.6,2.05,0,3.55-.8,4.77-1.92.19-.16.42-.29.7-.29.61,0,1.09.48,1.09,1.06,0,.29-.13.58-.38.8-1.57,1.5-3.42,2.5-6.24,2.5Zm4.9-9.57c-.26-3.01-1.98-5.63-5.28-5.63-2.88,0-5.06,2.4-5.38,5.63h10.66Z"/>
-                    <path className="cls-2" d="m292.49,68.18v-.06c0-3.49,2.88-5.34,7.07-5.34,2.11,0,3.62.29,5.09.7v-.58c0-2.98-1.82-4.51-4.93-4.51-1.66,0-3.07.38-4.29.93-.16.06-.32.1-.45.1-.58,0-1.09-.48-1.09-1.06,0-.51.35-.9.67-1.02,1.63-.7,3.3-1.12,5.41-1.12,2.34,0,4.13.61,5.34,1.82,1.12,1.12,1.7,2.72,1.7,4.83v9.05c0,.71-.51,1.22-1.18,1.22s-1.18-.51-1.18-1.15v-1.5c-1.15,1.5-3.07,2.85-5.98,2.85-3.07,0-6.18-1.76-6.18-5.15Zm12.19-1.28v-1.6c-1.22-.35-2.85-.7-4.86-.7-3.1,0-4.83,1.34-4.83,3.42v.06c0,2.08,1.92,3.3,4.16,3.3,3.04,0,5.54-1.86,5.54-4.48Z"/>
-                    <path className="cls-2" d="m312.26,57.52c0-.67.54-1.25,1.22-1.25s1.25.54,1.25,1.25v3.1c1.22-2.75,3.62-4.42,5.7-4.42.74,0,1.22.54,1.22,1.25s-.45,1.15-1.09,1.25c-3.2.38-5.82,2.78-5.82,7.55v5.63c0,.67-.51,1.25-1.22,1.25s-1.25-.54-1.25-1.25v-14.37Z"/>
-                    <path className="cls-2" d="m325.22,57.52c0-.67.54-1.25,1.22-1.25s1.25.54,1.25,1.25v1.79c1.09-1.79,2.82-3.23,5.66-3.23,4,0,6.34,2.69,6.34,6.62v9.18c0,.7-.54,1.25-1.22,1.25s-1.25-.54-1.25-1.25v-8.58c0-3.07-1.66-4.99-4.58-4.99s-4.96,2.08-4.96,5.18v8.38c0,.7-.51,1.25-1.22,1.25s-1.25-.54-1.25-1.25v-14.37Z"/>
-                    <path className="cls-2" d="m344.94,51.25c0-.8.64-1.31,1.44-1.31s1.47.51,1.47,1.31v.42c0,.77-.64,1.31-1.47,1.31s-1.44-.54-1.44-1.31v-.42Zm.22,6.27c0-.67.54-1.25,1.22-1.25s1.25.54,1.25,1.25v14.37c0,.7-.51,1.25-1.22,1.25s-1.25-.54-1.25-1.25v-14.37Z"/>
-                    <path className="cls-2" d="m353.35,57.52c0-.67.54-1.25,1.22-1.25s1.25.54,1.25,1.25v1.79c1.09-1.79,2.82-3.23,5.66-3.23,4,0,6.34,2.69,6.34,6.62v9.18c0,.7-.54,1.25-1.22,1.25s-1.25-.54-1.25-1.25v-8.58c0-3.07-1.66-4.99-4.58-4.99s-4.96,2.08-4.96,5.18v8.38c0,.7-.51,1.25-1.22,1.25s-1.25-.54-1.25-1.25v-14.37Z"/>
-                    <path className="cls-2" d="m373.48,76.21c-.38-.19-.64-.58-.64-1.02,0-.54.54-1.09,1.12-1.09.22,0,.38.06.54.16,1.73,1.15,3.71,1.79,5.86,1.79,3.65,0,6.02-2.02,6.02-5.89v-1.95c-1.44,1.92-3.46,3.49-6.5,3.49-3.97,0-7.78-2.98-7.78-7.74v-.06c0-4.83,3.84-7.81,7.78-7.81,3.1,0,5.12,1.54,6.46,3.33v-1.89c0-.67.51-1.25,1.22-1.25s1.25.58,1.25,1.25v12.58c0,2.56-.77,4.51-2.11,5.86-1.47,1.47-3.68,2.21-6.3,2.21s-4.83-.67-6.91-1.95Zm12.96-12.29v-.06c0-3.39-2.94-5.6-6.08-5.6s-5.73,2.18-5.73,5.57v.06c0,3.33,2.66,5.63,5.73,5.63s6.08-2.27,6.08-5.6Z"/>
-                  </g>
-                </svg>
-                <p className="text-gray-600 italic mb-2">"Every conversation is a step toward solidarity"</p>
-                <p className="text-gray-500 text-sm">© 2026 The Virtual Exchange | A MapWorks Learning Initiative</p>
+          <div className="border-t border-gray-300 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-3">
+                <MapWorksLogo size="sm" />
+                <div className="text-sm text-gray-700">
+                  <span className="font-medium">MapWorks Learning</span>
+                </div>
+              </div>
+              <div className="text-center md:text-right">
+                <p className="text-gray-600 text-sm italic mb-1">"Every conversation is a step toward solidarity"</p>
+                <p className="text-gray-500 text-xs">© 2026 The Virtual Exchange | A MapWorks Learning Initiative</p>
               </div>
             </div>
           </div>
