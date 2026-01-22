@@ -2473,11 +2473,11 @@ const VirtualExchangePlatform = () => {
 
     // Extract school level from query
     let schoolLevelMatch = null;
-    if (keywords.match(/\b(elementary|primary|k-5|kindergarten|grade [1-5])\b/)) {
+    if (keywords.match(/\b(elementary|primary|k-5|kindergarten|grade 1-5)\b/)) {
       schoolLevelMatch = 'Primary School';
-    } else if (keywords.match(/\b(middle school|junior high|grades? [6-8]|6th|7th|8th)\b/)) {
+    } else if (keywords.match(/\b(middle school|junior high|grades? 6-8|6th|7th|8th)\b/)) {
       schoolLevelMatch = 'Middle School';
-    } else if (keywords.match(/\b(high school|secondary|grades? [9-12]|freshman|sophomore|junior|senior|9th|10th|11th|12th)\b/)) {
+    } else if (keywords.match(/\b(high school|secondary|grades? 9-12|freshman|sophomore|junior|senior|9th|10th|11th|12th)\b/)) {
       schoolLevelMatch = 'High School';
     } else if (keywords.match(/\b(university|college|higher education)\b/)) {
       schoolLevelMatch = 'University';
