@@ -2464,19 +2464,133 @@ const VirtualExchangePlatform = () => {
     }
   ];
 
-  // AI Search Handler
+  // Enhanced AI Search Handler with Natural Language Processing
   const handleAISearch = () => {
     const query = aiSearchRef.current?.value || '';
     if (!query.trim()) return;
-    
+
     const keywords = query.toLowerCase();
+
+    // Extract school level from query
+    let schoolLevelMatch = null;
+    if (keywords.match(/\b(elementary|primary|k-5|kindergarten|grade [1-5])\b/)) {
+      schoolLevelMatch = 'Primary School';
+    } else if (keywords.match(/\b(middle school|junior high|grades? [6-8]|6th|7th|8th)\b/)) {
+      schoolLevelMatch = 'Middle School';
+    } else if (keywords.match(/\b(high school|secondary|grades? [9-12]|freshman|sophomore|junior|senior|9th|10th|11th|12th)\b/)) {
+      schoolLevelMatch = 'High School';
+    } else if (keywords.match(/\b(university|college|higher education)\b/)) {
+      schoolLevelMatch = 'University';
+    }
+
+    // Extract languages from query
+    const languageKeywords = ['spanish', 'english', 'french', 'german', 'mandarin', 'chinese', 'arabic', 'portuguese', 'russian'];
+    const languageMatch = languageKeywords.find(lang => keywords.includes(lang));
+
+    // Extract subject areas from query
+    const subjectMatches = [];
+    if (keywords.match(/\b(stem|science|technology|engineering|math|mathematics|computer|coding|robotics)\b/)) {
+      subjectMatches.push('STEM');
+    }
+    if (keywords.match(/\b(art|arts|music|theater|theatre|dance|visual|creative)\b/)) {
+      subjectMatches.push('Arts');
+    }
+    if (keywords.match(/\b(environment|environmental|climate|sustainability|green|ecology)\b/)) {
+      subjectMatches.push('Environmental');
+    }
+    if (keywords.match(/\b(culture|cultural|language|international|global)\b/)) {
+      subjectMatches.push('Cultural');
+    }
+
+    // Extract regions/countries from query
+    const regionKeywords = {
+      'north america': 'North America',
+      'usa': 'United States',
+      'united states': 'United States',
+      'us': 'United States',
+      'america': 'United States',
+      'canada': 'Canada',
+      'europe': 'Europe',
+      'european': 'Europe',
+      'spain': 'Spain',
+      'france': 'France',
+      'germany': 'Germany',
+      'uk': 'United Kingdom',
+      'united kingdom': 'United Kingdom',
+      'asia': 'Asia',
+      'china': 'China',
+      'japan': 'Japan',
+      'south america': 'South America',
+      'brazil': 'Brazil',
+      'middle east': 'Middle East'
+    };
+
+    let regionMatch = null;
+    for (const [keyword, region] of Object.entries(regionKeywords)) {
+      if (keywords.includes(keyword)) {
+        regionMatch = region;
+        break;
+      }
+    }
+
+    // Filter organizations based on extracted criteria
     const filtered = organizations.filter(org => {
-      const searchText = `${org.name} ${org.description} ${org.interests.join(' ')} ${org.country}`.toLowerCase();
-      return searchText.includes(keywords) || 
-             org.type.toLowerCase().includes(keywords) ||
-             org.region.toLowerCase().includes(keywords);
+      // Basic text search
+      const searchText = `${org.name} ${org.description} ${org.interests?.join(' ')} ${org.country} ${org.city || ''} ${org.state || ''}`.toLowerCase();
+      const matchesKeywords = searchText.includes(keywords) ||
+                             org.type.toLowerCase().includes(keywords) ||
+                             org.region.toLowerCase().includes(keywords);
+
+      // School level match
+      const matchesSchoolLevel = !schoolLevelMatch || org.type === schoolLevelMatch;
+
+      // Language match
+      const matchesLanguage = !languageMatch ||
+                             (org.languages && org.languages.some(lang =>
+                               lang.toLowerCase().includes(languageMatch)
+                             ));
+
+      // Subject match
+      const matchesSubject = subjectMatches.length === 0 ||
+                            (org.interests && subjectMatches.some(subject =>
+                              org.interests.some(interest =>
+                                interest.toLowerCase().includes(subject.toLowerCase())
+                              )
+                            ));
+
+      // Region/Country match
+      const matchesRegion = !regionMatch ||
+                           org.region === regionMatch ||
+                           org.country === regionMatch;
+
+      // Return true if matches keywords OR matches specific criteria
+      return matchesKeywords || (matchesSchoolLevel && matchesLanguage && matchesSubject && matchesRegion);
     });
-    setSearchResults(filtered);
+
+    // Sort results by relevance (most matches first)
+    const scoredResults = filtered.map(org => {
+      let score = 0;
+      const searchText = `${org.name} ${org.description} ${org.interests?.join(' ')}`.toLowerCase();
+
+      // Increase score for keyword matches
+      const words = keywords.split(' ').filter(w => w.length > 2);
+      words.forEach(word => {
+        if (searchText.includes(word)) score += 2;
+      });
+
+      // Increase score for specific criteria matches
+      if (schoolLevelMatch && org.type === schoolLevelMatch) score += 5;
+      if (languageMatch && org.languages?.some(l => l.toLowerCase().includes(languageMatch))) score += 3;
+      if (subjectMatches.length > 0 && org.interests?.some(i =>
+        subjectMatches.some(s => i.toLowerCase().includes(s.toLowerCase()))
+      )) score += 4;
+      if (regionMatch && (org.region === regionMatch || org.country === regionMatch)) score += 3;
+
+      return { ...org, score };
+    });
+
+    scoredResults.sort((a, b) => b.score - a.score);
+    setSearchResults(scoredResults);
   };
 
   // Authentication Modal
@@ -2863,14 +2977,37 @@ const VirtualExchangePlatform = () => {
         
         {searchResults.length > 0 && (
           <div className="mt-8 max-w-6xl mx-auto">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">
-              Found {searchResults.length} matching {searchResults.length === 1 ? 'organization' : 'organizations'}
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-800">
+                Found {searchResults.length} matching {searchResults.length === 1 ? 'organization' : 'organizations'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setSearchResults([])}
+                className="text-gray-600 hover:text-gray-800 text-sm font-medium"
+              >
+                Clear Results
+              </button>
+            </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {searchResults.slice(0, 6).map(org => (
+              {searchResults.map(org => (
                 <OrganizationCard key={org.id} org={org} />
               ))}
             </div>
+            {searchResults.length > 6 && (
+              <div className="mt-6 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('browse');
+                    // Optional: could pre-fill browse filters based on search
+                  }}
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  View all results in Browse →
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -2957,16 +3094,99 @@ const VirtualExchangePlatform = () => {
     </div>
   );
 
-  // Browse Page
+  // Helper function to get school level from type
+  const getSchoolLevel = (type) => {
+    if (type === 'Primary School') return 'Elementary';
+    if (type === 'Middle School') return 'Middle School';
+    if (type === 'High School') return 'High School';
+    return null;
+  };
+
+  // Browse Page with Advanced Filters and Pagination
   const BrowsePage = () => {
     const [filter, setFilter] = useState('all');
     const [regionFilter, setRegionFilter] = useState('all');
-    
+    const [schoolLevelFilter, setSchoolLevelFilter] = useState('all');
+    const [languageFilter, setLanguageFilter] = useState('all');
+    const [subjectFilter, setSubjectFilter] = useState('all');
+    const [studentSizeFilter, setStudentSizeFilter] = useState('all');
+    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+    const [itemsToShow, setItemsToShow] = useState(12);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Get all unique languages and subjects from organizations
+    const allLanguages = [...new Set(organizations.flatMap(org => org.languages || []))].sort();
+    const allSubjects = [...new Set(organizations.flatMap(org => org.interests || []))].sort();
+
     const filteredOrgs = organizations.filter(org => {
+      // Basic filters
       const matchesType = filter === 'all' || org.category === filter;
       const matchesRegion = regionFilter === 'all' || org.region === regionFilter;
-      return matchesType && matchesRegion;
+
+      // School level filter
+      const orgSchoolLevel = getSchoolLevel(org.type);
+      const matchesSchoolLevel = schoolLevelFilter === 'all' ||
+        (orgSchoolLevel && orgSchoolLevel === schoolLevelFilter);
+
+      // Language filter
+      const matchesLanguage = languageFilter === 'all' ||
+        (org.languages && org.languages.includes(languageFilter));
+
+      // Subject filter
+      const matchesSubject = subjectFilter === 'all' ||
+        (org.interests && org.interests.some(interest =>
+          interest.toLowerCase().includes(subjectFilter.toLowerCase())
+        ));
+
+      // Student size filter
+      let matchesStudentSize = true;
+      if (studentSizeFilter !== 'all' && org.students) {
+        const students = org.students;
+        switch(studentSizeFilter) {
+          case 'small':
+            matchesStudentSize = students < 500;
+            break;
+          case 'medium':
+            matchesStudentSize = students >= 500 && students < 1500;
+            break;
+          case 'large':
+            matchesStudentSize = students >= 1500;
+            break;
+          default:
+            matchesStudentSize = true;
+        }
+      }
+
+      // Text search filter
+      const matchesSearch = searchQuery === '' ||
+        `${org.name} ${org.description} ${org.interests?.join(' ')} ${org.country} ${org.city || ''} ${org.state || ''}`
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
+
+      return matchesType && matchesRegion && matchesSchoolLevel &&
+             matchesLanguage && matchesSubject && matchesStudentSize && matchesSearch;
     });
+
+    const displayedOrgs = filteredOrgs.slice(0, itemsToShow);
+    const hasMore = itemsToShow < filteredOrgs.length;
+
+    const handleLoadMore = () => {
+      setItemsToShow(prev => prev + 12);
+    };
+
+    const handleResetFilters = () => {
+      setFilter('all');
+      setRegionFilter('all');
+      setSchoolLevelFilter('all');
+      setLanguageFilter('all');
+      setSubjectFilter('all');
+      setStudentSizeFilter('all');
+      setSearchQuery('');
+      setItemsToShow(12);
+    };
+
+    const activeFilterCount = [filter, regionFilter, schoolLevelFilter, languageFilter, subjectFilter, studentSizeFilter]
+      .filter(f => f !== 'all').length + (searchQuery ? 1 : 0);
 
     return (
       <div className="space-y-8">
@@ -2977,15 +3197,33 @@ const VirtualExchangePlatform = () => {
           </p>
         </div>
 
+        {/* Search Bar */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setItemsToShow(12);
+            }}
+            placeholder="Search by name, location, subjects, or keywords..."
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="grid md:grid-cols-2 gap-6">
+          {/* Basic Filters */}
+          <div className="grid md:grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Organization Type</label>
-              <select 
+              <select
                 value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  setFilter(e.target.value);
+                  setItemsToShow(12);
+                }}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               >
                 <option value="all">All Types</option>
                 <option value="Exchange Provider">Exchange Providers</option>
@@ -2995,10 +3233,13 @@ const VirtualExchangePlatform = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Region</label>
-              <select 
+              <select
                 value={regionFilter}
-                onChange={(e) => setRegionFilter(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  setRegionFilter(e.target.value);
+                  setItemsToShow(12);
+                }}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               >
                 <option value="all">All Regions</option>
                 <option value="North America">North America</option>
@@ -3009,20 +3250,157 @@ const VirtualExchangePlatform = () => {
                 <option value="Global Network">Global</option>
               </select>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">School Level</label>
+              <select
+                value={schoolLevelFilter}
+                onChange={(e) => {
+                  setSchoolLevelFilter(e.target.value);
+                  setItemsToShow(12);
+                }}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="all">All Levels</option>
+                <option value="Elementary">Elementary (K-5)</option>
+                <option value="Middle School">Middle School (6-8)</option>
+                <option value="High School">High School (9-12)</option>
+              </select>
+            </div>
           </div>
+
+          {/* Advanced Filters Toggle */}
+          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-2"
+            >
+              {showAdvancedFilters ? '− Hide' : '+ Show'} Advanced Filters
+              {activeFilterCount > 0 && (
+                <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs font-semibold">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+            {activeFilterCount > 0 && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="text-gray-600 hover:text-gray-800 text-sm font-medium"
+              >
+                Clear All Filters
+              </button>
+            )}
+          </div>
+
+          {/* Advanced Filters Panel */}
+          {showAdvancedFilters && (
+            <div className="grid md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-200">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                <select
+                  value={languageFilter}
+                  onChange={(e) => {
+                    setLanguageFilter(e.target.value);
+                    setItemsToShow(12);
+                  }}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="all">All Languages</option>
+                  {allLanguages.map(lang => (
+                    <option key={lang} value={lang}>{lang}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Subject Area</label>
+                <select
+                  value={subjectFilter}
+                  onChange={(e) => {
+                    setSubjectFilter(e.target.value);
+                    setItemsToShow(12);
+                  }}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="all">All Subjects</option>
+                  <option value="STEM">STEM</option>
+                  <option value="Arts">Arts</option>
+                  <option value="Environmental">Environmental Studies</option>
+                  <option value="Language">Language & Culture</option>
+                  <option value="Social Justice">Social Justice</option>
+                  <option value="Global">Global Issues</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">School Size</label>
+                <select
+                  value={studentSizeFilter}
+                  onChange={(e) => {
+                    setStudentSizeFilter(e.target.value);
+                    setItemsToShow(12);
+                  }}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="all">All Sizes</option>
+                  <option value="small">Small (Under 500)</option>
+                  <option value="medium">Medium (500-1,500)</option>
+                  <option value="large">Large (1,500+)</option>
+                </select>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Results Count */}
-        <div className="text-center text-gray-600">
-          Showing {filteredOrgs.length} {filteredOrgs.length === 1 ? 'organization' : 'organizations'}
+        <div className="flex items-center justify-between">
+          <div className="text-gray-600">
+            Showing <span className="font-semibold">{displayedOrgs.length}</span> of{' '}
+            <span className="font-semibold">{filteredOrgs.length}</span>{' '}
+            {filteredOrgs.length === 1 ? 'organization' : 'organizations'}
+          </div>
+          {activeFilterCount > 0 && (
+            <div className="text-sm text-gray-500">
+              {activeFilterCount} {activeFilterCount === 1 ? 'filter' : 'filters'} active
+            </div>
+          )}
         </div>
 
         {/* Organizations Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredOrgs.map(org => (
-            <OrganizationCard key={org.id} org={org} />
-          ))}
-        </div>
+        {displayedOrgs.length > 0 ? (
+          <>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayedOrgs.map(org => (
+                <OrganizationCard key={org.id} org={org} />
+              ))}
+            </div>
+
+            {/* Load More Button */}
+            {hasMore && (
+              <div className="text-center pt-4">
+                <button
+                  type="button"
+                  onClick={handleLoadMore}
+                  className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+                >
+                  Load More ({filteredOrgs.length - itemsToShow} remaining)
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <div className="text-gray-400 text-5xl mb-4">🔍</div>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">No partners found</h3>
+            <p className="text-gray-600 mb-4">Try adjusting your filters or search terms</p>
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Clear all filters
+            </button>
+          </div>
+        )}
       </div>
     );
   };
