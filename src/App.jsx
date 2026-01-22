@@ -900,7 +900,8 @@ const VirtualExchangePlatform = () => {
 
           {/* Right Side - Form */}
           <div className="p-12">
-            <button 
+            <button
+              type="button"
               onClick={() => setShowAuthModal(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
             >
@@ -912,7 +913,8 @@ const VirtualExchangePlatform = () => {
             </h3>
             <p className="text-gray-600 mb-6">
               {authMode === 'signup' ? 'Already an user?' : "Don't have an account?"}{' '}
-              <button 
+              <button
+                type="button"
                 onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}
                 className="text-blue-600 font-semibold hover:underline"
               >
@@ -1017,7 +1019,7 @@ const VirtualExchangePlatform = () => {
             <h3 className="text-2xl font-semibold text-gray-800">Connect with {org.name}</h3>
             <p className="text-gray-600 mt-1">Send a professional introduction</p>
           </div>
-          <button onClick={() => setShowConnectModal(false)} className="text-gray-400 hover:text-gray-600">
+          <button type="button" onClick={() => setShowConnectModal(false)} className="text-gray-400 hover:text-gray-600">
             <X size={24} />
           </button>
         </div>
@@ -1145,7 +1147,8 @@ const VirtualExchangePlatform = () => {
       </div>
 
       <div className="flex gap-3">
-        <button 
+        <button
+          type="button"
           onClick={() => {
             setSelectedOrg(org);
             setShowConnectModal(true);
@@ -1154,7 +1157,8 @@ const VirtualExchangePlatform = () => {
         >
           Connect
         </button>
-        <button 
+        <button
+          type="button"
           onClick={() => setSelectedOrg(org)}
           className="px-4 py-2 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition text-sm"
         >
@@ -1184,13 +1188,15 @@ const VirtualExchangePlatform = () => {
             A vetted, professional gateway connecting educational institutions worldwide for meaningful virtual exchange programs
           </p>
           <div className="flex gap-4 justify-center">
-            <button 
+            <button
+              type="button"
               onClick={() => setShowAuthModal(true)}
               className="bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition shadow-lg"
             >
               Get Started
             </button>
-            <button 
+            <button
+              type="button"
               onClick={() => setActiveTab('browse')}
               className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold border-2 border-blue-600 hover:bg-blue-50 transition"
             >
@@ -1221,7 +1227,8 @@ const VirtualExchangePlatform = () => {
                 className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
               />
             </div>
-            <button 
+            <button
+              type="button"
               onClick={handleAISearch}
               className="bg-[#666666] text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-700 transition whitespace-nowrap"
             >
@@ -1236,6 +1243,7 @@ const VirtualExchangePlatform = () => {
               "University research collaboration"
             ].map(example => (
               <button
+                type="button"
                 key={example}
                 onClick={() => {
                   if (aiSearchRef.current) {
@@ -1604,7 +1612,7 @@ const VirtualExchangePlatform = () => {
           <div key={tier.amount} className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center hover:shadow-lg transition">
             <div className="text-4xl font-bold text-blue-600 mb-2">{tier.amount}</div>
             <p className="text-gray-600 mb-6">{tier.desc}</p>
-            <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+            <button type="button" className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
               Donate {tier.amount}
             </button>
           </div>
@@ -1623,7 +1631,7 @@ const VirtualExchangePlatform = () => {
               className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <button className="w-full bg-red-600 text-white py-4 rounded-lg font-semibold hover:bg-red-700 transition">
+          <button type="button" className="w-full bg-red-600 text-white py-4 rounded-lg font-semibold hover:bg-red-700 transition">
             Make a Donation
           </button>
         </div>
@@ -1650,38 +1658,44 @@ const VirtualExchangePlatform = () => {
               </div>
             </div>
             <div className="flex gap-8 items-center">
-              <button 
-                onClick={() => setActiveTab('home')} 
+              <button
+                type="button"
+                onClick={() => setActiveTab('home')}
                 className={`font-medium transition ${activeTab === 'home' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
               >
                 Home
               </button>
-              <button 
-                onClick={() => setActiveTab('browse')} 
+              <button
+                type="button"
+                onClick={() => setActiveTab('browse')}
                 className={`font-medium transition ${activeTab === 'browse' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
               >
                 Browse
               </button>
-              <button 
-                onClick={() => setActiveTab('about')} 
+              <button
+                type="button"
+                onClick={() => setActiveTab('about')}
                 className={`font-medium transition ${activeTab === 'about' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
               >
                 About
               </button>
-              <button 
-                onClick={() => setActiveTab('contact')} 
+              <button
+                type="button"
+                onClick={() => setActiveTab('contact')}
                 className={`font-medium transition ${activeTab === 'contact' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
               >
                 Contact
               </button>
-              <button 
-                onClick={() => setActiveTab('donate')} 
+              <button
+                type="button"
+                onClick={() => setActiveTab('donate')}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition flex items-center gap-2"
               >
                 <Heart size={16} fill="white" />
                 Donate
               </button>
-              <button 
+              <button
+                type="button"
                 onClick={() => setShowAuthModal(true)}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
               >
