@@ -4115,25 +4115,25 @@ const VirtualExchangePlatform = () => {
 
       {/* Features Grid */}
       <div className="grid md:grid-cols-3 gap-8">
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-5 mx-auto">
             <Shield className="w-8 h-8 text-blue-600" />
           </div>
-          <h3 className="text-xl font-semibold mb-3 text-gray-800">Verified Community</h3>
+          <h3 className="text-xl font-semibold mb-3" style={{color: '#666666'}}>Verified Community</h3>
           <p className="text-gray-600">All organizations are thoroughly vetted by MapWorks Learning for safety and authenticity</p>
         </div>
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-            <Users className="w-8 h-8 text-green-600" />
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-5 mx-auto">
+            <Globe className="w-8 h-8 text-green-600" />
           </div>
-          <h3 className="text-xl font-semibold mb-3 text-gray-800">Global Network</h3>
+          <h3 className="text-xl font-semibold mb-3" style={{color: '#666666'}}>Global Network</h3>
           <p className="text-gray-600">Connect with schools, universities, and exchange providers across 30+ countries</p>
         </div>
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-            <Sparkles className="w-8 h-8 text-purple-600" />
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center">
+          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-5 mx-auto">
+            <MessageSquare className="w-8 h-8 text-purple-600" />
           </div>
-          <h3 className="text-xl font-semibold mb-3 text-gray-800">Smart Matching</h3>
+          <h3 className="text-xl font-semibold mb-3" style={{color: '#666666'}}>Smart Matching</h3>
           <p className="text-gray-600">AI-powered recommendations find your ideal partners based on goals and compatibility</p>
         </div>
       </div>
@@ -4673,7 +4673,7 @@ const VirtualExchangePlatform = () => {
     <div className="max-w-5xl mx-auto space-y-16">
       {/* Hero */}
       <div className="text-center space-y-6">
-        <h1 className="text-5xl font-bold text-gray-900">About The Virtual Exchange</h1>
+        <h1 className="text-5xl font-bold" style={{color: '#666666'}}>About The Virtual Exchange</h1>
         <p className="text-2xl text-gray-600 italic max-w-3xl mx-auto leading-relaxed">
           "Every conversation is a step toward solidarity"
         </p>
@@ -4692,7 +4692,7 @@ const VirtualExchangePlatform = () => {
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-5 mx-auto">
             <Heart className="w-8 h-8 text-green-600" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-3">Built with Care</h3>
+          <h3 className="text-xl font-semibold mb-3" style={{color: '#666666'}}>Built with Care</h3>
           <p className="text-gray-700 leading-relaxed">
             Connection is not a one-time event. It's a practice that grows through clear expectations, thoughtful pacing, and spaces where everyone feels seen and heard.
           </p>
@@ -4702,7 +4702,7 @@ const VirtualExchangePlatform = () => {
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-5 mx-auto">
             <GraduationCap className="w-8 h-8 text-blue-600" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-3">Youth Leadership</h3>
+          <h3 className="text-xl font-semibold mb-3" style={{color: '#666666'}}>Youth Leadership</h3>
           <p className="text-gray-700 leading-relaxed">
             Students set the tone, shape the questions, and lead the work. Teachers hold the space with care and clarity so trust can form and learning can deepen.
           </p>
@@ -4712,7 +4712,7 @@ const VirtualExchangePlatform = () => {
           <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-5 mx-auto">
             <Sparkles className="w-8 h-8 text-purple-600" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-3">Meaningful Action</h3>
+          <h3 className="text-xl font-semibold mb-3" style={{color: '#666666'}}>Meaningful Action</h3>
           <p className="text-gray-700 leading-relaxed">
             Relationships across borders become meaningful projects. Connection leads to growth, and growth leads to action.
           </p>
@@ -4721,7 +4721,7 @@ const VirtualExchangePlatform = () => {
 
       {/* What Happens Section */}
       <div className="bg-white rounded-3xl p-10 shadow-sm border border-gray-100">
-        <h2 className="text-3xl font-semibold text-gray-900 mb-6 text-center">What Happens When It Works</h2>
+        <h2 className="text-3xl font-semibold mb-6 text-center" style={{color: '#666666'}}>What Happens When It Works</h2>
         <div className="grid md:grid-cols-2 gap-8">
           <div className="space-y-4">
             <h4 className="font-semibold text-gray-900 flex items-center gap-2">
@@ -4768,37 +4768,39 @@ const VirtualExchangePlatform = () => {
       </div>
 
       {/* Why Now Section */}
-      <div className="bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 rounded-3xl p-12 shadow-sm border border-pink-100">
-        <h2 className="text-3xl font-semibold text-gray-900 mb-6 text-center">Why This Matters Now</h2>
-        <div className="space-y-5 text-lg leading-relaxed text-gray-700 max-w-4xl mx-auto">
+      <div className="bg-white rounded-3xl p-14 shadow-sm border border-gray-200">
+        <h2 className="text-3xl font-semibold mb-8 text-center" style={{color: '#666666'}}>Why This Matters Now</h2>
+        <div className="space-y-6 text-lg leading-relaxed text-gray-700 max-w-4xl mx-auto">
           <p>
             The world is asking young people and educators to live inside tension every day. Polarization is louder. Distrust spreads faster than truth.
           </p>
           <p>
-            Virtual exchange won't solve every crisis. But it can change the temperature in the room. It can turn <span className="text-purple-700 font-semibold">"them"</span> into someone with a name, a story, and a voice.
+            Virtual exchange won't solve every crisis. But it can change the temperature in the room. It can turn <span className="font-semibold" style={{color: '#8B5CF6'}}>"them"</span> into someone with a name, a story, and a voice.
           </p>
-          <p className="text-xl font-semibold text-gray-900 text-center pt-4">
+          <p className="text-xl font-semibold text-center pt-6" style={{color: '#666666'}}>
             This is leadership training for the world we are already in.
           </p>
         </div>
       </div>
 
       {/* Call to Action - Big Statement */}
-      <div className="bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 rounded-3xl p-14 text-center shadow-sm border border-teal-100">
-        <h2 className="text-4xl font-bold text-gray-900 mb-6 leading-tight">
-          Virtual exchange should not be a luxury.<br/>
-          <span className="text-teal-700">It should be a standard.</span>
-        </h2>
-        <p className="text-xl text-gray-700 leading-relaxed max-w-3xl mx-auto">
-          The Virtual Exchange exists to help make that standard real, so every student and every educator can access the kind of learning that grows dignity, belonging, and the ability to lead with care in a connected world.
-        </p>
+      <div className="relative overflow-hidden rounded-3xl p-16 text-center" style={{background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 50%, #BAE6FD 100%)'}}>
+        <div className="relative z-10">
+          <h2 className="text-4xl font-bold mb-6 leading-tight" style={{color: '#666666'}}>
+            Virtual exchange should not be a luxury.<br/>
+            <span style={{color: '#0891B2'}}>It should be a standard.</span>
+          </h2>
+          <p className="text-xl text-gray-700 leading-relaxed max-w-3xl mx-auto">
+            The Virtual Exchange exists to help make that standard real, so every student and every educator can access the kind of learning that grows dignity, belonging, and the ability to lead with care in a connected world.
+          </p>
+        </div>
       </div>
 
       {/* MapWorks Section */}
-      <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-3xl p-12 shadow-sm border border-amber-100">
-        <div className="flex flex-col items-center text-center space-y-6">
+      <div className="relative overflow-hidden rounded-3xl p-14" style={{background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 50%, #FDE68A 100%)'}}>
+        <div className="relative z-10 flex flex-col items-center text-center space-y-6">
           <MapWorksLogo />
-          <h3 className="text-3xl font-bold text-gray-900">MapWorks Learning</h3>
+          <h3 className="text-3xl font-bold" style={{color: '#666666'}}>MapWorks Learning</h3>
           <p className="text-lg text-gray-700 leading-relaxed max-w-2xl">
             As leading practitioners of virtual exchange, we've created this platform to connect educators and organizations worldwide – because every conversation is a step toward solidarity.
           </p>
@@ -4806,7 +4808,8 @@ const VirtualExchangePlatform = () => {
             href="https://mapworkslearning.org"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-8 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition shadow-md hover:shadow-lg"
+            className="px-8 py-3 text-white rounded-xl font-semibold hover:opacity-90 transition shadow-md hover:shadow-lg"
+            style={{backgroundColor: '#1F2937'}}
           >
             Learn More About MapWorks
           </a>
