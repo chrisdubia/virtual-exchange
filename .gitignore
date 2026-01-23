@@ -29,3 +29,6 @@ yarn-error.log*
 
 # Testing
 coverage/
+
+# Data files
+organizations_contact_info.csv
