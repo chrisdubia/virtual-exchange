@@ -4921,12 +4921,12 @@ const VirtualExchangePlatform = () => {
       <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-2xl p-8">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Why Your Support Matters</h2>
         <p className="text-gray-600 leading-relaxed mb-4">
-          The Virtual Exchange is a free platform designed to democratize access to global learning opportunities. 
-          Your donation helps us maintain the platform, verify organizations, and provide support to educators 
+          The Virtual Exchange is a free platform designed to democratize access to global learning opportunities.
+          Your donation helps us maintain the platform, verify organizations, and provide support to educators
           who are working to bring the world into their classrooms.
         </p>
         <p className="text-gray-600 leading-relaxed">
-          Every contribution, no matter the size, helps us break down borders and create opportunities for 
+          Every contribution, no matter the size, helps us break down borders and create opportunities for
           meaningful cross-cultural dialogue.
         </p>
       </div>
@@ -4953,8 +4953,8 @@ const VirtualExchangePlatform = () => {
         <div className="max-w-sm mx-auto">
           <div className="flex gap-3 mb-4">
             <span className="bg-gray-100 px-4 py-3 rounded-lg text-gray-700 font-semibold">$</span>
-            <input 
-              type="number" 
+            <input
+              type="number"
               placeholder="Enter amount"
               className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -4971,6 +4971,395 @@ const VirtualExchangePlatform = () => {
       </div>
     </div>
   );
+
+  // Getting Started Page - Activities for Transformative Learning
+  const GettingStartedPage = () => {
+    const [selectedCategory, setSelectedCategory] = useState('all');
+
+    const activities = [
+      {
+        id: 1,
+        title: "Identity Exploration",
+        category: "identity",
+        duration: "45-60 min",
+        level: "All Ages",
+        description: "Students explore and share the visible and invisible aspects of their identity through creative expression.",
+        objectives: [
+          "Think critically about identity formation and cultural influences",
+          "Act with care when learning about others' backgrounds and experiences",
+          "Lead conversations about diversity and inclusion"
+        ],
+        activities: [
+          {
+            name: "Cultural Identity Tree",
+            description: "Students create a visual representation of their cultural background, family traditions, and personal values using a tree metaphor - roots represent heritage, trunk represents core values, branches represent aspirations."
+          },
+          {
+            name: "Identity Poetry",
+            description: "Students write and share poems that express their identity, using prompts like 'I am from...' or acrostic poems with their names to explore who they are and who they hope to become."
+          },
+          {
+            name: "The Identity Iceberg",
+            description: "Students illustrate what others see about them (above water) and what's hidden beneath the surface - their thoughts, dreams, challenges, and experiences that shape who they are."
+          }
+        ]
+      },
+      {
+        id: 2,
+        title: "Building Understanding Through Dialogue",
+        category: "empathy",
+        duration: "30-45 min",
+        level: "Grades 3+",
+        description: "Activities that help students develop the capacity to understand and share the feelings of others across cultures.",
+        objectives: [
+          "Think critically about different perspectives and lived experiences",
+          "Act with care through active listening and thoughtful responses",
+          "Lead by example in creating inclusive, welcoming spaces"
+        ],
+        activities: [
+          {
+            name: "The Five Types of Care",
+            description: "Students explore five ways to show care for others: Kind Words, Spending Time Together, Thoughtful Giving, Comforting Presence, and Helpful Acts. They practice each type in classroom partnerships."
+          },
+          {
+            name: "Stories That Connect Us",
+            description: "Students share personal stories about meaningful experiences, then identify common threads and universal themes that connect us across cultures and backgrounds."
+          },
+          {
+            name: "Perspective Partners",
+            description: "In pairs, students discuss a shared topic or challenge from their different viewpoints, practicing the skill of understanding without immediately agreeing or disagreeing."
+          }
+        ]
+      },
+      {
+        id: 3,
+        title: "Collaborative Problem-Solving",
+        category: "collaboration",
+        duration: "60-90 min",
+        level: "Grades 6+",
+        description: "Students work together across classrooms to identify real needs and design solutions that make an impact.",
+        objectives: [
+          "Think critically about community challenges and root causes",
+          "Act with care by listening to affected community members",
+          "Lead collaborative teams toward meaningful action"
+        ],
+        activities: [
+          {
+            name: "Community Needs Assessment",
+            description: "Students research and identify a genuine need in their local or global community, gathering perspectives from multiple stakeholders to understand the full scope of the challenge."
+          },
+          {
+            name: "Co-Design Solutions",
+            description: "Partner classrooms across different regions work together to design solutions for a shared challenge, combining local knowledge with global perspectives."
+          },
+          {
+            name: "Action Plan Development",
+            description: "Students create detailed action plans for their projects, including roles, timelines, resources needed, and metrics for measuring impact on their community."
+          }
+        ]
+      },
+      {
+        id: 4,
+        title: "Global Citizenship in Action",
+        category: "action",
+        duration: "Ongoing",
+        level: "All Ages",
+        description: "Transform learning into action through projects that address real-world challenges and create positive change.",
+        objectives: [
+          "Think critically about global issues and their local manifestations",
+          "Act with care in ways that respect community needs and cultural contexts",
+          "Lead initiatives that demonstrate active citizenship and responsibility"
+        ],
+        activities: [
+          {
+            name: "Climate Action Partnerships",
+            description: "Students in different countries collaborate on climate action projects, sharing local environmental challenges and co-creating solutions that can be adapted to different contexts."
+          },
+          {
+            name: "Cross-Cultural Service Projects",
+            description: "Partner classrooms identify ways to serve their respective communities while learning about service and civic engagement in different cultural contexts."
+          },
+          {
+            name: "Digital Storytelling for Change",
+            description: "Students create multimedia stories that raise awareness about important issues, combining personal narratives with calls to action that inspire others to get involved."
+          }
+        ]
+      },
+      {
+        id: 5,
+        title: "Cultivating Inclusive Communities",
+        category: "kindness",
+        duration: "15-30 min",
+        level: "All Ages",
+        description: "Daily practices that build a culture of kindness, respect, and belonging in your classroom and beyond.",
+        objectives: [
+          "Think critically about what creates welcoming, inclusive spaces",
+          "Act with care through daily practices of kindness and respect",
+          "Lead by modeling compassionate behavior for peers"
+        ],
+        activities: [
+          {
+            name: "Acts of Kindness Challenge",
+            description: "Students commit to specific acts of kindness each day - toward themselves, others in their classroom, and the wider world - and reflect on the impact."
+          },
+          {
+            name: "Compassion in Action",
+            description: "Students write acrostic poems using words like CARE and COMPASSION, then practice each letter's action throughout the week (C - Comfort others, A - Ask how someone is doing, etc.)."
+          },
+          {
+            name: "Creating Our Community Promise",
+            description: "Classes work together to create a shared commitment statement that captures how they want to treat each other and what kind of community they want to build together."
+          }
+        ]
+      },
+      {
+        id: 6,
+        title: "Cross-Cultural Communication",
+        category: "communication",
+        duration: "30-45 min",
+        level: "Grades 4+",
+        description: "Develop skills for effective, respectful communication across languages, cultures, and perspectives.",
+        objectives: [
+          "Think critically about communication styles and cultural differences",
+          "Act with care by being mindful of language barriers and cultural norms",
+          "Lead cross-cultural dialogues with sensitivity and respect"
+        ],
+        activities: [
+          {
+            name: "Virtual School Tours",
+            description: "Partner classrooms create photo or video tours of their schools, sharing what a typical day looks like and inviting questions about differences and similarities."
+          },
+          {
+            name: "Name Stories Exchange",
+            description: "Students share the stories behind their names - what they mean, who chose them, what they reveal about family culture and values - building connections through personal narratives."
+          },
+          {
+            name: "Question and Curiosity Circles",
+            description: "Students practice asking thoughtful, respectful questions about each other's cultures and experiences, learning to be curious without making assumptions or stereotyping."
+          }
+        ]
+      },
+      {
+        id: 7,
+        title: "Creative Expression Across Borders",
+        category: "creativity",
+        duration: "45-60 min",
+        level: "All Ages",
+        description: "Use art, music, and creative projects to build understanding and express shared humanity.",
+        objectives: [
+          "Think critically about how art communicates across language barriers",
+          "Act with care by honoring diverse forms of creative expression",
+          "Lead creative collaborations that celebrate cultural diversity"
+        ],
+        activities: [
+          {
+            name: "Collaborative Digital Art",
+            description: "Partner classrooms co-create digital artwork that represents their shared values or combined cultural symbols, taking turns adding elements to the piece."
+          },
+          {
+            name: "Music and Movement Exchange",
+            description: "Students share traditional songs, dances, or musical instruments from their cultures, then teach simple versions to their partner classroom."
+          },
+          {
+            name: "Global Poetry Collection",
+            description: "Students write poems about universal themes (hope, home, friendship) in their native languages, then work together to translate and create a bilingual poetry collection."
+          }
+        ]
+      },
+      {
+        id: 8,
+        title: "Critical Thinking About Global Issues",
+        category: "critical-thinking",
+        duration: "60-90 min",
+        level: "Grades 7+",
+        description: "Examine complex global challenges from multiple perspectives and develop informed, nuanced understanding.",
+        objectives: [
+          "Think critically by analyzing issues from multiple cultural and political perspectives",
+          "Act with care by engaging respectfully with viewpoints different from your own",
+          "Lead informed discussions that move beyond stereotypes and oversimplification"
+        ],
+        activities: [
+          {
+            name: "Perspectives on Current Events",
+            description: "Partner classrooms examine the same current event through their different local media sources, comparing coverage and discussing how perspective shapes understanding."
+          },
+          {
+            name: "Global Issues Deep Dive",
+            description: "Students research global challenges (climate change, migration, inequality) from multiple angles, then host a virtual forum where they share findings and discuss solutions."
+          },
+          {
+            name: "Myth-Busting Exchange",
+            description: "Students identify common stereotypes or misconceptions about each other's countries or cultures, then work together to provide accurate, nuanced information."
+          }
+        ]
+      }
+    ];
+
+    const categories = [
+      { id: 'all', name: 'All Activities', icon: BookOpen },
+      { id: 'identity', name: 'Identity & Self-Discovery', icon: User },
+      { id: 'empathy', name: 'Understanding & Empathy', icon: Heart },
+      { id: 'collaboration', name: 'Collaboration', icon: Users },
+      { id: 'action', name: 'Taking Action', icon: Sparkles },
+      { id: 'kindness', name: 'Kindness & Community', icon: Heart },
+      { id: 'communication', name: 'Communication', icon: MessageSquare },
+      { id: 'creativity', name: 'Creative Expression', icon: Sparkles },
+      { id: 'critical-thinking', name: 'Critical Thinking', icon: BookOpen }
+    ];
+
+    const filteredActivities = selectedCategory === 'all'
+      ? activities
+      : activities.filter(a => a.category === selectedCategory);
+
+    return (
+      <div className="space-y-12">
+        {/* Header */}
+        <div className="text-center max-w-4xl mx-auto">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6">
+            <BookOpen className="w-10 h-10 text-blue-600" />
+          </div>
+          <h1 className="text-4xl font-semibold text-gray-800 mb-4">Getting Started with Virtual Exchange</h1>
+          <p className="text-xl text-gray-600 mb-6">
+            Transformative experiences that help students think critically, act with care, and lead boldly
+          </p>
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 text-left">
+            <p className="text-gray-700 leading-relaxed">
+              Every student deserves access to transformative experiences that help them engage meaningfully with the world
+              and with each other. These activities are designed to help young people think critically about global challenges,
+              act with care in their communities, and lead boldly toward positive change. Whether students are connecting across
+              continents or within their own classroom, these experiences blend global competencies with real-world challenges
+              and turn connection into action.
+            </p>
+          </div>
+        </div>
+
+        {/* Category Filters */}
+        <div className="flex flex-wrap gap-3 justify-center">
+          {categories.map(cat => {
+            const Icon = cat.icon;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-4 py-2 rounded-full font-medium transition flex items-center gap-2 ${
+                  selectedCategory === cat.id
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:border-blue-300 hover:bg-blue-50'
+                }`}
+              >
+                <Icon size={16} />
+                {cat.name}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Activities Grid */}
+        <div className="grid gap-8">
+          {filteredActivities.map(activity => (
+            <div key={activity.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="p-8">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-2">{activity.title}</h2>
+                    <div className="flex gap-4 text-sm text-gray-600">
+                      <span className="flex items-center gap-1">
+                        ⏱ {activity.duration}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        👥 {activity.level}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-gray-700 mb-6">{activity.description}</p>
+
+                {/* Learning Objectives */}
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-800 mb-3">Students will:</h3>
+                  <ul className="space-y-2">
+                    {activity.objectives.map((obj, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-gray-700">
+                        <CheckCircle size={16} className="text-green-600 mt-1 flex-shrink-0" />
+                        <span>{obj}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Activity Details */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="font-semibold text-gray-800 mb-4">Activity Options:</h3>
+                  <div className="space-y-4">
+                    {activity.activities.map((act, idx) => (
+                      <div key={idx} className="bg-gray-50 rounded-lg p-4">
+                        <h4 className="font-medium text-gray-800 mb-2">{act.name}</h4>
+                        <p className="text-gray-700 text-sm">{act.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Getting Started Tips */}
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Tips for Getting Started</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-2">Starting in Your Own Classroom</h3>
+              <p className="text-gray-700 text-sm">
+                These activities work beautifully within a single classroom to build community and develop global competencies.
+                Start here to prepare students for future cross-cultural exchanges.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-2">Connecting with Partner Classrooms</h3>
+              <p className="text-gray-700 text-sm">
+                Ready to connect globally? Browse our partner organizations to find classrooms that match your interests,
+                grade level, and schedule. These activities can be adapted for virtual exchanges via video call, shared documents, or collaborative platforms.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-2">Adapt to Your Context</h3>
+              <p className="text-gray-700 text-sm">
+                Feel free to modify these activities to fit your students' needs, your curriculum goals, and your available resources.
+                The core principle remains: create transformative experiences that develop caring, action-oriented leaders.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-2">Move from Connection to Action</h3>
+              <p className="text-gray-700 text-sm">
+                The most powerful learning happens when students move beyond understanding to taking action.
+                Challenge students to identify real needs and design projects that create positive change in their communities.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Call to Action */}
+        <div className="text-center">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Ready to Connect?</h2>
+            <p className="text-gray-600 mb-6">
+              Browse our network of verified schools, universities, and exchange providers to find your perfect partner
+            </p>
+            <button
+              type="button"
+              onClick={() => setActiveTab('browse')}
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+            >
+              Browse Partners
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -4999,6 +5388,13 @@ const VirtualExchangePlatform = () => {
                 className={`font-medium transition ${activeTab === 'browse' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
               >
                 Browse
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('getting-started')}
+                className={`font-medium transition ${activeTab === 'getting-started' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+              >
+                Getting Started
               </button>
               <button
                 type="button"
@@ -5050,6 +5446,7 @@ const VirtualExchangePlatform = () => {
       <main className="max-w-7xl mx-auto px-6 py-12">
         {activeTab === 'home' && <HomePage />}
         {activeTab === 'browse' && <BrowsePage />}
+        {activeTab === 'getting-started' && <GettingStartedPage />}
         {activeTab === 'about' && <AboutPage />}
         {activeTab === 'contact' && <ContactPage />}
         {activeTab === 'donate' && <DonatePage />}
