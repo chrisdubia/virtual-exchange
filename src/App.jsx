@@ -2820,7 +2820,8 @@ const VirtualExchangePlatform = () => {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   // Connect Modal
   const ConnectModal = ({ org }) => (
