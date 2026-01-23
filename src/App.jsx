@@ -5,12 +5,31 @@ const VirtualExchangePlatform = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('signup');
+  const [registrationStep, setRegistrationStep] = useState(1);
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [currentLanguage, setCurrentLanguage] = useState('en');
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const aiSearchRef = useRef(null);
+
+  // Registration form state
+  const [registrationData, setRegistrationData] = useState({
+    intent: '',
+    role: '',
+    roleOther: '',
+    organizationName: '',
+    gradelevelsServed: [],
+    gradeLevelsDesired: [],
+    subjects: [],
+    studentCountMin: '',
+    studentCountMax: '',
+    techAvailable: [],
+    techRestrictions: '',
+    preferredDuration: [],
+    availableStart: '',
+    timezone: ''
+  });
 
   // Multi-language support - basic infrastructure
   // Future: Integrate with i18n library for full translations
@@ -269,6 +288,7 @@ const VirtualExchangePlatform = () => {
       name: "Thomas Jefferson High School for Science and Technology",
       type: "High School",
       category: "K-12",
+      grades: "9-12",
       country: "United States",
       region: "North America",
       students: 1900,
@@ -276,13 +296,16 @@ const VirtualExchangePlatform = () => {
       interests: ["STEM", "Computer Science", "Research"],
       verified: true,
       description: "Top-ranked STEM-focused magnet high school seeking international research collaborations.",
-      partnershipGoals: ["STEM project collaboration", "Student research exchanges", "Innovation challenges"]
+      partnershipGoals: ["STEM project collaboration", "Student research exchanges", "Innovation challenges"],
+      techAvailable: ["1:1 Chromebooks", "Google Workspace", "Zoom", "High-speed WiFi"],
+      duration: ["6 weeks", "Semester", "Full year"]
     },
     {
       id: 15,
       name: "Fulham Preparatory School",
       type: "Primary School",
       category: "K-12",
+      grades: "K-6",
       country: "United Kingdom",
       region: "Europe",
       students: 450,
@@ -290,13 +313,16 @@ const VirtualExchangePlatform = () => {
       interests: ["Global Citizenship", "Arts", "Environmental Awareness"],
       verified: true,
       description: "Independent primary school in London committed to global education and cultural exchange.",
-      partnershipGoals: ["Pen pal programs", "Cultural celebrations", "Environmental projects"]
+      partnershipGoals: ["Pen pal programs", "Cultural celebrations", "Environmental projects"],
+      techAvailable: ["iPads", "Microsoft Teams", "SmartBoards"],
+      duration: ["4 weeks", "6 weeks", "8 weeks"]
     },
     {
       id: 16,
       name: "Escola Móbile",
       type: "High School",
       category: "K-12",
+      grades: "9-12",
       country: "Brazil",
       region: "South America",
       students: 1200,
@@ -2607,8 +2633,45 @@ const VirtualExchangePlatform = () => {
     setSearchResults(scoredResults);
   };
 
-  // Authentication Modal
-  const AuthModal = () => (
+  // Comprehensive Registration Modal
+  const AuthModal = () => {
+    if (authMode === 'signin') {
+      // Simple sign in form
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-semibold text-gray-800">Welcome Back</h3>
+              <button type="button" onClick={() => setShowAuthModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Don't have an account?{' '}
+              <button type="button" onClick={() => setAuthMode('signup')} className="text-blue-600 font-semibold hover:underline">
+                Sign Up
+              </button>
+            </p>
+            <form className="space-y-4">
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
+                <input type="email" placeholder="Email" className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
+                <input type="password" placeholder="Password" className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+              </div>
+              <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                Sign In
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // Multi-step comprehensive registration
+    return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-auto shadow-2xl">
         <div className="grid md:grid-cols-2">
@@ -2652,88 +2715,107 @@ const VirtualExchangePlatform = () => {
               </button>
             </p>
 
-            <form className="space-y-4">
-              {authMode === 'signup' && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 text-gray-400" size={20} />
-                    <input 
-                      type="text" 
-                      placeholder="First Name"
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+            <div className="max-h-[70vh] overflow-y-auto pr-2">
+              <form className="space-y-5">
+                {/* Basic Info */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-3">Basic Information</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input type="text" placeholder="First Name" className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required />
+                    <input type="text" placeholder="Last Name" className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required />
                   </div>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 text-gray-400" size={20} />
-                    <input 
-                      type="text" 
-                      placeholder="Last Name"
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                  <input type="email" placeholder="Email Address" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-3 text-sm" required />
+                  <input type="password" placeholder="Password" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-3 text-sm" required />
+                </div>
+
+                {/* Intent & Role */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-3">Your Intent</h4>
+                  <select className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required>
+                    <option value="">Select your intent...</option>
+                    <option value="provider">Virtual Exchange Provider (offering services)</option>
+                    <option value="participant">Looking to Participate (seeking a match)</option>
+                  </select>
+                  <select className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-3 text-sm" required>
+                    <option value="">I am a...</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="school">School</option>
+                    <option value="administrator">School Administrator</option>
+                    <option value="district">District</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <input type="text" placeholder="Organization Name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-3 text-sm" />
+                </div>
+
+                {/* Grade Levels */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">Grade Levels</h4>
+                  <p className="text-xs text-gray-600 mb-2">Select all that apply</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['K-2', '3-5', '6-8', '9-12', 'University'].map(grade => (
+                      <label key={grade} className="flex items-center gap-2 text-sm">
+                        <input type="checkbox" className="rounded" />
+                        <span>{grade}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
-              )}
 
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input 
-                  type="email" 
-                  placeholder="Email Address"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input 
-                  type="password" 
-                  placeholder="Password"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <button 
-                type="submit"
-                className="w-full bg-gray-800 text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition"
-              >
-                {authMode === 'signup' ? 'Sign Up' : 'Sign In'}
-              </button>
-
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
+                {/* Subjects */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">Subject Areas</h4>
+                  <select multiple className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" size="4">
+                    <option value="STEM">STEM</option>
+                    <option value="Arts">Arts & Humanities</option>
+                    <option value="Languages">Languages</option>
+                    <option value="Social Sciences">Social Sciences</option>
+                    <option value="Environmental">Environmental Studies</option>
+                    <option value="Health">Health & Wellness</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
                 </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">Or Sign {authMode === 'signup' ? 'Up' : 'In'} With</span>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-4 gap-3">
-                <button type="button" className="border border-gray-300 rounded-lg p-3 hover:bg-gray-50 transition flex items-center justify-center">
-                  <svg className="w-6 h-6" viewBox="0 0 24 24">
-                    <path fill="#DB4437" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#4285F4" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#34A853" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
+                {/* Student Count */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">Number of Students</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input type="number" placeholder="Min" className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+                    <input type="number" placeholder="Max" className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+                  </div>
+                </div>
+
+                {/* Technology */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">Technology Available</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Chromebooks', 'iPads', 'Laptops', 'Zoom', 'Google Meet', 'Microsoft Teams', 'High-speed WiFi', 'SmartBoards'].map(tech => (
+                      <label key={tech} className="flex items-center gap-2 text-sm">
+                        <input type="checkbox" className="rounded" />
+                        <span>{tech}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <textarea placeholder="Tech restrictions (blocked platforms, bandwidth limits, etc.)" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-3 text-sm" rows="2"></textarea>
+                </div>
+
+                {/* Duration */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">Preferred Duration</h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    {['2 weeks', '4 weeks', '6 weeks', '8 weeks', 'Semester', 'Full year'].map(dur => (
+                      <label key={dur} className="flex items-center gap-2 text-sm">
+                        <input type="checkbox" className="rounded" />
+                        <span>{dur}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                  Create Account & Find Matches
                 </button>
-                <button type="button" className="border border-gray-300 rounded-lg p-3 hover:bg-gray-50 transition flex items-center justify-center">
-                  <svg className="w-6 h-6" fill="#1877F2" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                  </svg>
-                </button>
-                <button type="button" className="border border-gray-300 rounded-lg p-3 hover:bg-gray-50 transition flex items-center justify-center">
-                  <svg className="w-6 h-6" fill="#0A66C2" viewBox="0 0 24 24">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                  </svg>
-                </button>
-                <button type="button" className="border border-gray-300 rounded-lg p-3 hover:bg-gray-50 transition flex items-center justify-center">
-                  <svg className="w-6 h-6" fill="#1DA1F2" viewBox="0 0 24 24">
-                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                  </svg>
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -3000,8 +3082,23 @@ const VirtualExchangePlatform = () => {
     </div>
   );
 
+  // Helper function to get grade label
+  const getGradeLabel = (org) => {
+    if (org.grades) return `Grades ${org.grades}`;
+    // Fallback based on type
+    if (org.type === 'Primary School') return 'Grades K-5';
+    if (org.type === 'Middle School') return 'Grades 6-8';
+    if (org.type === 'High School') return 'Grades 9-12';
+    if (org.type === 'University' || org.type === 'Art School') return 'Higher Education';
+    if (org.category === 'Exchange Provider') return 'Exchange Provider';
+    return org.category;
+  };
+
   // Organization Card
-  const OrganizationCard = ({ org }) => (
+  const OrganizationCard = ({ org }) => {
+    const gradeLabel = getGradeLabel(org);
+
+    return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
@@ -3011,15 +3108,21 @@ const VirtualExchangePlatform = () => {
               <CheckCircle className="text-blue-600" size={20} />
             )}
           </div>
-          <div className="flex items-center gap-3 text-sm text-gray-600">
+          <div className="flex items-center gap-3 text-sm text-gray-600 flex-wrap">
             <span className="flex items-center gap-1">
               <Globe size={14} />
               {org.country}
             </span>
             <span>•</span>
             <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
-              {org.category}
+              {gradeLabel}
             </span>
+            {org.students && (
+              <>
+                <span>•</span>
+                <span className="text-xs">{org.students.toLocaleString()} students</span>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -3062,6 +3165,32 @@ const VirtualExchangePlatform = () => {
             </ul>
           </div>
         )}
+
+        {org.duration && (
+          <div>
+            <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Preferred Duration</div>
+            <div className="flex flex-wrap gap-2">
+              {org.duration.slice(0, 3).map((dur, idx) => (
+                <span key={idx} className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">
+                  {dur}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {org.techAvailable && (
+          <div>
+            <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Technology</div>
+            <div className="flex flex-wrap gap-2">
+              {org.techAvailable.slice(0, 3).map((tech, idx) => (
+                <span key={idx} className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex gap-3">
@@ -3084,7 +3213,8 @@ const VirtualExchangePlatform = () => {
         </button>
       </div>
     </div>
-  );
+    );
+  };
 
   // Home Page
   const HomePage = () => (
