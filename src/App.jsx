@@ -4670,69 +4670,144 @@ const VirtualExchangePlatform = () => {
 
   // About Page
   const AboutPage = () => (
-    <div className="max-w-4xl mx-auto space-y-12">
-      <div className="text-center">
-        <h1 className="text-5xl font-bold text-gray-900 mb-4">About The Virtual Exchange</h1>
-        <p className="text-xl text-gray-600 italic">"Every conversation is a step toward solidarity"</p>
+    <div className="max-w-5xl mx-auto space-y-16">
+      {/* Hero */}
+      <div className="text-center space-y-6">
+        <h1 className="text-5xl font-bold text-gray-900">About The Virtual Exchange</h1>
+        <p className="text-2xl text-gray-600 italic max-w-3xl mx-auto leading-relaxed">
+          "Every conversation is a step toward solidarity"
+        </p>
       </div>
 
-      <div className="bg-white p-10 rounded-2xl shadow-lg">
-        <div className="prose prose-lg max-w-none space-y-6">
-          <p className="text-gray-700 leading-relaxed text-lg">
-            The Virtual Exchange is MapWorks Learning's way of making global connection easier, safer, and more human 
-            for students, educators, and communities. It is a place where schools and organizations can find trusted 
-            partners, design exchanges that fit real constraints, and create experiences where connection leads to 
-            growth and growth leads to action.
-          </p>
+      {/* Mission Statement - Highlighted */}
+      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-3xl p-12 shadow-sm">
+        <p className="text-2xl text-gray-800 leading-relaxed text-center font-light">
+          The Virtual Exchange is MapWorks Learning's way of making global connection <span className="font-semibold text-blue-700">easier</span>, <span className="font-semibold text-indigo-700">safer</span>, and more <span className="font-semibold text-purple-700">human</span> for students, educators, and communities.
+        </p>
+      </div>
 
-          <p className="text-gray-700 leading-relaxed text-lg">
-            Virtual exchange works when it is built with care. Connection is not a one time event. It is a practice. 
-            It grows through clear expectations, thoughtful pacing, skilled facilitation, and spaces where students 
-            and teachers feel seen and heard. When those conditions are in place, young people listen more deeply, 
-            ask better questions, and learn how to collaborate with respect. Educators gain peers beyond their own 
-            walls, strengthen their craft through shared learning, and bring global understanding into everyday 
-            classroom life in a way that feels doable, not overwhelming.
+      {/* Core Principles Grid */}
+      <div className="grid md:grid-cols-3 gap-8">
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition">
+          <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mb-4">
+            <Users className="w-7 h-7 text-green-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">Built with Care</h3>
+          <p className="text-gray-700 leading-relaxed">
+            Connection is not a one-time event. It's a practice that grows through clear expectations, thoughtful pacing, and spaces where everyone feels seen and heard.
           </p>
+        </div>
 
-          <p className="text-gray-700 leading-relaxed text-lg">
-            At MapWorks Learning, we design everything around youth leadership. In our campfires, students are not 
-            guests in someone else's agenda. They set the tone, shape the questions, and lead the work. Teachers and 
-            facilitators hold the space with steadiness, care, and clarity so trust can form and learning can deepen. 
-            The Virtual Exchange extends that same approach into a broader ecosystem, so more classrooms and 
-            organizations can build relationships across borders and turn those relationships into meaningful projects.
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition">
+          <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <Sparkles className="w-7 h-7 text-blue-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">Youth Leadership</h3>
+          <p className="text-gray-700 leading-relaxed">
+            Students set the tone, shape the questions, and lead the work. Teachers hold the space with care and clarity so trust can form and learning can deepen.
           </p>
+        </div>
 
-          <p className="text-gray-700 leading-relaxed text-lg">
-            This matters now because the world is asking young people and educators to live inside tension every day. 
-            Polarization is louder. Distrust spreads faster than truth. It is easier to retreat into our own corners, 
-            to label, to dismiss, to stop listening. Virtual exchange will not solve every crisis. But it can change 
-            the temperature in the room. It can turn "them" into someone with a name, a story, and a voice. It can 
-            replace assumption with relationship. It gives students and educators a way to practice open mindedness, 
-            compassion, and responsibility in real time, with real people, when it would be simplest to turn away. 
-            And that practice is not optional anymore. It is leadership training for the world we are already in.
-          </p>
-
-          <p className="text-gray-700 leading-relaxed text-lg font-semibold">
-            Virtual exchange should not be a luxury. It should be a standard. The Virtual Exchange exists to help 
-            make that standard real, so every student and every educator can access the kind of learning that grows 
-            dignity, belonging, and the ability to lead with care in a connected world.
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition">
+          <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+            <Globe className="w-7 h-7 text-purple-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">Meaningful Action</h3>
+          <p className="text-gray-700 leading-relaxed">
+            Relationships across borders become meaningful projects. Connection leads to growth, and growth leads to action.
           </p>
         </div>
       </div>
 
-      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-10 rounded-2xl border-2 border-yellow-200">
-        <div className="flex flex-col items-center text-center">
+      {/* What Happens Section */}
+      <div className="bg-white rounded-3xl p-10 shadow-sm border border-gray-100">
+        <h2 className="text-3xl font-semibold text-gray-900 mb-6 text-center">What Happens When It Works</h2>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              For Students
+            </h4>
+            <ul className="space-y-3 text-gray-700">
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 mt-1">•</span>
+                <span>Listen more deeply and ask better questions</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 mt-1">•</span>
+                <span>Learn to collaborate with respect across differences</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 mt-1">•</span>
+                <span>Practice open-mindedness and compassion with real people</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              For Educators
+            </h4>
+            <ul className="space-y-3 text-gray-700">
+              <li className="flex items-start gap-2">
+                <span className="text-purple-600 mt-1">•</span>
+                <span>Gain peers beyond their own walls</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-purple-600 mt-1">•</span>
+                <span>Strengthen their craft through shared learning</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-purple-600 mt-1">•</span>
+                <span>Bring global understanding into everyday classroom life</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Why Now Section */}
+      <div className="relative">
+        <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-3xl p-12 text-white shadow-xl">
+          <h2 className="text-3xl font-semibold mb-6">Why This Matters Now</h2>
+          <div className="space-y-4 text-lg leading-relaxed text-gray-100">
+            <p>
+              The world is asking young people and educators to live inside tension every day. Polarization is louder. Distrust spreads faster than truth.
+            </p>
+            <p>
+              Virtual exchange won't solve every crisis. But it can change the temperature in the room. It can turn <span className="text-blue-300 font-semibold">"them"</span> into someone with a name, a story, and a voice.
+            </p>
+            <p className="text-xl font-semibold text-white">
+              This is leadership training for the world we are already in.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Call to Action - Big Statement */}
+      <div className="bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 rounded-3xl p-12 text-center border-2 border-orange-200 shadow-sm">
+        <h2 className="text-4xl font-bold text-gray-900 mb-6 leading-tight">
+          Virtual exchange should not be a luxury.<br/>It should be a standard.
+        </h2>
+        <p className="text-xl text-gray-700 leading-relaxed max-w-3xl mx-auto">
+          The Virtual Exchange exists to help make that standard real, so every student and every educator can access the kind of learning that grows dignity, belonging, and the ability to lead with care in a connected world.
+        </p>
+      </div>
+
+      {/* MapWorks Section */}
+      <div className="bg-white rounded-3xl p-12 shadow-sm border border-gray-100">
+        <div className="flex flex-col items-center text-center space-y-6">
           <MapWorksLogo />
-          <h3 className="text-3xl font-bold text-gray-900 mt-6 mb-4">MapWorks Learning</h3>
-          <p className="text-gray-700 leading-relaxed text-lg max-w-2xl">
-            As leading practitioners of virtual exchange, we've created this platform to connect educators and 
-            organizations worldwide – because every conversation is a step toward solidarity.
+          <h3 className="text-3xl font-bold text-gray-900">MapWorks Learning</h3>
+          <p className="text-lg text-gray-700 leading-relaxed max-w-2xl">
+            As leading practitioners of virtual exchange, we've created this platform to connect educators and organizations worldwide – because every conversation is a step toward solidarity.
           </p>
           <a
             href="https://mapworkslearning.org"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-6 px-8 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition"
+            className="px-8 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition shadow-lg hover:shadow-xl"
           >
             Learn More About MapWorks
           </a>
