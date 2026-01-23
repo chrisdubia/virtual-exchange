@@ -11,6 +11,28 @@ const VirtualExchangePlatform = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [currentLanguage, setCurrentLanguage] = useState('en');
   const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [showCookieConsent, setShowCookieConsent] = useState(() => {
+    return !localStorage.getItem('cookieConsent');
+  });
+  const [signupForm, setSignupForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    intent: '',
+    role: '',
+    organization: '',
+    gradeLevels: [],
+    subjects: [],
+    studentMin: '',
+    studentMax: '',
+    technology: [],
+    techRestrictions: '',
+    duration: []
+  });
+  const [signupSubmitting, setSignupSubmitting] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
+  const [signupError, setSignupError] = useState('');
   const aiSearchRef = useRef(null);
 
   // Translation dictionary - Proof of Concept
@@ -2773,35 +2795,129 @@ const VirtualExchangePlatform = () => {
     setSearchResults(scoredResults);
   };
 
-  // Comprehensive Registration Modal
+  // Handle signup form submission
+  const handleSignupSubmit = async (e) => {
+    e.preventDefault();
+    setSignupSubmitting(true);
+    setSignupError('');
+
+    try {
+      const response = await fetch('/api/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(signupForm),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create account');
+      }
+
+      setSignupSuccess(true);
+      setSignupForm({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        intent: '',
+        role: '',
+        organization: '',
+        gradeLevels: [],
+        subjects: [],
+        studentMin: '',
+        studentMax: '',
+        technology: [],
+        techRestrictions: '',
+        duration: []
+      });
+
+      // Show success message for 3 seconds then close modal
+      setTimeout(() => {
+        setSignupSuccess(false);
+        setShowAuthModal(false);
+      }, 3000);
+    } catch (error) {
+      setSignupError('Failed to create account. Please try again or contact us at hello@mapworkslearning.org');
+    } finally {
+      setSignupSubmitting(false);
+    }
+  };
+
+  // Comprehensive Registration Modal - Minimal Elegant Design
   const AuthModal = () => {
+    const handleSocialLogin = (provider) => {
+      console.log(`${provider} login clicked - OAuth integration needed`);
+      // TODO: Implement OAuth flow with backend
+    };
+
     if (authMode === 'signin') {
       // Simple sign in form
       return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-semibold text-gray-800">Welcome Back</h3>
-              <button type="button" onClick={() => setShowAuthModal(false)} className="text-gray-400 hover:text-gray-600">
-                <X size={24} />
-              </button>
-            </div>
-            <p className="text-gray-600 mb-6">
+          <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl relative">
+            <button type="button" onClick={() => setShowAuthModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+              <X size={24} />
+            </button>
+
+            <h3 className="text-2xl font-light text-gray-800 mb-2">Welcome Back</h3>
+            <p className="text-sm text-gray-600 mb-6">
               Don't have an account?{' '}
-              <button type="button" onClick={() => setAuthMode('signup')} className="text-blue-600 font-semibold hover:underline">
+              <button type="button" onClick={() => setAuthMode('signup')} className="text-gray-800 font-medium hover:underline">
                 Sign Up
               </button>
             </p>
+
+            {/* Social Login Options */}
+            <div className="space-y-3 mb-6">
+              <button type="button" onClick={() => handleSocialLogin('Google')} className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm font-medium">
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continue with Google
+              </button>
+
+              <div className="grid grid-cols-3 gap-3">
+                <button type="button" onClick={() => handleSocialLogin('LinkedIn')} className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                  <svg className="w-5 h-5" fill="#0A66C2" viewBox="0 0 24 24">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  </svg>
+                </button>
+
+                <button type="button" onClick={() => handleSocialLogin('Facebook')} className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                  <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                </button>
+
+                <button type="button" onClick={() => handleSocialLogin('X')} className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                  <svg className="w-5 h-5" fill="#000000" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+              </div>
+            </div>
+
             <form className="space-y-4">
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input type="email" placeholder="Email" className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+              <div>
+                <input type="email" placeholder="Email" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm" required />
               </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
-                <input type="password" placeholder="Password" className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+              <div>
+                <input type="password" placeholder="Password" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm" required />
               </div>
-              <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+              <button type="submit" className="w-full bg-gray-800 text-white py-3 rounded-lg font-medium hover:bg-gray-900 transition text-sm">
                 Sign In
               </button>
             </form>
@@ -2810,152 +2926,194 @@ const VirtualExchangePlatform = () => {
       );
     }
 
-    // Multi-step comprehensive registration
+    // Comprehensive registration - Clean centered layout
     return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-auto shadow-2xl">
-        <div className="grid md:grid-cols-2">
-          {/* Left Side - Branding */}
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-12 flex flex-col justify-center items-center relative overflow-hidden">
-            <div className="absolute inset-0 opacity-10">
-              <div className="grid grid-cols-3 gap-2 h-full">
-                {[...Array(9)].map((_, i) => (
-                  <div key={i} className="bg-blue-500 rounded"></div>
-                ))}
-              </div>
-            </div>
-            <div className="relative z-10 text-center">
-              <VirtualExchangeLogo size="lg" />
-              <h2 className="text-3xl font-light text-gray-800 mt-6">The Virtual Exchange</h2>
-              <p className="text-gray-600 mt-4 text-sm">Breaking down borders through education</p>
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-auto shadow-2xl relative">
+        <div className="p-8">
+          <button
+            type="button"
+            onClick={() => setShowAuthModal(false)}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10"
+          >
+            <X size={24} />
+          </button>
+
+          <h3 className="text-2xl font-light text-gray-800 mb-2">Create An Account</h3>
+          <p className="text-sm text-gray-600 mb-6">
+            Already an user?{' '}
+            <button
+              type="button"
+              onClick={() => setAuthMode('signin')}
+              className="text-gray-800 font-medium hover:underline"
+            >
+              Sign In
+            </button>
+          </p>
+
+          {/* Social Login Options */}
+          <div className="space-y-3 mb-6">
+            <button type="button" onClick={() => handleSocialLogin('Google')} className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm font-medium">
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Continue with Google
+            </button>
+
+            <div className="grid grid-cols-3 gap-3">
+              <button type="button" onClick={() => handleSocialLogin('LinkedIn')} className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                <svg className="w-5 h-5" fill="#0A66C2" viewBox="0 0 24 24">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
+              </button>
+
+              <button type="button" onClick={() => handleSocialLogin('Facebook')} className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </button>
+
+              <button type="button" onClick={() => handleSocialLogin('X')} className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                <svg className="w-5 h-5" fill="#000000" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </button>
             </div>
           </div>
 
-          {/* Right Side - Form */}
-          <div className="p-12">
-            <button
-              type="button"
-              onClick={() => setShowAuthModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-            >
-              <X size={24} />
-            </button>
-
-            <h3 className="text-2xl font-semibold text-gray-800 mb-2">
-              {authMode === 'signup' ? 'Create An Account' : 'Welcome Back'}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {authMode === 'signup' ? 'Already an user?' : "Don't have an account?"}{' '}
-              <button
-                type="button"
-                onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}
-                className="text-blue-600 font-semibold hover:underline"
-              >
-                {authMode === 'signup' ? 'Sign In' : 'Sign Up'}
-              </button>
-            </p>
-
-            <div className="max-h-[70vh] overflow-y-auto pr-2">
-              <form className="space-y-5">
-                {/* Basic Info */}
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-3">Basic Information</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <input type="text" placeholder="First Name" className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required />
-                    <input type="text" placeholder="Last Name" className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required />
-                  </div>
-                  <input type="email" placeholder="Email Address" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-3 text-sm" required />
-                  <input type="password" placeholder="Password" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-3 text-sm" required />
-                </div>
-
-                {/* Intent & Role */}
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-3">Your Intent</h4>
-                  <select className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required>
-                    <option value="">Select your intent...</option>
-                    <option value="provider">Virtual Exchange Provider (offering services)</option>
-                    <option value="participant">Looking to Participate (seeking a match)</option>
-                  </select>
-                  <select className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-3 text-sm" required>
-                    <option value="">I am a...</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="school">School</option>
-                    <option value="administrator">School Administrator</option>
-                    <option value="district">District</option>
-                    <option value="other">Other</option>
-                  </select>
-                  <input type="text" placeholder="Organization Name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-3 text-sm" />
-                </div>
-
-                {/* Grade Levels */}
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Grade Levels</h4>
-                  <p className="text-xs text-gray-600 mb-2">Select all that apply</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {['K-2', '3-5', '6-8', '9-12', 'University'].map(grade => (
-                      <label key={grade} className="flex items-center gap-2 text-sm">
-                        <input type="checkbox" className="rounded" />
-                        <span>{grade}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Subjects */}
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Subject Areas</h4>
-                  <select multiple className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" size="4">
-                    <option value="STEM">STEM</option>
-                    <option value="Arts">Arts & Humanities</option>
-                    <option value="Languages">Languages</option>
-                    <option value="Social Sciences">Social Sciences</option>
-                    <option value="Environmental">Environmental Studies</option>
-                    <option value="Health">Health & Wellness</option>
-                  </select>
-                  <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
-                </div>
-
-                {/* Student Count */}
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Number of Students</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <input type="number" placeholder="Min" className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
-                    <input type="number" placeholder="Max" className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
-                  </div>
-                </div>
-
-                {/* Technology */}
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Technology Available</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {['Chromebooks', 'iPads', 'Laptops', 'Zoom', 'Google Meet', 'Microsoft Teams', 'High-speed WiFi', 'SmartBoards'].map(tech => (
-                      <label key={tech} className="flex items-center gap-2 text-sm">
-                        <input type="checkbox" className="rounded" />
-                        <span>{tech}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <textarea placeholder="Tech restrictions (blocked platforms, bandwidth limits, etc.)" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-3 text-sm" rows="2"></textarea>
-                </div>
-
-                {/* Duration */}
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Preferred Duration</h4>
-                  <div className="grid grid-cols-3 gap-2">
-                    {['2 weeks', '4 weeks', '6 weeks', '8 weeks', 'Semester', 'Full year'].map(dur => (
-                      <label key={dur} className="flex items-center gap-2 text-sm">
-                        <input type="checkbox" className="rounded" />
-                        <span>{dur}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
-                  Create Account & Find Matches
-                </button>
-              </form>
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
             </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="px-2 bg-white text-gray-500">Or fill out the form below</span>
+            </div>
+          </div>
+
+          {/* Success Message */}
+          {signupSuccess && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-800 text-sm">
+                <CheckCircle className="inline mr-2" size={16} />
+                Account created! Check your email for next steps.
+              </p>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {signupError && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-800 text-sm">{signupError}</p>
+            </div>
+          )}
+
+          <div className="max-h-[50vh] overflow-y-auto pr-2">
+            <form onSubmit={handleSignupSubmit} className="space-y-5">
+              {/* Basic Info */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Basic Information</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <input type="text" placeholder="First Name" className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm" required />
+                  <input type="text" placeholder="Last Name" className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm" required />
+                </div>
+                <input type="email" placeholder="Email Address" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 mt-3 text-sm" required />
+                <input type="password" placeholder="Password" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 mt-3 text-sm" required />
+              </div>
+
+              {/* Intent & Role */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Your Intent</h4>
+                <select className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm" required>
+                  <option value="">Select your intent...</option>
+                  <option value="provider">Virtual Exchange Provider (offering services)</option>
+                  <option value="participant">Looking to Participate (seeking a match)</option>
+                </select>
+                <select className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 mt-3 text-sm" required>
+                  <option value="">I am a...</option>
+                  <option value="teacher">Teacher</option>
+                  <option value="school">School</option>
+                  <option value="administrator">School Administrator</option>
+                  <option value="district">District</option>
+                  <option value="other">Other</option>
+                </select>
+                <input type="text" placeholder="Organization Name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 mt-3 text-sm" />
+              </div>
+
+              {/* Grade Levels */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Grade Levels</h4>
+                <p className="text-xs text-gray-600 mb-2">Select all that apply</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {['K-2', '3-5', '6-8', '9-12', 'University'].map(grade => (
+                    <label key={grade} className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" className="rounded" />
+                      <span>{grade}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Subjects */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Subject Areas</h4>
+                <select multiple className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm" size="4">
+                  <option value="STEM">STEM</option>
+                  <option value="Arts">Arts & Humanities</option>
+                  <option value="Languages">Languages</option>
+                  <option value="Social Sciences">Social Sciences</option>
+                  <option value="Environmental">Environmental Studies</option>
+                  <option value="Health">Health & Wellness</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+              </div>
+
+              {/* Student Count */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Number of Students</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <input type="number" placeholder="Min" className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm" />
+                  <input type="number" placeholder="Max" className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm" />
+                </div>
+              </div>
+
+              {/* Technology */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Technology Available</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Chromebooks', 'iPads', 'Laptops', 'Zoom', 'Google Meet', 'Microsoft Teams', 'High-speed WiFi', 'SmartBoards'].map(tech => (
+                    <label key={tech} className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" className="rounded" />
+                      <span>{tech}</span>
+                    </label>
+                  ))}
+                </div>
+                <textarea placeholder="Tech restrictions (blocked platforms, bandwidth limits, etc.)" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 mt-3 text-sm" rows="2"></textarea>
+              </div>
+
+              {/* Duration */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Preferred Duration</h4>
+                <div className="grid grid-cols-3 gap-2">
+                  {['2 weeks', '4 weeks', '6 weeks', '8 weeks', 'Semester', 'Full year'].map(dur => (
+                    <label key={dur} className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" className="rounded" />
+                      <span>{dur}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={signupSubmitting}
+                className="w-full bg-gray-800 text-white py-3 rounded-lg font-medium hover:bg-gray-900 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {signupSubmitting ? 'Creating Account...' : 'Create Account & Find Matches'}
+              </button>
+            </form>
           </div>
         </div>
       </div>
@@ -3222,6 +3380,57 @@ const VirtualExchangePlatform = () => {
       </div>
     </div>
   );
+
+  // Cookie Consent Component - GDPR/CCPA Compliant
+  const CookieConsent = () => {
+    if (!showCookieConsent) return null;
+
+    const acceptCookies = () => {
+      localStorage.setItem('cookieConsent', 'accepted');
+      setShowCookieConsent(false);
+    };
+
+    const declineCookies = () => {
+      localStorage.setItem('cookieConsent', 'declined');
+      setShowCookieConsent(false);
+    };
+
+    return (
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl z-50 animate-slide-up">
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex-1">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">We Value Your Privacy</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                We use cookies and similar technologies to improve your experience, analyze site performance, and enable essential features.
+                By clicking "Accept All", you consent to our use of cookies. You can manage your preferences or decline non-essential cookies.
+                {' '}
+                <button type="button" onClick={() => setActiveTab('privacy')} className="text-gray-800 underline hover:text-gray-900">
+                  Learn more in our Privacy Policy
+                </button>
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={declineCookies}
+                className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition text-sm"
+              >
+                Decline
+              </button>
+              <button
+                type="button"
+                onClick={acceptCookies}
+                className="px-6 py-2.5 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition text-sm"
+              >
+                Accept All
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Helper function to get grade label
   const getGradeLabel = (org) => {
@@ -4114,83 +4323,168 @@ const VirtualExchangePlatform = () => {
   );
 
   // Contact Page
-  const ContactPage = () => (
-    <div className="max-w-2xl mx-auto">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-semibold text-gray-800 mb-4">Contact Us</h1>
-        <p className="text-lg text-gray-600">
-          Have questions? We'd love to hear from you.
-        </p>
-      </div>
+  const ContactPage = () => {
+    const [contactForm, setContactForm] = useState({
+      firstName: '',
+      lastName: '',
+      email: '',
+      organization: '',
+      subject: 'General Inquiry',
+      message: ''
+    });
+    const [contactSubmitting, setContactSubmitting] = useState(false);
+    const [contactSuccess, setContactSuccess] = useState(false);
+    const [contactError, setContactError] = useState('');
 
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-        <form className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
+    const handleContactSubmit = async (e) => {
+      e.preventDefault();
+      setContactSubmitting(true);
+      setContactError('');
+
+      try {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(contactForm),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to send message');
+        }
+
+        setContactSuccess(true);
+        setContactForm({
+          firstName: '',
+          lastName: '',
+          email: '',
+          organization: '',
+          subject: 'General Inquiry',
+          message: ''
+        });
+
+        // Reset success message after 5 seconds
+        setTimeout(() => setContactSuccess(false), 5000);
+      } catch (error) {
+        setContactError('Failed to send message. Please try again or email us directly at hello@mapworkslearning.org');
+      } finally {
+        setContactSubmitting(false);
+      }
+    };
+
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-semibold text-gray-800 mb-4">Contact Us</h1>
+          <p className="text-lg text-gray-600">
+            Have questions? We'd love to hear from you.
+          </p>
+        </div>
+
+        {contactSuccess && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-green-800 text-sm">
+              <CheckCircle className="inline mr-2" size={16} />
+              Thank you for contacting us! We'll get back to you soon.
+            </p>
+          </div>
+        )}
+
+        {contactError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-800 text-sm">{contactError}</p>
+          </div>
+        )}
+
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+          <form onSubmit={handleContactSubmit} className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                <input
+                  type="text"
+                  value={contactForm.firstName}
+                  onChange={(e) => setContactForm({...contactForm, firstName: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                <input
+                  type="text"
+                  value={contactForm.lastName}
+                  onChange={(e) => setContactForm({...contactForm, lastName: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  required
+                />
+              </div>
+            </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-              <input 
-                type="text"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <input
+                type="email"
+                value={contactForm.email}
+                onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+                required
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-              <input 
+              <label className="block text-sm font-medium text-gray-700 mb-2">Organization</label>
+              <input
                 type="text"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={contactForm.organization}
+                onChange={(e) => setContactForm({...contactForm, organization: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
               />
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <input 
-              type="email"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+              <select
+                value={contactForm.subject}
+                onChange={(e) => setContactForm({...contactForm, subject: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+              >
+                <option>General Inquiry</option>
+                <option>Partnership Question</option>
+                <option>Technical Support</option>
+                <option>Verification Status</option>
+                <option>Other</option>
+              </select>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Organization</label>
-            <input 
-              type="text"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+              <textarea
+                rows="6"
+                value={contactForm.message}
+                onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+                required
+              ></textarea>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-            <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option>General Inquiry</option>
-              <option>Partnership Question</option>
-              <option>Technical Support</option>
-              <option>Verification Status</option>
-              <option>Other</option>
-            </select>
-          </div>
+            <button
+              type="submit"
+              disabled={contactSubmitting}
+              className="w-full bg-gray-800 text-white py-4 rounded-lg font-medium hover:bg-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {contactSubmitting ? 'Sending...' : 'Send Message'}
+            </button>
+          </form>
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-            <textarea 
-              rows="6"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            ></textarea>
-          </div>
-
-          <button 
-            type="submit"
-            className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold hover:bg-blue-700 transition"
-          >
-            Send Message
-          </button>
-        </form>
+        <div className="mt-8 text-center text-gray-600">
+          <p>Or email us directly at <a href="mailto:hello@mapworkslearning.org" className="text-gray-800 font-medium hover:underline">hello@mapworkslearning.org</a></p>
+        </div>
       </div>
-
-      <div className="mt-8 text-center text-gray-600">
-        <p>Or email us directly at <a href="mailto:info@mapworkslearning.org" className="text-blue-600 hover:underline">info@mapworkslearning.org</a></p>
-      </div>
-    </div>
-  );
+    );
+  };
 
   // Donate Page
   const DonatePage = () => (
@@ -4415,6 +4709,9 @@ const VirtualExchangePlatform = () => {
       {showAuthModal && <AuthModal />}
       {showConnectModal && selectedOrg && <ConnectModal org={selectedOrg} />}
       {showVerificationModal && <VerificationModal />}
+
+      {/* Cookie Consent */}
+      <CookieConsent />
     </div>
   );
 };
