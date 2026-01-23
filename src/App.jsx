@@ -5543,25 +5543,72 @@ const VirtualExchangePlatform = () => {
             <div>
               <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wider">Platform</h4>
               <div className="space-y-2.5">
-                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">Browse Partners</div>
-                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">How It Works</div>
-                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">Verification</div>
+                <div
+                  onClick={() => setActiveTab('browse')}
+                  className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition"
+                >
+                  Browse Partners
+                </div>
+                <div
+                  onClick={() => setActiveTab('getting-started')}
+                  className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition"
+                >
+                  How It Works
+                </div>
+                <div
+                  onClick={() => setShowVerificationModal(true)}
+                  className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition"
+                >
+                  Verification
+                </div>
               </div>
             </div>
             <div>
               <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wider">About</h4>
               <div className="space-y-2.5">
-                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">Our Mission</div>
-                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">MapWorks Learning</div>
-                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">Contact Us</div>
+                <div
+                  onClick={() => setActiveTab('about')}
+                  className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition"
+                >
+                  Our Mission
+                </div>
+                <a
+                  href="https://mapworkslearning.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition"
+                >
+                  MapWorks Learning
+                </a>
+                <div
+                  onClick={() => setActiveTab('contact')}
+                  className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition"
+                >
+                  Contact Us
+                </div>
               </div>
             </div>
             <div>
               <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wider">Support</h4>
               <div className="space-y-2.5">
-                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">Donate</div>
-                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">FAQ</div>
-                <div className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition">Resources</div>
+                <div
+                  onClick={() => setActiveTab('donate')}
+                  className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition"
+                >
+                  Donate
+                </div>
+                <div
+                  onClick={() => setActiveTab('getting-started')}
+                  className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition"
+                >
+                  FAQ
+                </div>
+                <div
+                  onClick={() => setActiveTab('getting-started')}
+                  className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm transition"
+                >
+                  Resources
+                </div>
               </div>
             </div>
           </div>
