@@ -4768,27 +4768,26 @@ const VirtualExchangePlatform = () => {
       </div>
 
       {/* Why Now Section */}
-      <div className="relative">
-        <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-3xl p-12 text-white shadow-xl">
-          <h2 className="text-3xl font-semibold mb-6">Why This Matters Now</h2>
-          <div className="space-y-4 text-lg leading-relaxed text-gray-100">
-            <p>
-              The world is asking young people and educators to live inside tension every day. Polarization is louder. Distrust spreads faster than truth.
-            </p>
-            <p>
-              Virtual exchange won't solve every crisis. But it can change the temperature in the room. It can turn <span className="text-blue-300 font-semibold">"them"</span> into someone with a name, a story, and a voice.
-            </p>
-            <p className="text-xl font-semibold text-white">
-              This is leadership training for the world we are already in.
-            </p>
-          </div>
+      <div className="bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 rounded-3xl p-12 shadow-sm border border-pink-100">
+        <h2 className="text-3xl font-semibold text-gray-900 mb-6 text-center">Why This Matters Now</h2>
+        <div className="space-y-5 text-lg leading-relaxed text-gray-700 max-w-4xl mx-auto">
+          <p>
+            The world is asking young people and educators to live inside tension every day. Polarization is louder. Distrust spreads faster than truth.
+          </p>
+          <p>
+            Virtual exchange won't solve every crisis. But it can change the temperature in the room. It can turn <span className="text-purple-700 font-semibold">"them"</span> into someone with a name, a story, and a voice.
+          </p>
+          <p className="text-xl font-semibold text-gray-900 text-center pt-4">
+            This is leadership training for the world we are already in.
+          </p>
         </div>
       </div>
 
       {/* Call to Action - Big Statement */}
-      <div className="bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 rounded-3xl p-12 text-center border-2 border-orange-200 shadow-sm">
+      <div className="bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 rounded-3xl p-14 text-center shadow-sm border border-teal-100">
         <h2 className="text-4xl font-bold text-gray-900 mb-6 leading-tight">
-          Virtual exchange should not be a luxury.<br/>It should be a standard.
+          Virtual exchange should not be a luxury.<br/>
+          <span className="text-teal-700">It should be a standard.</span>
         </h2>
         <p className="text-xl text-gray-700 leading-relaxed max-w-3xl mx-auto">
           The Virtual Exchange exists to help make that standard real, so every student and every educator can access the kind of learning that grows dignity, belonging, and the ability to lead with care in a connected world.
@@ -4796,7 +4795,7 @@ const VirtualExchangePlatform = () => {
       </div>
 
       {/* MapWorks Section */}
-      <div className="bg-white rounded-3xl p-12 shadow-sm border border-gray-100">
+      <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-3xl p-12 shadow-sm border border-amber-100">
         <div className="flex flex-col items-center text-center space-y-6">
           <MapWorksLogo />
           <h3 className="text-3xl font-bold text-gray-900">MapWorks Learning</h3>
@@ -4807,7 +4806,7 @@ const VirtualExchangePlatform = () => {
             href="https://mapworkslearning.org"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-8 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition shadow-lg hover:shadow-xl"
+            className="px-8 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition shadow-md hover:shadow-lg"
           >
             Learn More About MapWorks
           </a>
