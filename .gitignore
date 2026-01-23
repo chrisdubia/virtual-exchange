@@ -29,3 +29,6 @@ yarn-error.log*
 
 # Testing
 coverage/
+
+# Data files with placeholder/real contact info
+organizations_contact_info.csv
