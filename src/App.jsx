@@ -4127,9 +4127,9 @@ const VirtualExchangePlatform = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4 cursor-pointer" onClick={() => setActiveTab('home')}>
               <VirtualExchangeLogo size="sm" />
-              <div>
-                <div className="text-lg font-light text-gray-700">The Virtual Exchange</div>
-                <div className="text-xs text-gray-500">by MapWorks Learning</div>
+              <div className="flex flex-col items-start">
+                <div className="text-lg font-light text-gray-700 leading-tight">The Virtual Exchange</div>
+                <div className="text-xs text-gray-500 leading-tight">by MapWorks Learning</div>
               </div>
             </div>
             <div className="flex gap-8 items-center">
