@@ -4166,12 +4166,12 @@ const VirtualExchangePlatform = () => {
               <select
                 value={currentLanguage}
                 onChange={(e) => setCurrentLanguage(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 title="Select Language"
               >
                 {languages.map(lang => (
                   <option key={lang.code} value={lang.code}>
-                    {lang.flag} {lang.name}
+                    {lang.name}
                   </option>
                 ))}
               </select>
@@ -4180,7 +4180,7 @@ const VirtualExchangePlatform = () => {
               <button
                 type="button"
                 onClick={() => setShowVerificationModal(true)}
-                className="px-4 py-2 border-2 border-green-600 text-green-600 rounded-lg font-semibold hover:bg-green-50 transition flex items-center gap-2"
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:border-gray-400 hover:bg-gray-50 transition flex items-center gap-2"
                 title="Get your organization verified"
               >
                 <Shield size={16} />
@@ -4190,15 +4190,15 @@ const VirtualExchangePlatform = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('donate')}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition flex items-center gap-2"
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:border-gray-400 hover:bg-gray-50 transition flex items-center gap-2"
               >
-                <Heart size={16} fill="white" />
+                <Heart size={16} />
                 Donate
               </button>
               <button
                 type="button"
                 onClick={() => setShowAuthModal(true)}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+                className="px-6 py-2 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition"
               >
                 Sign In
               </button>
