@@ -3229,7 +3229,7 @@ const VirtualExchangePlatform = () => {
             ))}
           </div>
         </div>
-        <div className="relative z-10">
+        <div className="relative z-10 flex flex-col items-center">
           <VirtualExchangeLogo size="lg" />
           <h1 className="text-6xl font-light text-gray-900 mt-6 mb-4">The Virtual Exchange</h1>
           <p className="text-xl text-gray-600 mb-2 italic">"Every conversation is a step toward solidarity"</p>
