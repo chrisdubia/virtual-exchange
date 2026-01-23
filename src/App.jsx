@@ -5847,108 +5847,203 @@ const VirtualExchangePlatform = () => {
     );
   };
 
-  // Lesson Plans Page - Downloadable comprehensive lesson plans
-  const LessonPlansPage = () => (
-    <div className="space-y-12">
-      <div className="text-center max-w-4xl mx-auto">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6">
-          <FileText className="w-10 h-10 text-blue-600" />
+  // Lesson Plans Page - Completely redesigned for teachers
+  const LessonPlansPage = () => {
+    const [selectedCategory, setSelectedCategory] = useState('all');
+
+    const filteredLessons = selectedCategory === 'all'
+      ? lessonPlansData
+      : lessonPlansData.filter(l => l.category === selectedCategory);
+
+    return (
+      <div className="space-y-12">
+        {/* Hero Section */}
+        <div className="relative overflow-hidden rounded-3xl" style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}}>
+          <div className="relative z-10 px-12 py-16 text-white">
+            <div className="max-w-4xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <span className="text-sm font-semibold uppercase tracking-wider bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                  Ready to Use
+                </span>
+              </div>
+              <h1 className="text-5xl font-bold mb-4">Lesson Plans Made By Teachers, For Teachers</h1>
+              <p className="text-xl text-white text-opacity-90 leading-relaxed">
+                No fluff. No academic jargon. Just clear, actionable lesson plans you can use tomorrow.
+                Download, adapt, make them yours. That's what they're here for.
+              </p>
+            </div>
+          </div>
         </div>
-        <h1 className="text-4xl font-semibold mb-4" style={{color: '#666666'}}>Lesson Plans</h1>
-        <p className="text-xl text-gray-600">
-          Comprehensive, ready-to-use lesson plans for virtual exchange activities
-        </p>
-      </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {lessonPlansData.map(lesson => (
-          <div key={lesson.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition">
-            <div className="p-6">
-              <div className="flex items-center gap-2 mb-3">
-                <Tag size={16} className="text-blue-600" />
-                <span className="text-xs font-semibold text-blue-600 uppercase">{lesson.category}</span>
+        {/* Quick Filter Pills */}
+        <div className="flex flex-wrap gap-3 justify-center">
+          <button
+            onClick={() => setSelectedCategory('all')}
+            className={`px-6 py-3 rounded-full font-semibold transition-all ${
+              selectedCategory === 'all'
+                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-blue-300'
+            }`}
+          >
+            All Lessons ({lessonPlansData.length})
+          </button>
+          {['identity', 'empathy', 'collaboration'].map(cat => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-6 py-3 rounded-full font-semibold transition-all capitalize ${
+                selectedCategory === cat
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                  : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-blue-300'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Lesson Cards - Stunning Visual Design */}
+        <div className="grid lg:grid-cols-2 gap-8">
+          {filteredLessons.map((lesson, idx) => {
+            const gradients = [
+              'from-pink-500 via-red-500 to-yellow-500',
+              'from-green-400 via-cyan-500 to-blue-500',
+              'from-purple-400 via-pink-500 to-red-500'
+            ];
+            const gradient = gradients[idx % gradients.length];
+
+            return (
+              <div key={lesson.id} className="group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-gray-100">
+                {/* Color Bar */}
+                <div className={`h-2 bg-gradient-to-r ${gradient}`}></div>
+
+                <div className="p-8">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className={`px-3 py-1 bg-gradient-to-r ${gradient} text-white rounded-full text-xs font-bold uppercase`}>
+                          {lesson.category}
+                        </span>
+                        <span className="text-sm text-gray-500">⏱ {lesson.duration}</span>
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition">
+                        {lesson.title}
+                      </h3>
+                      <p className="text-gray-600 leading-relaxed mb-4">{lesson.description}</p>
+                    </div>
+                  </div>
+
+                  {/* Quick Info */}
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <div className="text-xs text-gray-500 uppercase font-semibold mb-1">Grade Level</div>
+                      <div className="text-sm font-semibold text-gray-900">{lesson.gradeLevel}</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <div className="text-xs text-gray-500 uppercase font-semibold mb-1">Subjects</div>
+                      <div className="text-sm font-semibold text-gray-900">{lesson.subjects.join(', ')}</div>
+                    </div>
+                  </div>
+
+                  {/* What's Included Preview */}
+                  <div className="bg-blue-50 rounded-xl p-4 mb-6">
+                    <div className="font-semibold text-blue-900 mb-2 text-sm">What's Included:</div>
+                    <ul className="space-y-1 text-sm text-blue-800">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle size={14} className="text-blue-600" />
+                        Step-by-step instructions with timing
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle size={14} className="text-blue-600" />
+                        Reflection questions & assessment
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle size={14} className="text-blue-600" />
+                        Adaptations for all grade levels
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedLessonPlan(lesson);
+                        setShowLessonPlanModal(true);
+                      }}
+                      className={`flex-1 px-6 py-3 bg-gradient-to-r ${gradient} text-white rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2`}
+                    >
+                      <FileText size={18} />
+                      View Full Plan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => alert(`Downloading ${lesson.title}...`)}
+                      className="px-6 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition flex items-center justify-center gap-2"
+                    >
+                      <Download size={18} />
+                    </button>
+                  </div>
+
+                  {/* License Footer */}
+                  <div className="mt-6 pt-4 border-t border-gray-200 flex items-center justify-between text-xs">
+                    <span className="text-green-600 font-semibold">{lesson.license} - Free to adapt</span>
+                    <span className="text-gray-400">{lesson.attribution}</span>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{lesson.title}</h3>
-              <p className="text-sm text-gray-600 mb-4">{lesson.description}</p>
+            );
+          })}
+        </div>
 
-              <div className="space-y-2 text-sm text-gray-700 mb-6">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Duration:</span> {lesson.duration}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Grade Level:</span> {lesson.gradeLevel}
-                </div>
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {lesson.subjects.map(subject => (
-                    <span key={subject} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                      {subject}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedLessonPlan(lesson);
-                    setShowLessonPlanModal(true);
-                  }}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
-                >
-                  <FileText size={16} />
-                  View
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Download functionality
-                    alert(`Downloading ${lesson.title} lesson plan...`);
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2"
-                >
-                  <Download size={16} />
-                  Download
-                </button>
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
-                <div className="flex items-center justify-between">
-                  <span>{lesson.license}</span>
-                  <span className="text-gray-400">{lesson.attribution}</span>
-                </div>
+        {/* About Section - Teacher-Friendly */}
+        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-10 border-2 border-emerald-100">
+          <div className="flex items-start gap-6">
+            <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <Heart className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Built for Real Classrooms</h2>
+              <div className="space-y-4 text-gray-700 text-lg leading-relaxed">
+                <p>
+                  These aren't theoretical. They're not written by people who haven't set foot in a classroom in 20 years.
+                  Every lesson here has been tested, adapted, and refined by teachers working with actual students.
+                </p>
+                <p>
+                  <strong>Free to use. Free to adapt. Free to share.</strong> That's what CC BY 4.0 means. Print it. Change it.
+                  Make it work for your kids. Just mention where you got it.
+                </p>
+                <p className="text-emerald-700 font-semibold">
+                  No paywalls. No premium tiers. No signup required. Just good teaching resources that actually work.
+                </p>
               </div>
             </div>
           </div>
-        ))}
-      </div>
-
-      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">About These Lesson Plans</h2>
-        <div className="space-y-3 text-gray-700">
-          <p>
-            All lesson plans are released under <strong>Creative Commons Attribution 4.0 (CC BY 4.0)</strong> license.
-            This means you are free to:
-          </p>
-          <ul className="list-disc list-inside space-y-2 ml-4">
-            <li><strong>Share</strong> — copy and redistribute the material in any medium or format</li>
-            <li><strong>Adapt</strong> — remix, transform, and build upon the material for any purpose, even commercially</li>
-          </ul>
-          <p className="pt-2">
-            Under the following terms: <strong>Attribution</strong> — You must give appropriate credit to The Virtual Exchange,
-            provide a link to the license, and indicate if changes were made.
-          </p>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  // Resources Page - External CC-licensed resource library
+  // Resources Page - Completely redesigned resource library
   const ResourcesPage = () => {
     const [filteredResources, setFilteredResources] = useState(externalResources);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const applyFilters = () => {
       let filtered = externalResources;
+
+      if (searchQuery) {
+        filtered = filtered.filter(r =>
+          r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          r.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          r.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
+      }
 
       if (resourceFilters.subject !== 'all') {
         filtered = filtered.filter(r =>
@@ -5969,144 +6064,245 @@ const VirtualExchangePlatform = () => {
 
     return (
       <div className="space-y-12">
-        <div className="text-center max-w-4xl mx-auto">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-100 rounded-full mb-6">
-            <Download className="w-10 h-10 text-purple-600" />
-          </div>
-          <h1 className="text-4xl font-semibold mb-4" style={{color: '#666666'}}>Resource Library</h1>
-          <p className="text-xl text-gray-600">
-            Curated collection of freely available, CC-licensed resources from leading organizations
-          </p>
-        </div>
+        {/* Hero Section with Gradient */}
+        <div className="relative overflow-hidden rounded-3xl" style={{background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'}}>
+          <div className="relative z-10 px-12 py-16 text-white">
+            <h1 className="text-5xl font-bold mb-4">Resources Curated By Educators, For Educators</h1>
+            <p className="text-xl mb-8">Free, openly-licensed materials you can actually use in your classroom. No paywalls. No gatekeeping.</p>
 
-        {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h3 className="font-semibold text-gray-900 mb-4">Filter Resources</h3>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-              <select
-                value={resourceFilters.subject}
-                onChange={(e) => {
-                  setResourceFilters({...resourceFilters, subject: e.target.value});
-                  setTimeout(applyFilters, 0);
-                }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Subjects</option>
-                <option value="Global Citizenship">Global Citizenship</option>
-                <option value="STEM">STEM</option>
-                <option value="Arts">Arts</option>
-                <option value="Social Studies">Social Studies</option>
-                <option value="Language Learning">Language Learning</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-              <select
-                value={resourceFilters.type}
-                onChange={(e) => {
-                  setResourceFilters({...resourceFilters, type: e.target.value});
-                  setTimeout(applyFilters, 0);
-                }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Types</option>
-                <option value="Activity Collection">Activity Collection</option>
-                <option value="Toolkit">Toolkit</option>
-                <option value="Curriculum">Curriculum</option>
-                <option value="Project Guides">Project Guides</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Age Group</label>
-              <select
-                value={resourceFilters.ageGroup}
-                onChange={(e) => {
-                  setResourceFilters({...resourceFilters, ageGroup: e.target.value});
-                  setTimeout(applyFilters, 0);
-                }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Ages</option>
-                <option value="K-12">K-12</option>
-                <option value="Higher Education">Higher Education</option>
-                <option value="University">University</option>
-              </select>
+            {/* Search Bar */}
+            <div className="max-w-2xl">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder="Search by keyword, topic, or organization..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setTimeout(applyFilters, 0);
+                  }}
+                  className="w-full pl-12 pr-4 py-4 rounded-xl text-gray-900 text-lg focus:outline-none focus:ring-4 focus:ring-white focus:ring-opacity-50"
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Resource Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {filteredResources.map(resource => (
-            <div key={resource.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-1">{resource.title}</h3>
-                  <p className="text-sm text-gray-600">{resource.source}</p>
-                </div>
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
-                  {resource.format}
-                </span>
-              </div>
-
-              <p className="text-gray-700 mb-4">{resource.description}</p>
-
-              <div className="flex flex-wrap gap-2 mb-4">
-                {resource.tags.map(tag => (
-                  <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                <div className="text-xs text-gray-500">
-                  <div>{resource.type}</div>
-                  <div className="font-medium text-green-600">{resource.license}</div>
-                </div>
-                <a
-                  href={resource.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition flex items-center gap-2"
+        {/* Filter Pills */}
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3 flex items-center gap-2">
+              <Filter size={16} />
+              Filter by Subject
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {['all', 'Global Citizenship', 'STEM', 'Arts', 'Social Studies', 'Language Learning'].map(subj => (
+                <button
+                  key={subj}
+                  onClick={() => {
+                    setResourceFilters({...resourceFilters, subject: subj});
+                    setTimeout(applyFilters, 0);
+                  }}
+                  className={`px-4 py-2 rounded-full font-semibold transition ${
+                    resourceFilters.subject === subj
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                  }`}
                 >
-                  <Download size={16} />
-                  Access Resource
-                </a>
-              </div>
+                  {subj === 'all' ? 'All Subjects' : subj}
+                </button>
+              ))}
             </div>
-          ))}
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3 flex items-center gap-2">
+              <Tag size={16} />
+              Filter by Type
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {['all', 'Activity Collection', 'Toolkit', 'Curriculum', 'Project Guides'].map(type => (
+                <button
+                  key={type}
+                  onClick={() => {
+                    setResourceFilters({...resourceFilters, type: type});
+                    setTimeout(applyFilters, 0);
+                  }}
+                  className={`px-4 py-2 rounded-full font-semibold transition ${
+                    resourceFilters.type === type
+                      ? 'bg-gradient-to-r from-green-400 to-cyan-500 text-white shadow-lg'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                  }`}
+                >
+                  {type === 'all' ? 'All Types' : type}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3 flex items-center gap-2">
+              <Users size={16} />
+              Filter by Age Group
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {['all', 'K-12', 'Higher Education', 'University'].map(age => (
+                <button
+                  key={age}
+                  onClick={() => {
+                    setResourceFilters({...resourceFilters, ageGroup: age});
+                    setTimeout(applyFilters, 0);
+                  }}
+                  className={`px-4 py-2 rounded-full font-semibold transition ${
+                    resourceFilters.ageGroup === age
+                      ? 'bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-lg'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                  }`}
+                >
+                  {age === 'all' ? 'All Ages' : age}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
+        {/* Resource Cards with Visual Design */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredResources.map((resource, idx) => {
+            const gradients = [
+              'from-blue-400 via-purple-500 to-pink-500',
+              'from-green-400 via-teal-500 to-cyan-600',
+              'from-yellow-400 via-orange-500 to-red-500',
+              'from-indigo-400 via-purple-500 to-pink-500',
+              'from-teal-400 via-green-500 to-emerald-600',
+              'from-rose-400 via-pink-500 to-fuchsia-600'
+            ];
+            const gradient = gradients[idx % gradients.length];
+
+            return (
+              <div key={resource.id} className="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300">
+                {/* Gradient Header */}
+                <div className={`h-3 bg-gradient-to-r ${gradient}`}></div>
+
+                <div className="p-6">
+                  {/* Title and Source */}
+                  <div className="mb-4">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition">{resource.title}</h3>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-gray-600">{resource.source}</p>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${gradient} text-white`}>
+                        {resource.format}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-gray-700 mb-4 leading-relaxed">{resource.description}</p>
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {resource.tags.slice(0, 3).map(tag => (
+                      <span key={tag} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">
+                        {tag}
+                      </span>
+                    ))}
+                    {resource.tags.length > 3 && (
+                      <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold">
+                        +{resource.tags.length - 3} more
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="pt-4 border-t border-gray-200 flex items-center justify-between">
+                    <div className="flex flex-col gap-1">
+                      <div className="text-xs text-gray-500">{resource.type}</div>
+                      <div className="text-xs font-bold text-green-600 flex items-center gap-1">
+                        <Shield size={12} />
+                        {resource.license}
+                      </div>
+                    </div>
+                    <a
+                      href={resource.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`px-5 py-2.5 bg-gradient-to-r ${gradient} text-white rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2`}
+                    >
+                      <Download size={16} />
+                      Get It
+                    </a>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* No Results State */}
         {filteredResources.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No resources found matching your filters.</p>
+          <div className="text-center py-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-6 shadow-lg">
+              <Search className="w-10 h-10 text-gray-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-700 mb-2">No resources found</h3>
+            <p className="text-gray-500 text-lg mb-6">Try adjusting your filters or search query.</p>
             <button
               type="button"
               onClick={() => {
                 setResourceFilters({ subject: 'all', type: 'all', ageGroup: 'all' });
+                setSearchQuery('');
                 setFilteredResources(externalResources);
               }}
-              className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all"
             >
-              Clear Filters
+              Clear All Filters
             </button>
           </div>
         )}
 
-        {/* Attribution Section */}
-        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-8 border border-amber-100">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">About These Resources</h2>
-          <p className="text-gray-700 mb-4">
-            All resources in this library are released under Creative Commons licenses by their respective organizations.
-            We've curated these materials from trusted educational institutions and nonprofit organizations committed to
-            open educational practices.
-          </p>
-          <p className="text-gray-700">
-            Please respect the licensing terms specified for each resource. When in doubt, always attribute the original
-            creator and check the specific CC license for usage rights.
+        {/* Why These Resources Section */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-10 border-2 border-purple-100">
+          <div className="relative z-10">
+            <h2 className="text-3xl font-bold mb-4" style={{color: '#666666'}}>Why These Resources?</h2>
+            <div className="grid md:grid-cols-2 gap-6 text-gray-700">
+              <div>
+                <h3 className="font-bold text-lg mb-2 text-purple-600">Free & Open</h3>
+                <p>
+                  Every resource here is CC-licensed. That means you can use, adapt, and share them legally.
+                  No paywalls. No restrictions. Just good teaching materials.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-bold text-lg mb-2 text-pink-600">Curated, Not Cluttered</h3>
+                <p>
+                  We've hand-picked these from trusted organizations. No fluff, no duplicates, no random blogs.
+                  These are the real deal from people doing real work.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-bold text-lg mb-2 text-teal-600">Classroom-Ready</h3>
+                <p>
+                  Built by educators who actually teach, not theorists in ivory towers.
+                  You can use these tomorrow without spending hours adapting them.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-bold text-lg mb-2 text-orange-600">Always Growing</h3>
+                <p>
+                  We're constantly adding new resources and welcoming contributions from teachers like you.
+                  See something missing? Let us know.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Legal Notice */}
+        <div className="bg-white rounded-2xl p-6 border-l-4 border-purple-500">
+          <p className="text-sm text-gray-600 leading-relaxed">
+            <strong className="text-gray-900">Legal Stuff:</strong> All resources are released under Creative Commons licenses by their respective organizations.
+            Always respect the licensing terms. When in doubt, give credit to the original creator and check the specific CC license.
           </p>
         </div>
       </div>
