@@ -92,6 +92,49 @@ const VirtualExchangePlatform = () => {
     // PROVIDERS
     {
       id: 1,
+      name: "MapWorks Learning",
+      type: "Provider",
+      category: "Exchange Provider",
+      country: "United States",
+      region: "North America",
+      description: "A nonprofit redefining how young people engage with the world through campfire-style exchanges that blend dialogue, project design, and real-world action. We help students think critically, act with care, and lead boldly.",
+      languages: ["English", "Spanish", "Arabic"],
+      interests: ["Youth Leadership", "Global Competencies", "Project-Based Learning", "Climate Action", "Peace Building"],
+      capacity: "1,000+ students annually",
+      email: "hello@mapworkslearning.org",
+      phone: "+1 (555) 123-4567",
+      verified: true,
+      website: "mapworkslearning.org",
+      partnershipGoals: ["Youth-led programming", "Cross-cultural collaboration", "Action-oriented exchanges"],
+      programs: [
+        {
+          name: "Global Campfires",
+          status: "current",
+          duration: "8 weeks",
+          participants: "20-30 students per cohort",
+          description: "Students from different countries gather in virtual 'campfires' to share stories, design collaborative projects, and take action on issues they care about. From climate action to community rebuilding, students lead the work.",
+          technology: "Zoom, Padlet, Google Workspace",
+          schedule: "Weekly 90-minute sessions",
+          applicationDeadline: "Rolling admissions",
+          cost: "Free for schools",
+          gradeLevel: "Grades 9-12, University"
+        },
+        {
+          name: "Youth Climate Fellows",
+          status: "upcoming",
+          duration: "12 weeks",
+          participants: "40 students (cohorts of 20 from 2 countries)",
+          description: "A deeper dive into climate action with partner schools co-designing and implementing local environmental projects while learning from each other's contexts.",
+          technology: "Zoom, Miro, Slack",
+          schedule: "Begins Fall 2026",
+          applicationDeadline: "August 15, 2026",
+          cost: "Free for schools",
+          gradeLevel: "Grades 10-12"
+        }
+      ]
+    },
+    {
+      id: 2,
       name: "Stevens Initiative",
       type: "Provider",
       category: "Exchange Provider",
@@ -105,10 +148,11 @@ const VirtualExchangePlatform = () => {
       phone: "+1 (202) 464-6040",
       verified: true,
       website: "stevensinitiative.org",
-      partnershipGoals: ["Expand VE programs", "Build institutional capacity", "Foster global citizenship"]
+      partnershipGoals: ["Expand VE programs", "Build institutional capacity", "Foster global citizenship"],
+      programs: []
     },
     {
-      id: 2,
+      id: 3,
       name: "Soliya",
       type: "Provider",
       category: "Exchange Provider",
@@ -122,10 +166,11 @@ const VirtualExchangePlatform = () => {
       phone: "+1 (212) 655-5050",
       verified: true,
       website: "soliya.net",
-      partnershipGoals: ["Cross-cultural understanding", "Digital facilitation training"]
+      partnershipGoals: ["Cross-cultural understanding", "Digital facilitation training"],
+      programs: []
     },
     {
-      id: 3,
+      id: 4,
       name: "SUNY COIL",
       type: "Provider",
       category: "Exchange Provider",
@@ -3970,6 +4015,45 @@ const VirtualExchangePlatform = () => {
           )}
         </div>
       </div>
+
+      {/* Virtual Exchange Programs */}
+      {org.programs && org.programs.length > 0 && (
+        <div className="border-t border-gray-200 pt-4 mb-4">
+          <div className="text-xs font-semibold text-gray-500 uppercase mb-3">Virtual Exchange Programs</div>
+          <div className="space-y-3">
+            {org.programs.map((program, idx) => (
+              <div key={idx} className={`rounded-lg p-3 ${program.status === 'current' ? 'bg-green-50 border border-green-200' : 'bg-blue-50 border border-blue-200'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold text-gray-900 text-sm">{program.name}</h4>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${program.status === 'current' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
+                    {program.status === 'current' ? 'Open Now' : 'Upcoming'}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-700 mb-2">{program.description}</p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="font-semibold text-gray-600">Duration:</span> {program.duration}
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-600">Participants:</span> {program.participants}
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-600">Tech:</span> {program.technology}
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-600">Cost:</span> {program.cost}
+                  </div>
+                </div>
+                {program.applicationDeadline && (
+                  <div className="mt-2 text-xs text-gray-600">
+                    <span className="font-semibold">Apply by:</span> {program.applicationDeadline}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-3">
         <button
