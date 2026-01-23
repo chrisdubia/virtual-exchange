@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Globe, Users, School, MessageSquare, Search, Filter, CheckCircle, X, Heart, Building, GraduationCap, BookOpen, Sparkles, Shield, Mail, Lock, User } from 'lucide-react';
+import { Globe, Users, School, MessageSquare, Search, Filter, CheckCircle, X, Heart, Building, GraduationCap, BookOpen, Sparkles, Shield, Mail, Lock, User, ChevronDown, Download, Upload, FileText, Tag } from 'lucide-react';
 
 const VirtualExchangePlatform = () => {
   const [activeTab, setActiveTab] = useState('home');
@@ -12,6 +12,15 @@ const VirtualExchangePlatform = () => {
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [showCookieConsent, setShowCookieConsent] = useState(() => {
     return !localStorage.getItem('cookieConsent');
+  });
+  const [showGettingStartedDropdown, setShowGettingStartedDropdown] = useState(false);
+  const [showLessonPlanModal, setShowLessonPlanModal] = useState(false);
+  const [selectedLessonPlan, setSelectedLessonPlan] = useState(null);
+  const [showResourceSubmitModal, setShowResourceSubmitModal] = useState(false);
+  const [resourceFilters, setResourceFilters] = useState({
+    subject: 'all',
+    type: 'all',
+    ageGroup: 'all'
   });
   const [signupForm, setSignupForm] = useState({
     firstName: '',
@@ -5049,6 +5058,306 @@ const VirtualExchangePlatform = () => {
     </div>
   );
 
+  // Lesson Plan Data - Comprehensive plans for all activities with CC BY 4.0 license
+  const lessonPlansData = [
+    {
+      id: 1,
+      title: "Cultural Identity Tree",
+      category: "identity",
+      duration: "45-60 minutes",
+      gradeLevel: "All Ages (adaptable)",
+      subjects: ["Social Studies", "Art", "SEL"],
+      description: "Students create a visual representation of their cultural background, family traditions, and personal values using a tree metaphor.",
+      learningObjectives: [
+        "Explore and articulate the various aspects of their cultural identity",
+        "Think critically about how heritage, values, and aspirations shape who they are",
+        "Act with care when sharing and learning about diverse backgrounds",
+        "Lead by creating a classroom culture of respect and appreciation for diversity"
+      ],
+      materialsNeeded: [
+        "Large paper or poster board (one per student)",
+        "Colored markers, crayons, or colored pencils",
+        "Optional: magazines for collage, glue, scissors",
+        "Optional: real tree branches, leaves, or natural materials"
+      ],
+      stepByStep: [
+        {
+          step: 1,
+          title: "Introduction (10 min)",
+          content: "Explain the tree metaphor: roots (heritage/family), trunk (core values), branches (aspirations/dreams). Show an example and discuss why trees are a fitting symbol for identity."
+        },
+        {
+          step: 2,
+          title: "Brainstorming (10 min)",
+          content: "Students create three lists: Heritage/Family (roots), Core Values (trunk), Dreams/Goals (branches). Encourage them to think deeply about what makes them who they are."
+        },
+        {
+          step: 3,
+          title: "Creation (20-30 min)",
+          content: "Students draw their tree and fill each part with words, images, symbols, or collage elements representing their identity. Encourage creativity and personal expression."
+        },
+        {
+          step: 4,
+          title: "Sharing Circle (10-15 min)",
+          content: "Students share their trees in small groups or pairs. Set community agreements: respectful listening, asking curious questions, appreciating differences."
+        }
+      ],
+      reflectionQuestions: [
+        "What surprised you about your own identity tree?",
+        "What did you learn about your classmates that you didn't know before?",
+        "How did it feel to share parts of your identity?",
+        "What connections did you notice between your tree and others'?"
+      ],
+      assessment: [
+        "Observe participation in sharing and respectful listening",
+        "Review completed trees for depth of reflection",
+        "Ask students to write a brief reflection on what they learned",
+        "Note students' ability to ask respectful, curious questions"
+      ],
+      adaptations: [
+        "Elementary: Use simpler vocabulary, provide more structured templates",
+        "Middle School: Add more abstract concepts like personality traits and social identities",
+        "High School/University: Include discussion of intersectionality and systemic influences on identity",
+        "Virtual Exchange: Partners create trees and share via video call, noticing similarities and differences across cultures"
+      ],
+      virtualExchangeConnection: "Partner classrooms create identity trees and share them via video exchange. Students notice patterns, ask questions about different cultural traditions, and find unexpected common ground across borders.",
+      license: "CC BY 4.0",
+      attribution: "Created by The Virtual Exchange",
+      downloadUrl: "/downloads/cultural-identity-tree.pdf"
+    },
+    {
+      id: 2,
+      title: "The Five Types of Care",
+      category: "empathy",
+      duration: "30-45 minutes",
+      gradeLevel: "Grades 3+",
+      subjects: ["SEL", "Character Education", "Health"],
+      description: "Students explore five ways to show care for others and practice each type through partnerships and real-world application.",
+      learningObjectives: [
+        "Identify and describe five distinct ways to show care: Kind Words, Time Together, Thoughtful Giving, Comforting Presence, Helpful Acts",
+        "Think critically about which types of care are most meaningful in different situations",
+        "Act with care by practicing multiple forms of caring with classmates",
+        "Lead by modeling caring behaviors in daily interactions"
+      ],
+      materialsNeeded: [
+        "Chart paper or whiteboard",
+        "Index cards or sticky notes",
+        "Optional: 'Care Cards' template (printable)",
+        "Optional: journals for reflection"
+      ],
+      stepByStep: [
+        {
+          step: 1,
+          title: "Introduction to the Five Types (10 min)",
+          content: "Present each type of care with examples: Kind Words (compliments, encouragement), Time Together (listening, being present), Thoughtful Giving (meaningful gifts), Comforting Presence (being there in hard times), Helpful Acts (service, assistance). Discuss which resonates most with them."
+        },
+        {
+          step: 2,
+          title: "Personal Reflection (5 min)",
+          content: "Students identify: Which type do they most naturally give? Which do they most appreciate receiving? Which might they want to practice more?"
+        },
+        {
+          step: 3,
+          title: "Partnership Practice (15-20 min)",
+          content: "In pairs, students practice at least three types: share kind words, spend focused time listening, offer helpful acts. Rotate partners to practice with different classmates."
+        },
+        {
+          step: 4,
+          title: "Action Planning (10 min)",
+          content: "Students create 'Care Cards' - small commitments to practice one type of care with someone specific this week. Share commitments if comfortable."
+        }
+      ],
+      reflectionQuestions: [
+        "Which type of care felt most natural to give? Most challenging?",
+        "How did it feel to receive each type of care?",
+        "Who in your life shows you care? How do they do it?",
+        "How can you incorporate these practices into daily life?"
+      ],
+      assessment: [
+        "Observe students' ability to demonstrate each type of care authentically",
+        "Review Care Cards for thoughtful planning",
+        "Follow up: Did students complete their care commitment? What was the impact?",
+        "Note students' growing vocabulary for describing caring behaviors"
+      ],
+      adaptations: [
+        "Younger students: Focus on 2-3 types with more concrete examples",
+        "Older students: Explore cultural differences in expressions of care",
+        "Virtual: Practice via video partnership - compliments, listening, sharing resources",
+        "Advanced: Discuss which types are hardest to practice across divides (political, cultural, etc.)"
+      ],
+      virtualExchangeConnection: "Partner students across classrooms practice the five types through virtual interactions. They discover how care transcends borders and language barriers.",
+      license: "CC BY 4.0",
+      attribution: "Created by The Virtual Exchange | Inspired by Gary Chapman's Five Love Languages",
+      downloadUrl: "/downloads/five-types-of-care.pdf"
+    },
+    {
+      id: 3,
+      title: "Community Needs Assessment",
+      category: "collaboration",
+      duration: "60-90 minutes (can span multiple sessions)",
+      gradeLevel: "Grades 6+",
+      subjects: ["Social Studies", "Service Learning", "Project-Based Learning"],
+      description: "Students identify genuine needs in their community through research and stakeholder interviews, building toward collaborative action projects.",
+      learningObjectives: [
+        "Think critically about community challenges and their root causes",
+        "Act with care by listening to diverse stakeholder perspectives",
+        "Lead research efforts to understand problems deeply before proposing solutions",
+        "Develop skills in interviewing, data collection, and empathetic problem-solving"
+      ],
+      materialsNeeded: [
+        "Interview guide templates",
+        "Recording devices or note-taking materials",
+        "Chart paper for mapping findings",
+        "Access to local news sources, community reports",
+        "Optional: cameras for photo documentation"
+      ],
+      stepByStep: [
+        {
+          step: 1,
+          title: "Identify Focus Area (15-20 min)",
+          content: "Brainstorm community challenges students notice: environment, education, food access, elderly care, youth spaces, etc. Vote or discuss to narrow to 1-2 focus areas."
+        },
+        {
+          step: 2,
+          title: "Develop Research Questions (15 min)",
+          content: "What do we want to understand? Who is affected? What's already being done? What's missing? Create interview questions and research plan."
+        },
+        {
+          step: 3,
+          title: "Conduct Research (Outside class or 30 min)",
+          content: "Students interview community members, review local news, visit relevant locations. Focus on listening to those directly affected by the issue."
+        },
+        {
+          step: 4,
+          title: "Analyze and Map Findings (20-30 min)",
+          content: "Compile interview notes, identify patterns, map stakeholders, discuss root causes vs. symptoms. Create visual representation of the need."
+        },
+        {
+          step: 5,
+          title: "Present Findings (10-15 min)",
+          content: "Groups present what they learned. Discuss: What surprised us? What do we still need to understand? What might be appropriate responses?"
+        }
+      ],
+      reflectionQuestions: [
+        "What did you learn about this issue that you didn't know before?",
+        "How did talking to community members change your understanding?",
+        "What assumptions did you hold that were challenged?",
+        "What would be respectful, effective ways to address this need?"
+      ],
+      assessment: [
+        "Quality of research questions and interview protocols",
+        "Depth of findings and analysis",
+        "Ability to identify root causes, not just symptoms",
+        "Respectful, empathetic approach to community engagement"
+      ],
+      adaptations: [
+        "Younger students: Focus on school-based needs, simpler research methods",
+        "Advanced: Partner with local nonprofits, conduct surveys, analyze data",
+        "Virtual Exchange: Partner classrooms research parallel issues in their regions, compare findings",
+        "Remote learning: Virtual interviews, online research, digital mapping tools"
+      ],
+      virtualExchangeConnection: "Partner classrooms in different regions each conduct community needs assessments. They compare findings, identify universal challenges, and potentially co-design solutions that work across contexts.",
+      license: "CC BY 4.0",
+      attribution: "Created by The Virtual Exchange | Informed by Asset-Based Community Development practices",
+      downloadUrl: "/downloads/community-needs-assessment.pdf"
+    }
+  ];
+
+  // External CC-Licensed Resources - Curated from reputable organizations
+  const externalResources = [
+    {
+      id: 1,
+      title: "Global Classroom Activities",
+      source: "UNESCO",
+      description: "Collection of 50+ activities promoting intercultural dialogue and global citizenship education",
+      subject: ["Global Citizenship", "Intercultural Learning"],
+      type: "Activity Collection",
+      ageGroup: "Grades 6-12",
+      license: "CC BY-SA 4.0",
+      url: "https://en.unesco.org/themes/gced/resources",
+      format: "PDF",
+      tags: ["UNESCO", "Global Citizenship", "Peace Education", "Intercultural Dialogue"]
+    },
+    {
+      id: 2,
+      title: "Virtual Exchange Toolkit",
+      source: "Stevens Initiative",
+      description: "Comprehensive guide to designing and implementing virtual exchange programs with lesson plan templates",
+      subject: ["Virtual Exchange", "Program Design"],
+      type: "Toolkit",
+      ageGroup: "Higher Education",
+      license: "CC BY 4.0",
+      url: "https://www.stevensinitiative.org/resource-library/",
+      format: "Online Resource",
+      tags: ["Stevens Initiative", "Virtual Exchange", "Higher Ed", "Program Design"]
+    },
+    {
+      id: 3,
+      title: "COIL Collaborative Assignments",
+      source: "SUNY COIL Center",
+      description: "Ready-to-use collaborative assignments for virtual exchange across disciplines",
+      subject: ["Collaborative Learning", "All Subjects"],
+      type: "Assignment Bank",
+      ageGroup: "University",
+      license: "CC BY-NC 4.0",
+      url: "https://coil.suny.edu/page/resources",
+      format: "Online Database",
+      tags: ["SUNY COIL", "Higher Education", "Collaborative Assignments"]
+    },
+    {
+      id: 4,
+      title: "iEARN Project Guides",
+      source: "iEARN International",
+      description: "100+ collaborative project guides connecting K-12 classrooms worldwide",
+      subject: ["STEM", "Arts", "Social Studies", "Language Learning"],
+      type: "Project Guides",
+      ageGroup: "K-12",
+      license: "CC BY-NC-SA 3.0",
+      url: "https://iearn.org/projects",
+      format: "Online Collection",
+      tags: ["iEARN", "K-12", "Project-Based Learning", "Global Collaboration"]
+    },
+    {
+      id: 5,
+      title: "Cultural Exchange Ice Breakers",
+      source: "Global Nomads Group",
+      description: "15 engaging ice breaker activities designed for virtual cross-cultural exchanges",
+      subject: ["Cultural Exchange", "Communication"],
+      type: "Activity Collection",
+      ageGroup: "All Ages",
+      license: "CC BY 4.0",
+      url: "https://gng.org/resources",
+      format: "PDF",
+      tags: ["Ice Breakers", "Cross-Cultural", "Communication", "Virtual Exchange"]
+    },
+    {
+      id: 6,
+      title: "Soliya Dialogue Curriculum",
+      source: "Soliya",
+      description: "Facilitation guide for dialogue-based virtual exchanges focused on bridging divides",
+      subject: ["Dialogue", "Conflict Resolution", "Intercultural Understanding"],
+      type: "Curriculum",
+      ageGroup: "University",
+      license: "CC BY-NC 4.0",
+      url: "https://www.soliya.net/resources",
+      format: "PDF Guide",
+      tags: ["Soliya", "Dialogue", "Facilitation", "Intercultural"]
+    },
+    {
+      id: 7,
+      title: "OER Commons Global Education",
+      source: "OER Commons",
+      description: "Searchable database of 10,000+ openly licensed global education resources",
+      subject: ["All Subjects"],
+      type: "Resource Database",
+      ageGroup: "K-12 & Higher Ed",
+      license: "Various CC licenses",
+      url: "https://www.oercommons.org/hubs/open-education-global",
+      format: "Online Database",
+      tags: ["OER", "Open Educational Resources", "Global Education"]
+    }
+  ];
+
   // Getting Started Page - Activities for Transformative Learning
   const GettingStartedPage = () => {
     const [selectedCategory, setSelectedCategory] = useState('all');
@@ -5369,7 +5678,7 @@ const VirtualExchangePlatform = () => {
                 {/* Activity Details */}
                 <div className="border-t border-gray-200 pt-6">
                   <h3 className="font-semibold text-gray-800 mb-4">Activity Options:</h3>
-                  <div className="space-y-4">
+                  <div className="space-y-4 mb-6">
                     {activity.activities.map((act, idx) => (
                       <div key={idx} className="bg-gray-50 rounded-lg p-4">
                         <h4 className="font-medium text-gray-800 mb-2">{act.name}</h4>
@@ -5377,6 +5686,22 @@ const VirtualExchangePlatform = () => {
                       </div>
                     ))}
                   </div>
+
+                  {/* Lesson Plan Button */}
+                  {lessonPlansData.find(lp => lp.title === activity.activities[0]?.name) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const lessonPlan = lessonPlansData.find(lp => lp.title === activity.activities[0]?.name);
+                        setSelectedLessonPlan(lessonPlan);
+                        setShowLessonPlanModal(true);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+                    >
+                      <FileText size={18} />
+                      View Full Lesson Plan
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -5438,6 +5763,631 @@ const VirtualExchangePlatform = () => {
     );
   };
 
+  // Lesson Plans Page - Downloadable comprehensive lesson plans
+  const LessonPlansPage = () => (
+    <div className="space-y-12">
+      <div className="text-center max-w-4xl mx-auto">
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6">
+          <FileText className="w-10 h-10 text-blue-600" />
+        </div>
+        <h1 className="text-4xl font-semibold mb-4" style={{color: '#666666'}}>Lesson Plans</h1>
+        <p className="text-xl text-gray-600">
+          Comprehensive, ready-to-use lesson plans for virtual exchange activities
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {lessonPlansData.map(lesson => (
+          <div key={lesson.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition">
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Tag size={16} className="text-blue-600" />
+                <span className="text-xs font-semibold text-blue-600 uppercase">{lesson.category}</span>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{lesson.title}</h3>
+              <p className="text-sm text-gray-600 mb-4">{lesson.description}</p>
+
+              <div className="space-y-2 text-sm text-gray-700 mb-6">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Duration:</span> {lesson.duration}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Grade Level:</span> {lesson.gradeLevel}
+                </div>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {lesson.subjects.map(subject => (
+                    <span key={subject} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                      {subject}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedLessonPlan(lesson);
+                    setShowLessonPlanModal(true);
+                  }}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
+                >
+                  <FileText size={16} />
+                  View
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Download functionality
+                    alert(`Downloading ${lesson.title} lesson plan...`);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2"
+                >
+                  <Download size={16} />
+                  Download
+                </button>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
+                <div className="flex items-center justify-between">
+                  <span>{lesson.license}</span>
+                  <span className="text-gray-400">{lesson.attribution}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">About These Lesson Plans</h2>
+        <div className="space-y-3 text-gray-700">
+          <p>
+            All lesson plans are released under <strong>Creative Commons Attribution 4.0 (CC BY 4.0)</strong> license.
+            This means you are free to:
+          </p>
+          <ul className="list-disc list-inside space-y-2 ml-4">
+            <li><strong>Share</strong> — copy and redistribute the material in any medium or format</li>
+            <li><strong>Adapt</strong> — remix, transform, and build upon the material for any purpose, even commercially</li>
+          </ul>
+          <p className="pt-2">
+            Under the following terms: <strong>Attribution</strong> — You must give appropriate credit to The Virtual Exchange,
+            provide a link to the license, and indicate if changes were made.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Resources Page - External CC-licensed resource library
+  const ResourcesPage = () => {
+    const [filteredResources, setFilteredResources] = useState(externalResources);
+
+    const applyFilters = () => {
+      let filtered = externalResources;
+
+      if (resourceFilters.subject !== 'all') {
+        filtered = filtered.filter(r =>
+          r.subject.some(s => s.toLowerCase().includes(resourceFilters.subject.toLowerCase()))
+        );
+      }
+
+      if (resourceFilters.type !== 'all') {
+        filtered = filtered.filter(r => r.type === resourceFilters.type);
+      }
+
+      if (resourceFilters.ageGroup !== 'all') {
+        filtered = filtered.filter(r => r.ageGroup.includes(resourceFilters.ageGroup));
+      }
+
+      setFilteredResources(filtered);
+    };
+
+    return (
+      <div className="space-y-12">
+        <div className="text-center max-w-4xl mx-auto">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-100 rounded-full mb-6">
+            <Download className="w-10 h-10 text-purple-600" />
+          </div>
+          <h1 className="text-4xl font-semibold mb-4" style={{color: '#666666'}}>Resource Library</h1>
+          <p className="text-xl text-gray-600">
+            Curated collection of freely available, CC-licensed resources from leading organizations
+          </p>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h3 className="font-semibold text-gray-900 mb-4">Filter Resources</h3>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+              <select
+                value={resourceFilters.subject}
+                onChange={(e) => {
+                  setResourceFilters({...resourceFilters, subject: e.target.value});
+                  setTimeout(applyFilters, 0);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Subjects</option>
+                <option value="Global Citizenship">Global Citizenship</option>
+                <option value="STEM">STEM</option>
+                <option value="Arts">Arts</option>
+                <option value="Social Studies">Social Studies</option>
+                <option value="Language Learning">Language Learning</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+              <select
+                value={resourceFilters.type}
+                onChange={(e) => {
+                  setResourceFilters({...resourceFilters, type: e.target.value});
+                  setTimeout(applyFilters, 0);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Types</option>
+                <option value="Activity Collection">Activity Collection</option>
+                <option value="Toolkit">Toolkit</option>
+                <option value="Curriculum">Curriculum</option>
+                <option value="Project Guides">Project Guides</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Age Group</label>
+              <select
+                value={resourceFilters.ageGroup}
+                onChange={(e) => {
+                  setResourceFilters({...resourceFilters, ageGroup: e.target.value});
+                  setTimeout(applyFilters, 0);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Ages</option>
+                <option value="K-12">K-12</option>
+                <option value="Higher Education">Higher Education</option>
+                <option value="University">University</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Resource Grid */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {filteredResources.map(resource => (
+            <div key={resource.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-1">{resource.title}</h3>
+                  <p className="text-sm text-gray-600">{resource.source}</p>
+                </div>
+                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                  {resource.format}
+                </span>
+              </div>
+
+              <p className="text-gray-700 mb-4">{resource.description}</p>
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                {resource.tags.map(tag => (
+                  <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                <div className="text-xs text-gray-500">
+                  <div>{resource.type}</div>
+                  <div className="font-medium text-green-600">{resource.license}</div>
+                </div>
+                <a
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition flex items-center gap-2"
+                >
+                  <Download size={16} />
+                  Access Resource
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {filteredResources.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">No resources found matching your filters.</p>
+            <button
+              type="button"
+              onClick={() => {
+                setResourceFilters({ subject: 'all', type: 'all', ageGroup: 'all' });
+                setFilteredResources(externalResources);
+              }}
+              className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Clear Filters
+            </button>
+          </div>
+        )}
+
+        {/* Attribution Section */}
+        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-8 border border-amber-100">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">About These Resources</h2>
+          <p className="text-gray-700 mb-4">
+            All resources in this library are released under Creative Commons licenses by their respective organizations.
+            We've curated these materials from trusted educational institutions and nonprofit organizations committed to
+            open educational practices.
+          </p>
+          <p className="text-gray-700">
+            Please respect the licensing terms specified for each resource. When in doubt, always attribute the original
+            creator and check the specific CC license for usage rights.
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  // Lesson Plan Modal - Full lesson plan viewer with download
+  const LessonPlanModal = () => {
+    if (!selectedLessonPlan) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowLessonPlanModal(false)}>
+        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          {/* Header */}
+          <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">{selectedLessonPlan.title}</h2>
+              <p className="text-sm text-gray-600 mt-1">{selectedLessonPlan.category} • {selectedLessonPlan.duration}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowLessonPlanModal(false)}
+              className="p-2 hover:bg-gray-100 rounded-full transition"
+            >
+              <X size={24} className="text-gray-600" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-8 space-y-8">
+            {/* Overview */}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Overview</h3>
+              <p className="text-gray-700 leading-relaxed">{selectedLessonPlan.description}</p>
+              <div className="grid md:grid-cols-3 gap-4 mt-4">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="text-sm text-gray-600">Duration</div>
+                  <div className="font-semibold text-gray-900">{selectedLessonPlan.duration}</div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="text-sm text-gray-600">Grade Level</div>
+                  <div className="font-semibold text-gray-900">{selectedLessonPlan.gradeLevel}</div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="text-sm text-gray-600">Subjects</div>
+                  <div className="font-semibold text-gray-900">{selectedLessonPlan.subjects.join(', ')}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Learning Objectives */}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Learning Objectives</h3>
+              <ul className="space-y-2">
+                {selectedLessonPlan.learningObjectives.map((obj, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <CheckCircle size={20} className="text-green-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">{obj}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Materials Needed */}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Materials Needed</h3>
+              <ul className="grid md:grid-cols-2 gap-2">
+                {selectedLessonPlan.materialsNeeded.map((material, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-blue-600 mt-1">•</span>
+                    <span className="text-gray-700">{material}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Step by Step */}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Step-by-Step Instructions</h3>
+              <div className="space-y-4">
+                {selectedLessonPlan.stepByStep.map((step) => (
+                  <div key={step.step} className="bg-blue-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-900 mb-2">Step {step.step}: {step.title}</h4>
+                    <p className="text-gray-700">{step.content}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Reflection Questions */}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Reflection Questions</h3>
+              <ul className="space-y-2">
+                {selectedLessonPlan.reflectionQuestions.map((q, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-purple-600 mt-1">•</span>
+                    <span className="text-gray-700">{q}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Assessment */}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Assessment</h3>
+              <ul className="space-y-2">
+                {selectedLessonPlan.assessment.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-green-600 mt-1">•</span>
+                    <span className="text-gray-700">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Adaptations */}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Adaptations & Extensions</h3>
+              <div className="space-y-2">
+                {selectedLessonPlan.adaptations.map((adapt, idx) => (
+                  <div key={idx} className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-gray-700">{adapt}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Virtual Exchange Connection */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Virtual Exchange Connection</h3>
+              <p className="text-gray-700">{selectedLessonPlan.virtualExchangeConnection}</p>
+            </div>
+
+            {/* License */}
+            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">License & Attribution</h3>
+              <p className="text-gray-700 mb-2">
+                <strong>License:</strong> {selectedLessonPlan.license}
+              </p>
+              <p className="text-gray-700 mb-3">
+                <strong>Attribution:</strong> {selectedLessonPlan.attribution}
+              </p>
+              <p className="text-sm text-gray-600">
+                You are free to share and adapt this lesson plan for any purpose, even commercially,
+                as long as you give appropriate credit to The Virtual Exchange.
+              </p>
+            </div>
+
+            {/* Download Button */}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => alert(`Downloading ${selectedLessonPlan.title}...`)}
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
+              >
+                <Download size={20} />
+                Download PDF
+              </button>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+              >
+                Print
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Resource Submit Modal - User authoring tool
+  const ResourceSubmitModal = () => {
+    const [submitForm, setSubmitForm] = useState({
+      title: '',
+      description: '',
+      yourName: '',
+      yourOrganization: '',
+      subjects: [],
+      ageGroup: '',
+      resourceType: '',
+      license: 'CC BY 4.0',
+      fileUpload: null
+    });
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      alert('Thank you for submitting! Our team will review your resource and add it to the library if approved.');
+      setShowResourceSubmitModal(false);
+      setSubmitForm({
+        title: '',
+        description: '',
+        yourName: '',
+        yourOrganization: '',
+        subjects: [],
+        ageGroup: '',
+        resourceType: '',
+        license: 'CC BY 4.0',
+        fileUpload: null
+      });
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowResourceSubmitModal(false)}>
+        <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          {/* Header */}
+          <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Share Your Resources</h2>
+              <p className="text-sm text-gray-600 mt-1">Submit a resource for the community</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowResourceSubmitModal(false)}
+              className="p-2 hover:bg-gray-100 rounded-full transition"
+            >
+              <X size={24} className="text-gray-600" />
+            </button>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-8 space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Resource Title *</label>
+              <input
+                type="text"
+                required
+                value={submitForm.title}
+                onChange={(e) => setSubmitForm({...submitForm, title: e.target.value})}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Global Pen Pal Activity"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+              <textarea
+                required
+                value={submitForm.description}
+                onChange={(e) => setSubmitForm({...submitForm, description: e.target.value})}
+                rows="4"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Describe your resource and how it can be used for virtual exchange..."
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Your Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={submitForm.yourName}
+                  onChange={(e) => setSubmitForm({...submitForm, yourName: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Organization</label>
+                <input
+                  type="text"
+                  value={submitForm.yourOrganization}
+                  onChange={(e) => setSubmitForm({...submitForm, yourOrganization: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Resource Type *</label>
+                <select
+                  required
+                  value={submitForm.resourceType}
+                  onChange={(e) => setSubmitForm({...submitForm, resourceType: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select type...</option>
+                  <option value="Lesson Plan">Lesson Plan</option>
+                  <option value="Activity">Activity</option>
+                  <option value="Toolkit">Toolkit</option>
+                  <option value="Guide">Guide</option>
+                  <option value="Assessment">Assessment</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Age Group *</label>
+                <select
+                  required
+                  value={submitForm.ageGroup}
+                  onChange={(e) => setSubmitForm({...submitForm, ageGroup: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select age group...</option>
+                  <option value="Elementary (K-5)">Elementary (K-5)</option>
+                  <option value="Middle School (6-8)">Middle School (6-8)</option>
+                  <option value="High School (9-12)">High School (9-12)</option>
+                  <option value="Higher Education">Higher Education</option>
+                  <option value="All Ages">All Ages</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Creative Commons License *</label>
+              <select
+                required
+                value={submitForm.license}
+                onChange={(e) => setSubmitForm({...submitForm, license: e.target.value})}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="CC BY 4.0">CC BY 4.0 - Attribution</option>
+                <option value="CC BY-SA 4.0">CC BY-SA 4.0 - Attribution-ShareAlike</option>
+                <option value="CC BY-NC 4.0">CC BY-NC 4.0 - Attribution-NonCommercial</option>
+                <option value="CC0">CC0 - Public Domain</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                By selecting a CC license, you're allowing others to use and adapt your work with proper attribution.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Upload File</label>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.ppt,.pptx"
+                onChange={(e) => setSubmitForm({...submitForm, fileUpload: e.target.files[0]})}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Accepted formats: PDF, Word, PowerPoint (max 10MB)
+              </p>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+              <h4 className="font-semibold text-blue-900 mb-2">Review Process</h4>
+              <p className="text-sm text-blue-800">
+                Our team will review your submission within 5-7 business days. We'll verify the license,
+                check content quality, and ensure it aligns with our virtual exchange mission.
+                You'll receive an email once your resource is approved and published.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
+                Submit Resource
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowResourceSubmitModal(false)}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
@@ -5466,13 +6416,60 @@ const VirtualExchangePlatform = () => {
               >
                 Browse
               </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('getting-started')}
-                className={`font-medium transition ${activeTab === 'getting-started' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+
+              {/* Getting Started Dropdown */}
+              <div
+                className="relative"
+                onMouseEnter={() => setShowGettingStartedDropdown(true)}
+                onMouseLeave={() => setShowGettingStartedDropdown(false)}
               >
-                Getting Started
-              </button>
+                <button
+                  type="button"
+                  className={`font-medium transition flex items-center gap-1 ${['getting-started', 'lesson-plans', 'resources', 'share-resources'].includes(activeTab) ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                >
+                  Getting Started
+                  <ChevronDown size={16} className={`transition-transform ${showGettingStartedDropdown ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showGettingStartedDropdown && (
+                  <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('getting-started'); setShowGettingStartedDropdown(false); }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-2"
+                    >
+                      <BookOpen size={16} />
+                      Activities & Frameworks
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('lesson-plans'); setShowGettingStartedDropdown(false); }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-2"
+                    >
+                      <FileText size={16} />
+                      Lesson Plans
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('resources'); setShowGettingStartedDropdown(false); }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-2"
+                    >
+                      <Download size={16} />
+                      Resource Library
+                    </button>
+                    <div className="border-t border-gray-200 my-1"></div>
+                    <button
+                      type="button"
+                      onClick={() => { setShowResourceSubmitModal(true); setShowGettingStartedDropdown(false); }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-2"
+                    >
+                      <Upload size={16} />
+                      Share Your Resources
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <button
                 type="button"
                 onClick={() => setActiveTab('about')}
@@ -5524,6 +6521,8 @@ const VirtualExchangePlatform = () => {
         {activeTab === 'home' && <HomePage />}
         {activeTab === 'browse' && <BrowsePage />}
         {activeTab === 'getting-started' && <GettingStartedPage />}
+        {activeTab === 'lesson-plans' && <LessonPlansPage />}
+        {activeTab === 'resources' && <ResourcesPage />}
         {activeTab === 'about' && <AboutPage />}
         {activeTab === 'contact' && <ContactPage />}
         {activeTab === 'donate' && <DonatePage />}
@@ -5635,6 +6634,8 @@ const VirtualExchangePlatform = () => {
       {showAuthModal && <AuthModal />}
       {showConnectModal && selectedOrg && <ConnectModal org={selectedOrg} />}
       {showVerificationModal && <VerificationModal />}
+      {showLessonPlanModal && selectedLessonPlan && <LessonPlanModal />}
+      {showResourceSubmitModal && <ResourceSubmitModal />}
 
       {/* Cookie Consent */}
       <CookieConsent />
