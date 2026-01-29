@@ -39,7 +39,8 @@ const VirtualExchangePlatform = () => {
     studentMax: '',
     technology: [],
     techRestrictions: '',
-    duration: []
+    duration: [],
+    exchanges: []
   });
   const [signupSubmitting, setSignupSubmitting] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
@@ -111,28 +112,29 @@ const VirtualExchangePlatform = () => {
       partnershipGoals: ["Youth-led programming", "Cross-cultural collaboration", "Action-oriented exchanges"],
       programs: [
         {
-          name: "Global Campfires",
+          name: "Ukraine Youth Action Network (UYAN)",
           status: "current",
-          duration: "8 weeks",
+          duration: "14 weeks",
           participants: "20-30 students per cohort",
-          description: "Students from different countries gather in virtual 'campfires' to share stories, design collaborative projects, and take action on issues they care about. From climate action to community rebuilding, students lead the work.",
+          description: "Connects young Ukrainians whose lives have been disrupted by war with peers in the United States. Through weekly activities, students share personal stories, explore perspectives, discover heroes, and collaborate on community-building projects that create positive impact. A powerful space for healing, resilience, and cross-cultural understanding.",
           technology: "Zoom, Padlet, Google Workspace",
-          schedule: "Weekly 90-minute sessions",
-          applicationDeadline: "Rolling admissions",
-          cost: "Free for schools",
-          gradeLevel: "Grades 9-12, University"
+          schedule: "Weekly sessions",
+          applicationDeadline: "Rolling admissions (U.S. schools, Grades 7-12)",
+          cost: "Free for schools (teacher stipends available)",
+          gradeLevel: "Grades 7-12",
+          funding: "Supported by Stevens Initiative and Bezos Family Foundation"
         },
         {
-          name: "Youth Climate Fellows",
+          name: "Youth Global Climate Initiative",
           status: "upcoming",
           duration: "12 weeks",
-          participants: "40 students (cohorts of 20 from 2 countries)",
-          description: "A deeper dive into climate action with partner schools co-designing and implementing local environmental projects while learning from each other's contexts.",
-          technology: "Zoom, Miro, Slack",
-          schedule: "Begins Fall 2026",
-          applicationDeadline: "August 15, 2026",
+          participants: "40-50 students (multinational cohorts)",
+          description: "An innovative virtual exchange bringing together youth from diverse regions to address the global climate crisis. Students collaborate on climate literacy, examine local environmental challenges, and co-design actionable sustainability projects. Emphasizes systems thinking, youth agency, and community-led climate solutions.",
+          technology: "Zoom, Miro, Google Workspace, Slack",
+          schedule: "Launching Fall 2026",
+          applicationDeadline: "August 2026",
           cost: "Free for schools",
-          gradeLevel: "Grades 10-12"
+          gradeLevel: "Grades 9-12, University"
         }
       ]
     },
@@ -170,7 +172,32 @@ const VirtualExchangePlatform = () => {
       verified: true,
       website: "soliya.net",
       partnershipGoals: ["Cross-cultural understanding", "Digital facilitation training"],
-      programs: []
+      programs: [
+        {
+          name: "Connect Program",
+          status: "current",
+          duration: "4-8 weeks",
+          participants: "8-10 students per dialogue group",
+          description: "Partners with universities and youth organizations worldwide to bring together students in small, diverse groups for facilitated dialogues on identity, conflict, and current global events. A transformational space where participants gain confidence to engage across differences.",
+          technology: "Custom dialogue platform, video conferencing",
+          schedule: "Twice weekly 2-hour sessions",
+          applicationDeadline: "Rolling admissions",
+          cost: "Contact for institutional pricing",
+          gradeLevel: "University"
+        },
+        {
+          name: "Global Circles",
+          status: "current",
+          duration: "Varies",
+          participants: "Small diverse groups",
+          description: "Pro-facilitated, accelerated dialogue bringing together hundreds of participants in small groups reflecting diverse backgrounds, geographies, identities, and worldviews to discuss global issues sparking debate and shaping societies.",
+          technology: "Custom dialogue platform",
+          schedule: "Flexible scheduling",
+          applicationDeadline: "Rolling admissions",
+          cost: "Contact for pricing",
+          gradeLevel: "University, Professional"
+        }
+      ]
     },
     {
       id: 4,
@@ -204,7 +231,45 @@ const VirtualExchangePlatform = () => {
       phone: "+1 (212) 870-2332",
       verified: true,
       website: "iearn.org",
-      partnershipGoals: ["Student-led projects", "Teacher collaboration", "Global citizenship"]
+      partnershipGoals: ["Student-led projects", "Teacher collaboration", "Global citizenship"],
+      programs: [
+        {
+          name: "Meet the World",
+          status: "current",
+          duration: "4-12 weeks",
+          participants: "Classroom partnerships",
+          description: "Virtual program connecting classrooms across the country or around the world, providing students with opportunities to explore different cultures, ask meaningful questions, and engage in shared learning experiences with peers.",
+          technology: "Safe online collaboration platform, video conferencing",
+          schedule: "Flexible, teacher-determined",
+          applicationDeadline: "Rolling admissions",
+          cost: "Free for schools",
+          gradeLevel: "K-12"
+        },
+        {
+          name: "Compañeros de Clase Globales",
+          status: "current",
+          duration: "8-16 weeks",
+          participants: "Spanish-speaking classrooms",
+          description: "Grant-funded international virtual exchange program focused on igniting learning and sparking curiosity about the world through collaborative projects inspired by UN Sustainable Development Goals. Connects Spanish-speaking students from the U.S., Guatemala, and Mexico.",
+          technology: "iEARN Collaboration Centre, video tools",
+          schedule: "Project-based, flexible timing",
+          applicationDeadline: "Rolling admissions",
+          cost: "Free (grant-funded)",
+          gradeLevel: "Grades 4-12"
+        },
+        {
+          name: "Storytelling for Social Change",
+          status: "current",
+          duration: "10-14 weeks",
+          participants: "Youth from Algeria, Tunisia, and U.S.",
+          description: "Builds global leaders by engaging Algerian, Tunisian, and American youth in collaboration to tell stories about real world issues in their local communities.",
+          technology: "Digital storytelling tools, video conferencing",
+          schedule: "Weekly sessions",
+          applicationDeadline: "Contact for dates",
+          cost: "Free (grant-funded)",
+          gradeLevel: "Grades 9-12, University"
+        }
+      ]
     },
     {
       id: 5,
@@ -221,7 +286,45 @@ const VirtualExchangePlatform = () => {
       phone: "+1 (212) 563-7973",
       verified: true,
       website: "gng.org",
-      partnershipGoals: ["Video exchange programs", "Story-based learning", "Conflict resolution"]
+      partnershipGoals: ["Video exchange programs", "Story-based learning", "Conflict resolution"],
+      programs: [
+        {
+          name: "Real Youth, Artificial Intelligence",
+          status: "current",
+          duration: "8-10 weeks",
+          participants: "Middle and high school students",
+          description: "Connects youth from the U.S. and the Middle East and North Africa to examine responsible use of AI in their digital lives. Developed by young designers via GNG's Content Creation Lab, participants also learn curriculum development, design, video production, and digital safety practices.",
+          technology: "Video conferencing, digital collaboration tools",
+          schedule: "In-class or out-of-class options",
+          applicationDeadline: "Rolling admissions",
+          cost: "Free (Stevens Initiative funded)",
+          gradeLevel: "Grades 6-12"
+        },
+        {
+          name: "Global Campfire",
+          status: "current",
+          duration: "6-12 weeks",
+          participants: "Partner classrooms",
+          description: "Project-based curriculum where students work together with a partner classroom from another country to explore global citizenship through collaborative projects focused on civic education, positive social change, and sustainable environment.",
+          technology: "Video conferencing, digital collaboration spaces",
+          schedule: "Weekly sessions",
+          applicationDeadline: "Rolling admissions",
+          cost: "Contact for pricing",
+          gradeLevel: "Grades 6-12"
+        },
+        {
+          name: "Youth Voices",
+          status: "current",
+          duration: "Varies",
+          participants: "Classroom connections",
+          description: "Video conferencing program connecting classrooms to learn together on civic education, creating positive social change, and learning science for sustainable environment.",
+          technology: "Video conferencing platform",
+          schedule: "Flexible",
+          applicationDeadline: "Rolling admissions",
+          cost: "Contact for pricing",
+          gradeLevel: "Grades 6-12"
+        }
+      ]
     },
     {
       id: 6,
@@ -255,7 +358,33 @@ const VirtualExchangePlatform = () => {
       phone: "+1 (202) 628-8188",
       verified: true,
       website: "irex.org",
-      partnershipGoals: ["Media literacy programs", "Democracy education", "Leadership development"]
+      partnershipGoals: ["Media literacy programs", "Democracy education", "Leadership development"],
+      programs: [
+        {
+          name: "Global Solutions Sustainability Challenge",
+          status: "current",
+          duration: "12 weeks",
+          participants: "Binational college teams (U.S., Iraq, Jordan)",
+          description: "Virtual exchange pairing college students on binational teams to address community challenges related to UN Sustainable Development Goals and innovate sustainable solutions. Emphasizes design thinking, cross-cultural collaboration, and workforce development.",
+          technology: "Video conferencing, collaborative project tools",
+          schedule: "Weekly team meetings and structured activities",
+          applicationDeadline: "Contact for cohort dates",
+          cost: "Free (Stevens Initiative funded)",
+          gradeLevel: "University"
+        },
+        {
+          name: "Global Solutions Conversations",
+          status: "current",
+          duration: "6 weeks",
+          participants: "College students (U.S., Iraq, Jordan)",
+          description: "Six-week virtual exchange series consisting of six binational calls where students practice cross-cultural collaboration, learn about each other's culture, engage in design thinking, and discuss global issues in their communities.",
+          technology: "Video conferencing platform",
+          schedule: "Weekly 90-minute sessions",
+          applicationDeadline: "Contact for cohort dates",
+          cost: "Free (Stevens Initiative funded)",
+          gradeLevel: "University"
+        }
+      ]
     },
 
     // HIGHER EDUCATION INSTITUTIONS
@@ -2914,6 +3043,132 @@ const VirtualExchangePlatform = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Exchange Programs (only shown for providers) */}
+              {signupForm.intent === 'provider' && (
+                <div className="border-t border-gray-200 pt-5 mt-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700">Your Exchange Programs</h4>
+                      <p className="text-xs text-gray-600 mt-1">Add the virtual exchanges your organization operates</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSignupForm({
+                          ...signupForm,
+                          exchanges: [...signupForm.exchanges, { name: '', description: '', status: 'current', duration: '', gradeLevel: '', cost: '' }]
+                        });
+                      }}
+                      className="px-3 py-1.5 bg-gray-800 text-white rounded-lg text-xs font-medium hover:bg-gray-900 transition flex items-center gap-1"
+                    >
+                      <span>+</span> Add Exchange
+                    </button>
+                  </div>
+
+                  {signupForm.exchanges.length === 0 && (
+                    <p className="text-sm text-gray-500 italic">No exchanges added yet. Click "Add Exchange" to list your programs.</p>
+                  )}
+
+                  <div className="space-y-4">
+                    {signupForm.exchanges.map((exchange, index) => (
+                      <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200 relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newExchanges = signupForm.exchanges.filter((_, i) => i !== index);
+                            setSignupForm({ ...signupForm, exchanges: newExchanges });
+                          }}
+                          className="absolute top-2 right-2 text-gray-400 hover:text-red-600"
+                        >
+                          <X size={16} />
+                        </button>
+
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            placeholder="Exchange Program Name"
+                            value={exchange.name}
+                            onChange={(e) => {
+                              const newExchanges = [...signupForm.exchanges];
+                              newExchanges[index].name = e.target.value;
+                              setSignupForm({ ...signupForm, exchanges: newExchanges });
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+                            placeholder="e.g., Global Youth Dialogue Program"
+                          />
+
+                          <textarea
+                            placeholder="Brief description of this exchange program"
+                            value={exchange.description}
+                            onChange={(e) => {
+                              const newExchanges = [...signupForm.exchanges];
+                              newExchanges[index].description = e.target.value;
+                              setSignupForm({ ...signupForm, exchanges: newExchanges });
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+                            rows="3"
+                            placeholder="Describe the program, its goals, and what makes it unique..."
+                          />
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <select
+                              value={exchange.status}
+                              onChange={(e) => {
+                                const newExchanges = [...signupForm.exchanges];
+                                newExchanges[index].status = e.target.value;
+                                setSignupForm({ ...signupForm, exchanges: newExchanges });
+                              }}
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+                            >
+                              <option value="current">Current Program</option>
+                              <option value="upcoming">Upcoming Program</option>
+                            </select>
+
+                            <input
+                              type="text"
+                              placeholder="Duration (e.g., 8 weeks)"
+                              value={exchange.duration}
+                              onChange={(e) => {
+                                const newExchanges = [...signupForm.exchanges];
+                                newExchanges[index].duration = e.target.value;
+                                setSignupForm({ ...signupForm, exchanges: newExchanges });
+                              }}
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <input
+                              type="text"
+                              placeholder="Grade Level (e.g., 9-12)"
+                              value={exchange.gradeLevel}
+                              onChange={(e) => {
+                                const newExchanges = [...signupForm.exchanges];
+                                newExchanges[index].gradeLevel = e.target.value;
+                                setSignupForm({ ...signupForm, exchanges: newExchanges });
+                              }}
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+                            />
+
+                            <input
+                              type="text"
+                              placeholder="Cost (e.g., Free, Contact for pricing)"
+                              value={exchange.cost}
+                              onChange={(e) => {
+                                const newExchanges = [...signupForm.exchanges];
+                                newExchanges[index].cost = e.target.value;
+                                setSignupForm({ ...signupForm, exchanges: newExchanges });
+                              }}
+                              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <button
                 type="submit"
