@@ -4895,7 +4895,7 @@ const VirtualExchangePlatform = () => {
       type: "Activity Collection",
       ageGroup: "Grades 6-12",
       license: "CC BY-SA 4.0",
-      url: "https://en.unesco.org/themes/gced/resources",
+      url: "https://www.unesco.org/en/education",
       format: "PDF",
       tags: ["UNESCO", "Global Citizenship", "Peace Education", "Intercultural Dialogue"],
       timeRequired: "30-60 min per activity",
@@ -4919,7 +4919,7 @@ const VirtualExchangePlatform = () => {
       type: "Toolkit",
       ageGroup: "Higher Education",
       license: "CC BY 4.0",
-      url: "https://www.stevensinitiative.org/resource-library/",
+      url: "https://www.stevensinitiative.org/resources/",
       format: "Online Resource",
       tags: ["Stevens Initiative", "Virtual Exchange", "Higher Ed", "Program Design"],
       timeRequired: "Varies - planning toolkit",
@@ -4943,7 +4943,7 @@ const VirtualExchangePlatform = () => {
       type: "Assignment Bank",
       ageGroup: "University",
       license: "CC BY-NC 4.0",
-      url: "https://coil.suny.edu/page/resources",
+      url: "https://coil.suny.edu/",
       format: "Online Database",
       tags: ["SUNY COIL", "Higher Education", "Collaborative Assignments"],
       timeRequired: "2-12 weeks per assignment",
@@ -4967,7 +4967,7 @@ const VirtualExchangePlatform = () => {
       type: "Project Guides",
       ageGroup: "K-12",
       license: "CC BY-NC-SA 3.0",
-      url: "https://iearn.org/projects",
+      url: "https://iearn.org/",
       format: "Online Collection",
       tags: ["iEARN", "K-12", "Project-Based Learning", "Global Collaboration"],
       timeRequired: "4-16 weeks per project",
@@ -4991,7 +4991,7 @@ const VirtualExchangePlatform = () => {
       type: "Activity Collection",
       ageGroup: "All Ages",
       license: "CC BY 4.0",
-      url: "https://gng.org/resources",
+      url: "https://www.gng.org/",
       format: "PDF",
       tags: ["Ice Breakers", "Cross-Cultural", "Communication", "Virtual Exchange"],
       timeRequired: "15-30 min per activity",
@@ -5015,7 +5015,7 @@ const VirtualExchangePlatform = () => {
       type: "Curriculum",
       ageGroup: "University",
       license: "CC BY-NC 4.0",
-      url: "https://www.soliya.net/resources",
+      url: "https://www.soliya.net/",
       format: "PDF Guide",
       tags: ["Soliya", "Dialogue", "Facilitation", "Intercultural"],
       timeRequired: "8-week program, 2 hours/week",
@@ -5039,7 +5039,7 @@ const VirtualExchangePlatform = () => {
       type: "Resource Database",
       ageGroup: "K-12 & Higher Ed",
       license: "Various CC licenses",
-      url: "https://www.oercommons.org/hubs/open-education-global",
+      url: "https://www.oercommons.org/",
       format: "Online Database",
       tags: ["OER", "Open Educational Resources", "Global Education"],
       timeRequired: "Varies by resource",
@@ -7234,13 +7234,10 @@ const VirtualExchangePlatform = () => {
               </button>
 
               {/* The Exchange Lab Dropdown */}
-              <div
-                className="relative"
-                onMouseEnter={() => setShowGettingStartedDropdown(true)}
-                onMouseLeave={() => setShowGettingStartedDropdown(false)}
-              >
+              <div className="relative">
                 <button
                   type="button"
+                  onClick={() => setShowGettingStartedDropdown(!showGettingStartedDropdown)}
                   className={`font-medium transition flex items-center gap-1 ${['getting-started', 'lesson-plans', 'resources', 'share-resources', 'impact-snapshot'].includes(activeTab) ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
                 >
                   The Exchange Lab
@@ -7248,49 +7245,56 @@ const VirtualExchangePlatform = () => {
                 </button>
 
                 {showGettingStartedDropdown && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                    <button
-                      type="button"
-                      onClick={() => { setActiveTab('getting-started'); setShowGettingStartedDropdown(false); }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-2"
-                    >
-                      <BookOpen size={16} />
-                      Activities & Frameworks
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setActiveTab('lesson-plans'); setShowGettingStartedDropdown(false); }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-2"
-                    >
-                      <FileText size={16} />
-                      Lesson Plans
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setActiveTab('resources'); setShowGettingStartedDropdown(false); }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-2"
-                    >
-                      <Download size={16} />
-                      Resource Library
-                    </button>
-                    <div className="border-t border-gray-200 my-1"></div>
-                    <button
-                      type="button"
-                      onClick={() => { setActiveTab('impact-snapshot'); setShowGettingStartedDropdown(false); }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-2"
-                    >
-                      <CheckCircle size={16} />
-                      Impact Snapshot Generator
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setShowResourceSubmitModal(true); setShowGettingStartedDropdown(false); }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-2"
-                    >
-                      <Upload size={16} />
-                      Share Your Resources
-                    </button>
-                  </div>
+                  <>
+                    {/* Invisible overlay to close dropdown when clicking outside */}
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowGettingStartedDropdown(false)}
+                    />
+                    <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                      <button
+                        type="button"
+                        onClick={() => { setActiveTab('getting-started'); setShowGettingStartedDropdown(false); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-2"
+                      >
+                        <BookOpen size={16} />
+                        Activities & Frameworks
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setActiveTab('lesson-plans'); setShowGettingStartedDropdown(false); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-2"
+                      >
+                        <FileText size={16} />
+                        Lesson Plans
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setActiveTab('resources'); setShowGettingStartedDropdown(false); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-2"
+                      >
+                        <Download size={16} />
+                        Resource Library
+                      </button>
+                      <div className="border-t border-gray-200 my-1"></div>
+                      <button
+                        type="button"
+                        onClick={() => { setActiveTab('impact-snapshot'); setShowGettingStartedDropdown(false); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-2"
+                      >
+                        <CheckCircle size={16} />
+                        Impact Snapshot Generator
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setShowResourceSubmitModal(true); setShowGettingStartedDropdown(false); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-2"
+                      >
+                        <Upload size={16} />
+                        Share Your Resources
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
 
