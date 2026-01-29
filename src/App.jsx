@@ -8,6 +8,7 @@ const VirtualExchangePlatform = () => {
   const [registrationStep, setRegistrationStep] = useState(1);
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [showConnectModal, setShowConnectModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [showCookieConsent, setShowCookieConsent] = useState(() => {
@@ -3369,6 +3370,269 @@ const VirtualExchangePlatform = () => {
     );
   };
 
+  // Organization Profile Modal - Shows full organization details including programs
+  const OrganizationProfileModal = ({ org }) => {
+    if (!org) return null;
+
+    const gradeLabel = getGradeLabel(org);
+
+    return (
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto"
+        onClick={() => { setShowProfileModal(false); setSelectedOrg(null); }}
+      >
+        <div
+          className="bg-white rounded-2xl max-w-4xl w-full my-8 shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <h2 className="text-3xl font-bold text-gray-900">{org.name}</h2>
+                  {org.verified && (
+                    <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
+                      <CheckCircle size={16} />
+                      <span className="text-sm font-semibold">Verified Profile</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 text-sm text-gray-600 flex-wrap">
+                  <span className="flex items-center gap-1">
+                    <Globe size={16} />
+                    {org.country}
+                  </span>
+                  <span>•</span>
+                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm font-medium">
+                    {gradeLabel}
+                  </span>
+                  {org.students && (
+                    <>
+                      <span>•</span>
+                      <span>{org.students.toLocaleString()} students</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setShowProfileModal(false); setSelectedOrg(null); }}
+                className="p-2 hover:bg-gray-100 rounded-full transition"
+              >
+                <X size={24} className="text-gray-600" />
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            {/* Description */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">About</h3>
+              <p className="text-gray-700">{org.description}</p>
+            </div>
+
+            {/* Languages */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Languages</h3>
+              <div className="flex flex-wrap gap-2">
+                {org.languages.map(lang => (
+                  <span key={lang} className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded text-sm">
+                    {lang}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Focus Areas */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Focus Areas</h3>
+              <div className="flex flex-wrap gap-2">
+                {org.interests.map(interest => (
+                  <span key={interest} className="bg-green-100 text-green-700 px-3 py-1.5 rounded text-sm">
+                    {interest}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Partnership Goals */}
+            {org.partnershipGoals && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Partnership Goals</h3>
+                <ul className="text-gray-700 space-y-2">
+                  {org.partnershipGoals.map((goal, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="text-blue-600 mt-1">•</span>
+                      <span>{goal}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Preferred Duration */}
+            {org.duration && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Preferred Duration</h3>
+                <div className="flex flex-wrap gap-2">
+                  {org.duration.map((dur, idx) => (
+                    <span key={idx} className="bg-purple-100 text-purple-700 px-3 py-1.5 rounded text-sm">
+                      {dur}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Technology */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Technology</h3>
+              {org.techAvailable && org.techAvailable.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {org.techAvailable.map((tech, idx) => (
+                    <span key={idx} className="bg-gray-100 text-gray-600 px-3 py-1.5 rounded text-sm">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 italic">To be added when profile is claimed</p>
+              )}
+            </div>
+
+            {/* Contact Information - Only for Verified Profiles */}
+            {org.verified && (org.website || org.email || org.phone) && (
+              <div className="border-t border-gray-200 pt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Contact Information</h3>
+                <div className="space-y-3">
+                  {org.website && (
+                    <div className="flex items-center gap-3">
+                      <Globe size={18} className="text-gray-400" />
+                      <a
+                        href={`https://${org.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        {org.website}
+                      </a>
+                    </div>
+                  )}
+                  {org.email && (
+                    <div className="flex items-center gap-3">
+                      <Mail size={18} className="text-gray-400" />
+                      <a
+                        href={`mailto:${org.email}`}
+                        className="text-gray-700 hover:text-blue-600"
+                      >
+                        {org.email}
+                      </a>
+                    </div>
+                  )}
+                  {org.phone && (
+                    <div className="flex items-center gap-3 text-gray-700">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                      </svg>
+                      <span>{org.phone}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Virtual Exchange Programs */}
+            {org.programs && org.programs.length > 0 && (
+              <div className="border-t border-gray-200 pt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Virtual Exchange Programs</h3>
+                <div className="space-y-4">
+                  {org.programs.map((program, idx) => (
+                    <div key={idx} className={`rounded-lg p-4 ${program.status === 'current' ? 'bg-green-50 border border-green-200' : 'bg-blue-50 border border-blue-200'}`}>
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-semibold text-gray-900">{program.name}</h4>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${program.status === 'current' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
+                          {program.status === 'current' ? 'Open Now' : 'Upcoming'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700 mb-3">{program.description}</p>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="font-semibold text-gray-600">Duration:</span> {program.duration}
+                        </div>
+                        <div>
+                          <span className="font-semibold text-gray-600">Participants:</span> {program.participants}
+                        </div>
+                        <div>
+                          <span className="font-semibold text-gray-600">Tech:</span> {program.technology}
+                        </div>
+                        <div>
+                          <span className="font-semibold text-gray-600">Cost:</span> {program.cost}
+                        </div>
+                      </div>
+                      {program.applicationDeadline && (
+                        <div className="mt-3 text-sm text-gray-600">
+                          <span className="font-semibold">Apply by:</span> {program.applicationDeadline}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="border-t border-gray-200 p-6 space-y-3 bg-gray-50 rounded-b-2xl">
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedOrgForRequest(org);
+                  setShowIntroductionRequestModal(true);
+                  setShowProfileModal(false);
+                }}
+                className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
+                Request an Introduction
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFavorite(org);
+                }}
+                className={`px-4 py-3 border rounded-lg font-semibold transition ${
+                  isFavorited(org.id)
+                    ? 'border-red-500 bg-red-50 text-red-600 hover:bg-red-100'
+                    : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                }`}
+                title={isFavorited(org.id) ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                <Heart
+                  size={20}
+                  fill={isFavorited(org.id) ? 'currentColor' : 'none'}
+                />
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedOrgForRequest(org);
+                setShowClaimProfileModal(true);
+                setShowProfileModal(false);
+              }}
+              className="w-full py-3 border border-yellow-400 bg-yellow-50 text-yellow-800 rounded-lg font-semibold hover:bg-yellow-100 transition"
+            >
+              Claim this Profile
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Verification Modal - Automated verification system
   const VerificationModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -3625,7 +3889,7 @@ const VirtualExchangePlatform = () => {
     const gradeLabel = getGradeLabel(org);
 
     return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition flex flex-col h-full">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
@@ -3656,9 +3920,11 @@ const VirtualExchangePlatform = () => {
         </div>
       </div>
 
-      <p className="text-gray-600 text-sm mb-4 line-clamp-2">{org.description}</p>
+      {/* Content section that grows to push buttons to bottom */}
+      <div className="flex-1 flex flex-col">
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{org.description}</p>
 
-      <div className="space-y-3 mb-4">
+        <div className="space-y-3 mb-4">
         <div>
           <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Languages</div>
           <div className="flex flex-wrap gap-2">
@@ -3708,9 +3974,9 @@ const VirtualExchangePlatform = () => {
           </div>
         )}
 
-        {org.techAvailable && (
-          <div>
-            <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Technology</div>
+        <div>
+          <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Technology</div>
+          {org.techAvailable && org.techAvailable.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {org.techAvailable.slice(0, 3).map((tech, idx) => (
                 <span key={idx} className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
@@ -3718,8 +3984,10 @@ const VirtualExchangePlatform = () => {
                 </span>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-xs text-gray-400 italic">To be added</div>
+          )}
+        </div>
       </div>
 
       {/* Contact Information - Only for Verified Profiles */}
@@ -3762,47 +4030,10 @@ const VirtualExchangePlatform = () => {
           </div>
         </div>
       )}
+      </div>
 
-      {/* Virtual Exchange Programs */}
-      {org.programs && org.programs.length > 0 && (
-        <div className="border-t border-gray-200 pt-4 mb-4">
-          <div className="text-xs font-semibold text-gray-500 uppercase mb-3">Virtual Exchange Programs</div>
-          <div className="space-y-3">
-            {org.programs.map((program, idx) => (
-              <div key={idx} className={`rounded-lg p-3 ${program.status === 'current' ? 'bg-green-50 border border-green-200' : 'bg-blue-50 border border-blue-200'}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold text-gray-900 text-sm">{program.name}</h4>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${program.status === 'current' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
-                    {program.status === 'current' ? 'Open Now' : 'Upcoming'}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-700 mb-2">{program.description}</p>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="font-semibold text-gray-600">Duration:</span> {program.duration}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-600">Participants:</span> {program.participants}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-600">Tech:</span> {program.technology}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-600">Cost:</span> {program.cost}
-                  </div>
-                </div>
-                {program.applicationDeadline && (
-                  <div className="mt-2 text-xs text-gray-600">
-                    <span className="font-semibold">Apply by:</span> {program.applicationDeadline}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-2">
+      {/* Buttons section stays at bottom */}
+      <div className="space-y-2 mt-auto">
         <div className="flex gap-3">
           <button
             type="button"
@@ -3816,7 +4047,10 @@ const VirtualExchangePlatform = () => {
           </button>
           <button
             type="button"
-            onClick={() => setSelectedOrg(org)}
+            onClick={() => {
+              setSelectedOrg(org);
+              setShowProfileModal(true);
+            }}
             className="px-4 py-2 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition text-sm"
           >
             View Profile
@@ -7831,6 +8065,7 @@ const VirtualExchangePlatform = () => {
       {/* Modals */}
       {showAuthModal && <AuthModal />}
       {showConnectModal && selectedOrg && <ConnectModal org={selectedOrg} />}
+      {showProfileModal && selectedOrg && <OrganizationProfileModal org={selectedOrg} />}
       {showVerificationModal && <VerificationModal />}
       {showLessonPlanModal && selectedLessonPlan && <LessonPlanModal />}
       {showResourceSubmitModal && <ResourceSubmitModal />}
