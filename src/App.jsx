@@ -4936,9 +4936,9 @@ const VirtualExchangePlatform = () => {
               <path className="cls-2" d="m137.535097530621897,303.618393128356729l18.248267794979256-29.653520602552817c-4.438932637560356-3.101223238967577-9.829403872414332-4.93384123163014-15.655164212827003-4.93384123163014-10.382237973786687,0-19.413555361612453,5.779013485183896-24.057090816104392,14.294759089170839-4.643874200879509-8.515745603986943-13.675191588701637-14.294759089170839-24.05776830888135-14.294759089170839-5.825760340412671,0-11.216231575264828,1.832956739059227-15.655164212825184,4.934179978026805l18.247980069589175,29.653181856156152h42.928939686069498Z"/>
             </svg>
           </div>
-          <h3 className="text-3xl font-medium tracking-tight" style={{color: '#1d1d1f'}}>MapWorks Learning</h3>
+          <h3 className="text-3xl font-medium tracking-tight" style={{color: '#1d1d1f'}}>Developed by MapWorks Learning</h3>
           <p className="text-lg leading-relaxed max-w-2xl" style={{color: '#6e6e73', lineHeight: '1.7', fontWeight: '300'}}>
-            As leading practitioners of virtual exchange, we've created this platform to connect educators and organizations worldwide – because every conversation is a step toward solidarity.
+            At MapWorks Learning, virtual exchange isn't just a program we offer—it's what we live and breathe. The Virtual Exchange is our gift to the global community: a vetted, professional gateway designed to break down borders. We believe that every student, from elementary school to university, deserves a window to the world. This platform is the bridge that makes those connections possible, safe, and meaningful.
           </p>
           <a
             href="https://mapworkslearning.org"
