@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Globe, Users, School, MessageSquare, Search, Filter, CheckCircle, X, Heart, Building, GraduationCap, BookOpen, Sparkles, Shield, Mail, Lock, User, ChevronDown, Download, Upload, FileText, Tag } from 'lucide-react';
+import { Globe, Users, School, MessageSquare, Search, Filter, CheckCircle, X, Heart, Building, GraduationCap, BookOpen, Sparkles, Shield, Mail, Lock, User, ChevronDown, Download, Upload, FileText, Tag, Menu } from 'lucide-react';
 
 const VirtualExchangePlatform = () => {
   const [activeTab, setActiveTab] = useState('home');
@@ -26,6 +26,7 @@ const VirtualExchangePlatform = () => {
     return saved ? JSON.parse(saved) : [];
   });
   const [showFavoritesModal, setShowFavoritesModal] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [resourceFilters, setResourceFilters] = useState({
     subject: 'all',
     type: 'all',
@@ -7804,7 +7805,19 @@ const VirtualExchangePlatform = () => {
                 <div className="text-xs text-gray-500 leading-tight">by MapWorks Learning</div>
               </div>
             </div>
-            <div className="flex gap-8 items-center">
+
+            {/* Mobile Menu Button */}
+            <button
+              type="button"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition"
+              aria-label="Toggle menu"
+            >
+              <Menu size={24} />
+            </button>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex gap-8 items-center">
               <button
                 type="button"
                 onClick={() => setActiveTab('home')}
@@ -7927,6 +7940,143 @@ const VirtualExchangePlatform = () => {
           </div>
         </div>
       </nav>
+
+      {/* Mobile Menu */}
+      {showMobileMenu && (
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            onClick={() => setShowMobileMenu(false)}
+          />
+
+          {/* Slide-in Menu */}
+          <div className="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 md:hidden overflow-y-auto">
+            <div className="p-6">
+              {/* Close Button */}
+              <div className="flex justify-between items-center mb-8">
+                <div className="text-lg font-semibold text-gray-800">Menu</div>
+                <button
+                  type="button"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 transition"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Navigation Links */}
+              <div className="space-y-1">
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab('home'); setShowMobileMenu(false); }}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${activeTab === 'home' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                >
+                  Home
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab('browse'); setShowMobileMenu(false); }}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${activeTab === 'browse' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                >
+                  Browse
+                </button>
+
+                {/* The Exchange Lab Section */}
+                <div className="border-t border-gray-200 my-2 pt-2">
+                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">The Exchange Lab</div>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab('getting-started'); setShowMobileMenu(false); }}
+                    className={`w-full text-left px-4 py-2 rounded-lg text-sm transition flex items-center gap-2 ${activeTab === 'getting-started' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    <BookOpen size={16} />
+                    Activities & Frameworks
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab('lesson-plans'); setShowMobileMenu(false); }}
+                    className={`w-full text-left px-4 py-2 rounded-lg text-sm transition flex items-center gap-2 ${activeTab === 'lesson-plans' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    <FileText size={16} />
+                    Lesson Plans
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab('resources'); setShowMobileMenu(false); }}
+                    className={`w-full text-left px-4 py-2 rounded-lg text-sm transition flex items-center gap-2 ${activeTab === 'resources' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    <Download size={16} />
+                    Resource Library
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab('impact-snapshot'); setShowMobileMenu(false); }}
+                    className={`w-full text-left px-4 py-2 rounded-lg text-sm transition flex items-center gap-2 ${activeTab === 'impact-snapshot' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    <CheckCircle size={16} />
+                    Impact Snapshot Generator
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowResourceSubmitModal(true); setShowMobileMenu(false); }}
+                    className="w-full text-left px-4 py-2 rounded-lg text-sm transition flex items-center gap-2 text-gray-700 hover:bg-gray-50"
+                  >
+                    <Upload size={16} />
+                    Share Your Resources
+                  </button>
+                </div>
+
+                <div className="border-t border-gray-200 my-2 pt-2"></div>
+
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab('about'); setShowMobileMenu(false); }}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${activeTab === 'about' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                >
+                  About
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab('contact'); setShowMobileMenu(false); }}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${activeTab === 'contact' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                >
+                  Contact
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setShowVerificationModal(true); setShowMobileMenu(false); }}
+                  className="w-full text-left px-4 py-3 rounded-lg font-medium transition text-gray-700 hover:bg-gray-50"
+                >
+                  Get Verified
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab('donate'); setShowMobileMenu(false); }}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${activeTab === 'donate' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                >
+                  Donate
+                </button>
+
+                {/* Sign In Button */}
+                <div className="pt-4">
+                  <button
+                    type="button"
+                    onClick={() => { setShowAuthModal(true); setShowMobileMenu(false); }}
+                    className="w-full px-6 py-3 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition"
+                  >
+                    Sign In
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-12">
