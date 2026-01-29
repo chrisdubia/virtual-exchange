@@ -4297,42 +4297,42 @@ const VirtualExchangePlatform = () => {
         <h2 className="text-3xl font-semibold mb-6 text-center" style={{color: '#666666'}}>What Happens When It Works</h2>
         <div className="grid md:grid-cols-2 gap-8">
           <div className="space-y-4">
-            <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+            <h4 className="font-semibold text-gray-900 flex items-center justify-center gap-2">
               <CheckCircle className="w-5 h-5 text-green-600" />
               For Students
             </h4>
             <ul className="space-y-3 text-gray-700">
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
+              <li className="flex items-start gap-3">
+                <span className="text-blue-600 flex-shrink-0" style={{lineHeight: '1.75rem'}}>•</span>
                 <span>Listen more deeply and ask better questions</span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
+              <li className="flex items-start gap-3">
+                <span className="text-blue-600 flex-shrink-0" style={{lineHeight: '1.75rem'}}>•</span>
                 <span>Learn to collaborate with respect across differences</span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
+              <li className="flex items-start gap-3">
+                <span className="text-blue-600 flex-shrink-0" style={{lineHeight: '1.75rem'}}>•</span>
                 <span>Practice open-mindedness and compassion with real people</span>
               </li>
             </ul>
           </div>
 
           <div className="space-y-4">
-            <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+            <h4 className="font-semibold text-gray-900 flex items-center justify-center gap-2">
               <CheckCircle className="w-5 h-5 text-green-600" />
               For Educators
             </h4>
             <ul className="space-y-3 text-gray-700">
-              <li className="flex items-start gap-2">
-                <span className="text-purple-600 mt-1">•</span>
+              <li className="flex items-start gap-3">
+                <span className="text-purple-600 flex-shrink-0" style={{lineHeight: '1.75rem'}}>•</span>
                 <span>Gain peers beyond their own walls</span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-purple-600 mt-1">•</span>
+              <li className="flex items-start gap-3">
+                <span className="text-purple-600 flex-shrink-0" style={{lineHeight: '1.75rem'}}>•</span>
                 <span>Strengthen their craft through shared learning</span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-purple-600 mt-1">•</span>
+              <li className="flex items-start gap-3">
+                <span className="text-purple-600 flex-shrink-0" style={{lineHeight: '1.75rem'}}>•</span>
                 <span>Bring global understanding into everyday classroom life</span>
               </li>
             </ul>
@@ -4350,28 +4350,28 @@ const VirtualExchangePlatform = () => {
 
           <div className="grid md:grid-cols-2 gap-x-12 gap-y-16 mb-20">
             <div>
-              <h3 className="text-2xl font-medium mb-4 tracking-tight" style={{color: '#1d1d1f'}}>Authentic Connection</h3>
+              <h3 className="text-2xl font-medium mb-4 tracking-tight text-center" style={{color: '#1d1d1f'}}>Authentic Connection</h3>
               <p className="text-lg" style={{color: '#6e6e73', lineHeight: '1.7', fontWeight: '300'}}>
                 When students share genuine stories across cultures, they create spaces where people feel seen and emotionally safe. This isn't theory – it's observable in how students interact, the quality of their questions, and their willingness to be vulnerable.
               </p>
             </div>
 
             <div>
-              <h3 className="text-2xl font-medium mb-4 tracking-tight" style={{color: '#1d1d1f'}}>Living Systems Change</h3>
+              <h3 className="text-2xl font-medium mb-4 tracking-tight text-center" style={{color: '#1d1d1f'}}>Living Systems Change</h3>
               <p className="text-lg" style={{color: '#6e6e73', lineHeight: '1.7', fontWeight: '300'}}>
                 Real change doesn't come from one-time workshops. It grows organically when students practice showing up with awareness, emotional literacy, and care for others – the same skills that drive flourishing in adult life.
               </p>
             </div>
 
             <div>
-              <h3 className="text-2xl font-medium mb-4 tracking-tight" style={{color: '#1d1d1f'}}>Networks of Growth</h3>
+              <h3 className="text-2xl font-medium mb-4 tracking-tight text-center" style={{color: '#1d1d1f'}}>Networks of Growth</h3>
               <p className="text-lg" style={{color: '#6e6e73', lineHeight: '1.7', fontWeight: '300'}}>
                 Virtual exchanges create interconnected webs of relationship – like underground root systems sharing nutrients across ecosystems. Knowledge, empathy, and hope flow through these networks. No single point of failure. Just continuous growth through authentic human connection.
               </p>
             </div>
 
             <div>
-              <h3 className="text-2xl font-medium mb-4 tracking-tight" style={{color: '#1d1d1f'}}>Evidence-Based Practice</h3>
+              <h3 className="text-2xl font-medium mb-4 tracking-tight text-center" style={{color: '#1d1d1f'}}>Evidence-Based Practice</h3>
               <p className="text-lg" style={{color: '#6e6e73', lineHeight: '1.7', fontWeight: '300'}}>
                 Research shows virtual exchange reduces prejudice, increases perspective-taking, and builds skills for navigating conflict. But it only works when done with care, not as checkbox compliance.
               </p>
@@ -4410,32 +4410,30 @@ const VirtualExchangePlatform = () => {
       </div>
 
       {/* Call to Action - Big Statement */}
-      <div className="relative overflow-hidden rounded-3xl p-16 text-center" style={{background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 50%, #BAE6FD 100%)'}}>
-        <div className="relative z-10">
-          <h2 className="text-4xl font-bold mb-6 leading-tight" style={{color: '#666666'}}>
-            Virtual exchange should not be a luxury.<br/>
-            <span style={{color: '#0891B2'}}>It should be a standard.</span>
-          </h2>
-          <p className="text-xl text-gray-700 leading-relaxed max-w-3xl mx-auto">
-            The Virtual Exchange exists to help make that standard real, so every student and every educator can access the kind of learning that grows dignity, belonging, and the ability to lead with care in a connected world.
-          </p>
-        </div>
+      <div className="bg-white rounded-3xl p-16 shadow-sm border border-gray-100 text-center">
+        <h2 className="text-4xl font-medium mb-6 leading-tight tracking-tight" style={{color: '#1d1d1f'}}>
+          Virtual exchange should not be a luxury.<br/>
+          It should be a standard.
+        </h2>
+        <p className="text-xl leading-relaxed max-w-3xl mx-auto" style={{color: '#6e6e73', lineHeight: '1.7', fontWeight: '300'}}>
+          The Virtual Exchange exists to help make that standard real, so every student and every educator can access the kind of learning that grows dignity, belonging, and the ability to lead with care in a connected world.
+        </p>
       </div>
 
       {/* MapWorks Section */}
-      <div className="relative overflow-hidden rounded-3xl p-14" style={{background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 50%, #FDE68A 100%)'}}>
-        <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+      <div className="bg-white rounded-3xl p-14 shadow-sm border border-gray-100">
+        <div className="flex flex-col items-center text-center space-y-6">
           <MapWorksLogo />
-          <h3 className="text-3xl font-bold" style={{color: '#666666'}}>MapWorks Learning</h3>
-          <p className="text-lg text-gray-700 leading-relaxed max-w-2xl">
+          <h3 className="text-3xl font-medium tracking-tight" style={{color: '#1d1d1f'}}>MapWorks Learning</h3>
+          <p className="text-lg leading-relaxed max-w-2xl" style={{color: '#6e6e73', lineHeight: '1.7', fontWeight: '300'}}>
             As leading practitioners of virtual exchange, we've created this platform to connect educators and organizations worldwide – because every conversation is a step toward solidarity.
           </p>
           <a
             href="https://mapworkslearning.org"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-8 py-3 text-white rounded-xl font-semibold hover:opacity-90 transition shadow-md hover:shadow-lg"
-            style={{backgroundColor: '#1F2937'}}
+            className="px-8 py-3 rounded-xl font-medium hover:opacity-90 transition shadow-sm hover:shadow-md"
+            style={{backgroundColor: '#1d1d1f', color: 'white'}}
           >
             Learn More About MapWorks
           </a>
