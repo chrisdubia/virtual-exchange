@@ -7900,39 +7900,20 @@ const VirtualExchangePlatform = () => {
                 Contact
               </button>
 
-              {/* My Favorites Button */}
-              <button
-                type="button"
-                onClick={() => setShowFavoritesModal(true)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:border-gray-400 hover:bg-gray-50 transition flex items-center gap-2 relative"
-                title="View my favorites"
-              >
-                <Heart size={16} />
-                My Favorites
-                {favorites.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                    {favorites.length}
-                  </span>
-                )}
-              </button>
-
-              {/* Get Verified Button */}
               <button
                 type="button"
                 onClick={() => setShowVerificationModal(true)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:border-gray-400 hover:bg-gray-50 transition flex items-center gap-2"
+                className="font-medium text-gray-600 hover:text-gray-900 transition"
                 title="Get your organization verified"
               >
-                <Shield size={16} />
                 Get Verified
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('donate')}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:border-gray-400 hover:bg-gray-50 transition flex items-center gap-2"
+                className="font-medium text-gray-600 hover:text-gray-900 transition"
               >
-                <Heart size={16} />
                 Donate
               </button>
               <button
