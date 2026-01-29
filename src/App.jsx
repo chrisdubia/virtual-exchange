@@ -4341,51 +4341,53 @@ const VirtualExchangePlatform = () => {
       </div>
 
       {/* Why This Works - Generative Social Fields Section */}
-      <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-3xl p-12 shadow-sm border border-emerald-100">
-        <h2 className="text-3xl font-semibold mb-8 text-center" style={{color: '#666666'}}>Why This Actually Works</h2>
-        <div className="space-y-8 max-w-4xl mx-auto">
-          <p className="text-lg text-gray-700 leading-relaxed">
-            Virtual exchange isn't just feel-good storytelling. It creates what researchers call <span className="font-bold text-teal-700">generative social fields</span> – relational spaces where students can show up authentically, connect across difference, and develop the adaptability needed for an interconnected world.
+      <div className="bg-white rounded-3xl p-16 shadow-sm">
+        <h2 className="text-4xl font-light mb-4 text-center tracking-tight" style={{color: '#1d1d1f'}}>Why This Actually Works</h2>
+        <div className="max-w-5xl mx-auto">
+          <p className="text-xl text-center mb-16 max-w-3xl mx-auto" style={{color: '#6e6e73', lineHeight: '1.6', fontWeight: '300'}}>
+            Virtual exchange isn't just feel-good storytelling. It creates what researchers call <span className="font-medium" style={{color: '#1d1d1f'}}>generative social fields</span> – relational spaces where students can show up authentically, connect across difference, and develop the adaptability needed for an interconnected world.
           </p>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl p-6 border-l-4 border-emerald-500">
-              <h3 className="font-bold text-lg mb-3 text-gray-900">Authentic Connection</h3>
-              <p className="text-gray-700 leading-relaxed">
+          <div className="grid md:grid-cols-2 gap-x-12 gap-y-16 mb-20">
+            <div>
+              <h3 className="text-2xl font-medium mb-4 tracking-tight" style={{color: '#1d1d1f'}}>Authentic Connection</h3>
+              <p className="text-lg" style={{color: '#6e6e73', lineHeight: '1.7', fontWeight: '300'}}>
                 When students share genuine stories across cultures, they create spaces where people feel seen and emotionally safe. This isn't theory – it's observable in how students interact, the quality of their questions, and their willingness to be vulnerable.
               </p>
             </div>
 
-            <div className="bg-white rounded-xl p-6 border-l-4 border-teal-500">
-              <h3 className="font-bold text-lg mb-3 text-gray-900">Living Systems Change</h3>
-              <p className="text-gray-700 leading-relaxed">
+            <div>
+              <h3 className="text-2xl font-medium mb-4 tracking-tight" style={{color: '#1d1d1f'}}>Living Systems Change</h3>
+              <p className="text-lg" style={{color: '#6e6e73', lineHeight: '1.7', fontWeight: '300'}}>
                 Real change doesn't come from one-time workshops. It grows organically when students practice showing up with awareness, emotional literacy, and care for others – the same skills that drive flourishing in adult life.
               </p>
             </div>
 
-            <div className="bg-white rounded-xl p-6 border-l-4 border-cyan-500">
-              <h3 className="font-bold text-lg mb-3 text-gray-900">Mycelium, Not Hierarchy</h3>
-              <p className="text-gray-700 leading-relaxed">
-                Virtual exchanges create webs of connection like underground mycelium networks – sharing nutrients (knowledge, empathy, hope) across ecosystems. No single point of failure. Just continuous growth through relationships.
+            <div>
+              <h3 className="text-2xl font-medium mb-4 tracking-tight" style={{color: '#1d1d1f'}}>Networks of Growth</h3>
+              <p className="text-lg" style={{color: '#6e6e73', lineHeight: '1.7', fontWeight: '300'}}>
+                Virtual exchanges create interconnected webs of relationship – like underground root systems sharing nutrients across ecosystems. Knowledge, empathy, and hope flow through these networks. No single point of failure. Just continuous growth through authentic human connection.
               </p>
             </div>
 
-            <div className="bg-white rounded-xl p-6 border-l-4 border-blue-500">
-              <h3 className="font-bold text-lg mb-3 text-gray-900">Evidence-Based Practice</h3>
-              <p className="text-gray-700 leading-relaxed">
+            <div>
+              <h3 className="text-2xl font-medium mb-4 tracking-tight" style={{color: '#1d1d1f'}}>Evidence-Based Practice</h3>
+              <p className="text-lg" style={{color: '#6e6e73', lineHeight: '1.7', fontWeight: '300'}}>
                 Research shows virtual exchange reduces prejudice, increases perspective-taking, and builds skills for navigating conflict. But it only works when done with care, not as checkbox compliance.
               </p>
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-6 mt-8">
-            <p className="text-gray-800 leading-relaxed text-center italic">
-              "The quality of relationships is the most significant factor for happiness, longevity, and well-being." <br/>
-              <span className="text-sm font-semibold text-gray-600 mt-2 block">— Harvard Study of Adult Development (80+ years of research)</span>
+          <div className="bg-gray-50 rounded-2xl p-12 mb-16">
+            <p className="text-2xl text-center leading-relaxed" style={{color: '#1d1d1f', fontWeight: '300', fontStyle: 'italic'}}>
+              "The quality of relationships is the most significant factor for happiness, longevity, and well-being."
+            </p>
+            <p className="text-center mt-4" style={{color: '#6e6e73', fontSize: '0.95rem'}}>
+              Harvard Study of Adult Development (80+ years of research)
             </p>
           </div>
 
-          <p className="text-gray-700 leading-relaxed">
+          <p className="text-xl text-center max-w-3xl mx-auto" style={{color: '#6e6e73', lineHeight: '1.7', fontWeight: '300'}}>
             Virtual exchange cultivates the relational competencies that matter: empathy, collaboration, critical thinking, and the ability to hold complexity. These aren't soft skills. They're the foundations of leadership, innovation, and human flourishing.
           </p>
         </div>
