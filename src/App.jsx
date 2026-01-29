@@ -20,6 +20,11 @@ const VirtualExchangePlatform = () => {
   const [showIntroductionRequestModal, setShowIntroductionRequestModal] = useState(false);
   const [showClaimProfileModal, setShowClaimProfileModal] = useState(false);
   const [selectedOrgForRequest, setSelectedOrgForRequest] = useState(null);
+  const [favorites, setFavorites] = useState(() => {
+    const saved = localStorage.getItem('userFavorites');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showFavoritesModal, setShowFavoritesModal] = useState(false);
   const [resourceFilters, setResourceFilters] = useState({
     subject: 'all',
     type: 'all',
@@ -2683,6 +2688,25 @@ const VirtualExchangePlatform = () => {
     setSearchResults(scoredResults);
   };
 
+  // Toggle favorite
+  const toggleFavorite = (org) => {
+    const isFavorited = favorites.some(fav => fav.id === org.id);
+    let newFavorites;
+
+    if (isFavorited) {
+      newFavorites = favorites.filter(fav => fav.id !== org.id);
+    } else {
+      newFavorites = [...favorites, org];
+    }
+
+    setFavorites(newFavorites);
+    localStorage.setItem('userFavorites', JSON.stringify(newFavorites));
+  };
+
+  const isFavorited = (orgId) => {
+    return favorites.some(fav => fav.id === orgId);
+  };
+
   // Handle signup form submission
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
@@ -3796,6 +3820,24 @@ const VirtualExchangePlatform = () => {
             className="px-4 py-2 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition text-sm"
           >
             View Profile
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFavorite(org);
+            }}
+            className={`px-4 py-2 border rounded-lg font-semibold transition text-sm ${
+              isFavorited(org.id)
+                ? 'border-red-500 bg-red-50 text-red-600 hover:bg-red-100'
+                : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+            }`}
+            title={isFavorited(org.id) ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            <Heart
+              size={20}
+              fill={isFavorited(org.id) ? 'currentColor' : 'none'}
+            />
           </button>
         </div>
         <button
@@ -7459,6 +7501,62 @@ const VirtualExchangePlatform = () => {
     );
   };
 
+  // Favorites Modal
+  const FavoritesModal = () => {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-auto shadow-2xl relative">
+          <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between z-10">
+            <div>
+              <h3 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+                <Heart size={24} className="text-red-500" fill="currentColor" />
+                My Favorites
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                {favorites.length} {favorites.length === 1 ? 'organization' : 'organizations'} saved
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowFavoritesModal(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="p-6">
+            {favorites.length === 0 ? (
+              <div className="text-center py-16">
+                <Heart size={48} className="text-gray-300 mx-auto mb-4" />
+                <h4 className="text-xl font-medium text-gray-600 mb-2">No favorites yet</h4>
+                <p className="text-gray-500 mb-6">
+                  Start browsing organizations and click the heart icon to save them here for easy access later.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowFavoritesModal(false);
+                    setActiveTab('browse');
+                  }}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+                >
+                  Browse Organizations
+                </button>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-6">
+                {favorites.map(org => (
+                  <OrganizationCard key={org.id} org={org} />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
@@ -7568,6 +7666,22 @@ const VirtualExchangePlatform = () => {
                 Contact
               </button>
 
+              {/* My Favorites Button */}
+              <button
+                type="button"
+                onClick={() => setShowFavoritesModal(true)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:border-gray-400 hover:bg-gray-50 transition flex items-center gap-2 relative"
+                title="View my favorites"
+              >
+                <Heart size={16} />
+                My Favorites
+                {favorites.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {favorites.length}
+                  </span>
+                )}
+              </button>
+
               {/* Get Verified Button */}
               <button
                 type="button"
@@ -7622,7 +7736,7 @@ const VirtualExchangePlatform = () => {
                 <div className="text-base font-medium text-gray-800">The Virtual Exchange</div>
               </div>
               <p className="text-gray-600 text-sm leading-relaxed">
-                Breaking down borders through education
+                Connecting students, educators, and organizations worldwide
               </p>
             </div>
             <div>
@@ -7721,6 +7835,7 @@ const VirtualExchangePlatform = () => {
       {showLessonPlanModal && selectedLessonPlan && <LessonPlanModal />}
       {showResourceSubmitModal && <ResourceSubmitModal />}
       {showIntroductionRequestModal && selectedOrgForRequest && <IntroductionRequestModal />}
+      {showFavoritesModal && <FavoritesModal />}
       {showClaimProfileModal && selectedOrgForRequest && <ClaimProfileModal />}
 
       {/* Cookie Consent */}
