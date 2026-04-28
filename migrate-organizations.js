@@ -53,12 +53,14 @@ async function migrateOrganizations() {
         capacity: org.capacity,
         email: org.email,
         phone: org.phone,
-        verified: org.verified || false,
+        verified: false, // No verified badge until claimed
         website: org.website,
         partnership_goals: org.partnershipGoals,
         programs: org.programs ? JSON.stringify(org.programs) : null,
         claimed: false,
-        approval_status: 'approved', // Existing orgs are pre-approved
+        approval_status: 'approved', // Pre-loaded orgs are pre-approved
+        email_verification_status: 'verified', // Skip email verification for pre-loaded orgs
+        email_verified_at: new Date().toISOString(),
         approved_at: new Date().toISOString()
       }
 

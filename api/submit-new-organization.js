@@ -63,7 +63,13 @@ export default async function handler(req, res) {
       })
     }
 
-    // Create new organization with pending status
+    // Generate email verification token
+    const crypto = require('crypto')
+    const verificationToken = crypto.randomBytes(32).toString('hex')
+    const expiresAt = new Date()
+    expiresAt.setHours(expiresAt.getHours() + 48) // 48 hour expiration
+
+    // Create new organization with email_pending status
     const { data: newOrg, error: createError } = await supabase
       .from('organizations')
       .insert({
@@ -83,7 +89,10 @@ export default async function handler(req, res) {
         programs: programs ? JSON.stringify(programs) : null,
         verified: false,
         claimed: false,
-        approval_status: 'pending', // New field for approval workflow
+        approval_status: 'email_pending', // Waiting for email verification
+        email_verification_token: verificationToken,
+        email_verification_status: 'pending',
+        verification_token_expires_at: expiresAt.toISOString(),
         submitted_by: userId,
         submitter_name: submitterName,
         submitter_email: submitterEmail,
@@ -97,72 +106,10 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to submit organization' })
     }
 
-    // Send notification email to MapWorks admin
+    // Send verification email to submitter (NOT to MapWorks yet)
     const RESEND_API_KEY = process.env.RESEND_API_KEY
-    if (RESEND_API_KEY) {
-      try {
-        await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${RESEND_API_KEY}`
-          },
-          body: JSON.stringify({
-            from: 'The Virtual Exchange <hello@mapworkslearning.org>',
-            to: 'hello@mapworkslearning.org',
-            subject: `New Organization Submission: ${name}`,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #1f2937;">New Organization Awaiting Approval</h2>
+    const verificationUrl = `https://virtual-exchange.vercel.app/verify-email?token=${verificationToken}`
 
-                <div style="background-color: #f9fafb; border-radius: 8px; padding: 24px; margin: 24px 0;">
-                  <h3 style="color: #1f2937; margin-top: 0;">Organization Details</h3>
-
-                  <p><strong>Name:</strong> ${name}</p>
-                  <p><strong>Type:</strong> ${type}</p>
-                  <p><strong>Category:</strong> ${category || 'Not specified'}</p>
-                  <p><strong>Country:</strong> ${country}</p>
-                  <p><strong>Region:</strong> ${region || 'Not specified'}</p>
-
-                  <p><strong>Description:</strong><br>${description}</p>
-
-                  <p><strong>Languages:</strong> ${languages?.join(', ') || 'Not specified'}</p>
-                  <p><strong>Interests:</strong> ${interests?.join(', ') || 'Not specified'}</p>
-                  <p><strong>Capacity:</strong> ${capacity || 'Not specified'}</p>
-
-                  <p><strong>Email:</strong> ${email}</p>
-                  <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-                  <p><strong>Website:</strong> ${website || 'Not provided'}</p>
-
-                  ${partnershipGoals?.length ? `<p><strong>Partnership Goals:</strong> ${partnershipGoals.join(', ')}</p>` : ''}
-                </div>
-
-                <div style="background-color: #eff6ff; border-radius: 8px; padding: 24px; margin: 24px 0;">
-                  <h3 style="color: #1f2937; margin-top: 0;">Submitted By</h3>
-                  <p><strong>Name:</strong> ${submitterName}</p>
-                  <p><strong>Email:</strong> ${submitterEmail}</p>
-                  <p><strong>Role:</strong> ${submitterRole}</p>
-                </div>
-
-                <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0;">
-                  <p style="margin: 0; color: #92400e;"><strong>Action Required:</strong> Review this submission and approve or reject it.</p>
-                </div>
-
-                <div style="text-align: center; margin: 32px 0;">
-                  <p style="color: #6b7280; font-size: 14px;">Organization ID: ${newOrg.id}</p>
-                  <p style="color: #6b7280; font-size: 14px;">To approve, go to your Supabase dashboard → organizations table</p>
-                </div>
-              </div>
-            `
-          })
-        })
-      } catch (emailError) {
-        console.error('Failed to send admin notification:', emailError)
-        // Don't fail the submission if email fails
-      }
-    }
-
-    // Send confirmation email to submitter
     if (RESEND_API_KEY) {
       try {
         await fetch('https://api.resend.com/emails', {
@@ -174,34 +121,50 @@ export default async function handler(req, res) {
           body: JSON.stringify({
             from: 'The Virtual Exchange <hello@mapworkslearning.org>',
             to: submitterEmail,
-            subject: 'Organization Submission Received',
+            subject: `Verify Your Email - ${name}`,
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #1f2937;">Thank You for Your Submission!</h2>
+                <div style="text-align: center; margin-bottom: 32px;">
+                  <h2 style="color: #1f2937; margin: 0;">Verify Your Email Address</h2>
+                  <p style="color: #6b7280; font-size: 16px;">Just one more step to get ${name} listed</p>
+                </div>
 
                 <p>Hi ${submitterName},</p>
 
-                <p>We've received your submission for <strong>${name}</strong> to be added to The Virtual Exchange directory.</p>
+                <p>Thank you for submitting <strong>${name}</strong> to The Virtual Exchange!</p>
 
-                <div style="background-color: #f9fafb; border-radius: 8px; padding: 24px; margin: 24px 0;">
-                  <h3 style="color: #1f2937; margin-top: 0;">What Happens Next?</h3>
-                  <ol style="color: #6b7280; line-height: 1.8;">
-                    <li>Our team at MapWorks Learning will review your submission</li>
-                    <li>We'll verify the information and organization details</li>
-                    <li>You'll receive an email within 2-3 business days with our decision</li>
-                    <li>Once approved, your organization will appear in the public directory</li>
-                    <li>You'll be able to manage and update your profile</li>
-                  </ol>
+                <p>To complete your submission, please verify your email address by clicking the button below:</p>
+
+                <div style="text-align: center; margin: 40px 0;">
+                  <a href="${verificationUrl}" style="display: inline-block; background-color: #2563eb; color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                    Verify Email Address
+                  </a>
                 </div>
 
-                <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 16px; margin: 24px 0;">
-                  <p style="margin: 0; color: #1e40af;">
-                    <strong>💡 Tip:</strong> Organizations with complete profiles and verification badges receive 3x more partnership requests!
+                <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin: 24px 0;">
+                  <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                    <strong>Or copy and paste this link into your browser:</strong><br>
+                    <a href="${verificationUrl}" style="color: #2563eb; word-break: break-all;">${verificationUrl}</a>
                   </p>
                 </div>
 
+                <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0; border-radius: 4px;">
+                  <p style="margin: 0; color: #92400e; font-size: 14px;">
+                    <strong>⏰ This link expires in 48 hours.</strong> Please verify soon to proceed with your submission.
+                  </p>
+                </div>
+
+                <div style="background-color: #eff6ff; border-radius: 8px; padding: 20px; margin: 24px 0;">
+                  <h3 style="color: #1f2937; margin-top: 0; font-size: 16px;">After Email Verification:</h3>
+                  <ol style="color: #6b7280; line-height: 1.8; padding-left: 20px; margin: 0;">
+                    <li>Our team reviews your organization (1-3 business days)</li>
+                    <li>You receive approval notification</li>
+                    <li>Your organization goes live with verified badge ✓</li>
+                  </ol>
+                </div>
+
                 <div style="margin-top: 40px; padding-top: 32px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
-                  <p>Questions? Reply to this email or contact us at hello@mapworkslearning.org</p>
+                  <p>Didn't submit this request? You can safely ignore this email.</p>
                   <p style="margin-top: 16px;"><strong>The Virtual Exchange</strong><br>A MapWorks Learning Initiative</p>
                 </div>
               </div>
@@ -209,14 +172,17 @@ export default async function handler(req, res) {
           })
         })
       } catch (emailError) {
-        console.error('Failed to send confirmation email:', emailError)
+        console.error('Failed to send verification email:', emailError)
+        return res.status(500).json({ error: 'Failed to send verification email. Please try again.' })
       }
     }
 
     return res.status(200).json({
       success: true,
-      message: 'Organization submitted successfully and is pending approval',
-      organizationId: newOrg.id
+      message: 'Please check your email to verify your address and complete your submission',
+      organizationId: newOrg.id,
+      requiresEmailVerification: true,
+      verificationEmail: submitterEmail
     })
 
   } catch (error) {

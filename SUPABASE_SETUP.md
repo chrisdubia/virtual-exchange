@@ -55,7 +55,7 @@ CREATE TABLE public.organizations (
   claimed_by UUID REFERENCES auth.users(id),
   claimed_at TIMESTAMP WITH TIME ZONE,
   -- New organization submission fields
-  approval_status TEXT DEFAULT 'approved' CHECK (approval_status IN ('pending', 'approved', 'rejected')),
+  approval_status TEXT DEFAULT 'approved' CHECK (approval_status IN ('email_pending', 'pending', 'approved', 'rejected')),
   submitted_by UUID REFERENCES auth.users(id),
   submitter_name TEXT,
   submitter_email TEXT,
@@ -63,6 +63,11 @@ CREATE TABLE public.organizations (
   approved_at TIMESTAMP WITH TIME ZONE,
   approved_by UUID REFERENCES auth.users(id),
   rejection_reason TEXT,
+  -- Email verification fields
+  email_verification_token TEXT UNIQUE,
+  email_verification_status TEXT DEFAULT 'pending' CHECK (email_verification_status IN ('pending', 'verified', 'expired')),
+  email_verified_at TIMESTAMP WITH TIME ZONE,
+  verification_token_expires_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
