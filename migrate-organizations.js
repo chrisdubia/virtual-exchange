@@ -57,7 +57,9 @@ async function migrateOrganizations() {
         website: org.website,
         partnership_goals: org.partnershipGoals,
         programs: org.programs ? JSON.stringify(org.programs) : null,
-        claimed: false
+        claimed: false,
+        approval_status: 'approved', // Existing orgs are pre-approved
+        approved_at: new Date().toISOString()
       }
 
       const { data, error } = await supabase

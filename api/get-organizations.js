@@ -16,10 +16,11 @@ export default async function handler(req, res) {
 
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Fetch all organizations
+    // Fetch only approved organizations for public view
     const { data: organizations, error } = await supabase
       .from('organizations')
       .select('*')
+      .eq('approval_status', 'approved')
       .order('name')
 
     if (error) {

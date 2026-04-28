@@ -54,6 +54,15 @@ CREATE TABLE public.organizations (
   claimed BOOLEAN DEFAULT false,
   claimed_by UUID REFERENCES auth.users(id),
   claimed_at TIMESTAMP WITH TIME ZONE,
+  -- New organization submission fields
+  approval_status TEXT DEFAULT 'approved' CHECK (approval_status IN ('pending', 'approved', 'rejected')),
+  submitted_by UUID REFERENCES auth.users(id),
+  submitter_name TEXT,
+  submitter_email TEXT,
+  submitter_role TEXT,
+  approved_at TIMESTAMP WITH TIME ZONE,
+  approved_by UUID REFERENCES auth.users(id),
+  rejection_reason TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -103,9 +112,17 @@ CREATE POLICY "Users can update own profile"
   USING (auth.uid() = id);
 
 -- Policies for organizations
-CREATE POLICY "Organizations are viewable by everyone"
+CREATE POLICY "Approved organizations are viewable by everyone"
   ON public.organizations FOR SELECT
-  USING (true);
+  USING (approval_status = 'approved');
+
+CREATE POLICY "Users can view their own pending submissions"
+  ON public.organizations FOR SELECT
+  USING (submitted_by = auth.uid());
+
+CREATE POLICY "Authenticated users can submit new organizations"
+  ON public.organizations FOR INSERT
+  WITH CHECK (auth.uid() = submitted_by AND approval_status = 'pending');
 
 CREATE POLICY "Claimed orgs can be updated by owner"
   ON public.organizations FOR UPDATE
