@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Globe, Users, School, MessageSquare, Search, Filter, CheckCircle, X, Heart, Building, GraduationCap, BookOpen, Sparkles, Shield, Mail, Lock, User, ChevronDown, Download, Upload, FileText, Tag, Menu } from 'lucide-react';
+import { supabase } from './supabaseClient';
 
 const VirtualExchangePlatform = () => {
   const [activeTab, setActiveTab] = useState('home');
@@ -52,6 +53,21 @@ const VirtualExchangePlatform = () => {
   const [signupSubmitting, setSignupSubmitting] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
   const [signupError, setSignupError] = useState('');
+
+  // Sign in form state
+  const [signinForm, setSigninForm] = useState({
+    email: '',
+    password: ''
+  });
+  const [signinSubmitting, setSigninSubmitting] = useState(false);
+  const [signinError, setSigninError] = useState('');
+
+  // Authentication & Database State
+  const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
+  const [organizationsFromDB, setOrganizationsFromDB] = useState([]);
+  const [loadingOrganizations, setLoadingOrganizations] = useState(true);
+
   const aiSearchRef = useRef(null);
 
   // MapWorks Logo Component
@@ -98,8 +114,72 @@ const VirtualExchangePlatform = () => {
     );
   };
 
-  // Comprehensive database of organizations
-  const organizations = [
+  // Load user session on mount
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Load organizations from database
+  useEffect(() => {
+    async function loadOrganizations() {
+      try {
+        setLoadingOrganizations(true);
+        const { data, error } = await supabase
+          .from('organizations')
+          .select('*')
+          .eq('approval_status', 'approved')
+          .order('name');
+
+        if (error) throw error;
+
+        // Transform database format to match component expectations
+        const transformed = data.map(org => ({
+          id: org.id,
+          name: org.name,
+          type: org.type,
+          category: org.category,
+          country: org.country,
+          region: org.region,
+          description: org.description,
+          languages: org.languages || [],
+          interests: org.interests || [],
+          capacity: org.capacity,
+          email: org.email,
+          phone: org.phone,
+          verified: org.verified || false,
+          website: org.website,
+          partnershipGoals: org.partnership_goals || [],
+          programs: typeof org.programs === 'string' ? JSON.parse(org.programs) : org.programs,
+          claimed: org.claimed || false
+        }));
+
+        setOrganizationsFromDB(transformed);
+      } catch (error) {
+        console.error('Error loading organizations:', error);
+        // Fall back to hardcoded if database fails
+        setOrganizationsFromDB([]);
+      } finally {
+        setLoadingOrganizations(false);
+      }
+    }
+
+    loadOrganizations();
+  }, []);
+
+  // Hardcoded organizations as fallback
+  const hardcodedOrganizations = [
     // PROVIDERS
     {
       id: 1,
@@ -2561,6 +2641,11 @@ const VirtualExchangePlatform = () => {
     }
   ];
 
+  // Use database organizations if loaded, otherwise fall back to hardcoded
+  const organizations = (!loadingOrganizations && organizationsFromDB.length > 0)
+    ? organizationsFromDB
+    : hardcodedOrganizations;
+
   // Enhanced AI Search Handler with Natural Language Processing
   const handleAISearch = () => {
     const query = aiSearchRef.current?.value || '';
@@ -2715,27 +2800,29 @@ const VirtualExchangePlatform = () => {
     setSignupSubmitting(true);
     setSignupError('');
 
-    // For now, just simulate success since email API may not be configured yet
     try {
-      // Try to call the API, but don't fail if it's not configured
-      try {
-        const response = await fetch('/api/signup', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(signupForm),
-        });
+      const response = await fetch('/api/auth-signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(signupForm),
+      });
 
-        if (!response.ok) {
-          console.warn('Email API not configured, continuing without email');
-        }
-      } catch (apiError) {
-        // API not available yet, that's okay
-        console.warn('Email service not configured:', apiError);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setSignupError(data.error || 'Failed to create account');
+        return;
       }
 
-      // Always show success to user - account creation works even without email
+      // Store session from signup
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.user);
+      }
+
+      // Show success and reset form
       setSignupSuccess(true);
       setSignupForm({
         firstName: '',
@@ -2751,7 +2838,8 @@ const VirtualExchangePlatform = () => {
         studentMax: '',
         technology: [],
         techRestrictions: '',
-        duration: []
+        duration: [],
+        exchanges: []
       });
 
       // Show success message for 3 seconds then close modal
@@ -2760,9 +2848,49 @@ const VirtualExchangePlatform = () => {
         setShowAuthModal(false);
       }, 3000);
     } catch (error) {
+      console.error('Signup error:', error);
       setSignupError('Failed to create account. Please try again or contact us at hello@mapworkslearning.org');
     } finally {
       setSignupSubmitting(false);
+    }
+  };
+
+  // Handle sign in
+  const handleSigninSubmit = async (e) => {
+    e.preventDefault();
+    setSigninSubmitting(true);
+    setSigninError('');
+
+    try {
+      const response = await fetch('/api/auth-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(signinForm),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setSigninError(data.error || 'Login failed');
+        return;
+      }
+
+      // Store session from login
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.user);
+      }
+
+      // Reset form and close modal
+      setSigninForm({ email: '', password: '' });
+      setShowAuthModal(false);
+    } catch (error) {
+      console.error('Login error:', error);
+      setSigninError('Login failed. Please try again.');
+    } finally {
+      setSigninSubmitting(false);
     }
   };
 
@@ -2832,15 +2960,39 @@ const VirtualExchangePlatform = () => {
               </div>
             </div>
 
-            <form className="space-y-4">
+            {signinError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                {signinError}
+              </div>
+            )}
+
+            <form onSubmit={handleSigninSubmit} className="space-y-4">
               <div>
-                <input type="email" placeholder="Email" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm" required />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={signinForm.email}
+                  onChange={(e) => setSigninForm({...signinForm, email: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+                  required
+                />
               </div>
               <div>
-                <input type="password" placeholder="Password" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm" required />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={signinForm.password}
+                  onChange={(e) => setSigninForm({...signinForm, password: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+                  required
+                />
               </div>
-              <button type="submit" className="w-full bg-gray-800 text-white py-3 rounded-lg font-medium hover:bg-gray-900 transition text-sm">
-                Sign In
+              <button
+                type="submit"
+                disabled={signinSubmitting}
+                className="w-full bg-gray-800 text-white py-3 rounded-lg font-medium hover:bg-gray-900 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {signinSubmitting ? 'Signing In...' : 'Sign In'}
               </button>
             </form>
           </div>
@@ -3635,137 +3787,251 @@ const VirtualExchangePlatform = () => {
   };
 
   // Verification Modal - Automated verification system
-  const VerificationModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto p-8 shadow-2xl">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <Shield className="w-6 h-6 text-green-600" />
+  const VerificationModal = () => {
+    const [verificationForm, setVerificationForm] = useState({
+      name: '',
+      type: '',
+      country: '',
+      region: '',
+      website: '',
+      email: '',
+      role: '',
+      capacity: '',
+      description: ''
+    });
+    const [verificationSubmitting, setVerificationSubmitting] = useState(false);
+    const [verificationSuccess, setVerificationSuccess] = useState(false);
+    const [verificationError, setVerificationError] = useState('');
+
+    const handleVerificationSubmit = async (e) => {
+      e.preventDefault();
+      setVerificationSubmitting(true);
+      setVerificationError('');
+
+      try {
+        const response = await fetch('/api/submit-new-organization', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: verificationForm.name,
+            type: verificationForm.type,
+            country: verificationForm.country,
+            region: verificationForm.region,
+            website: verificationForm.website,
+            email: verificationForm.email,
+            description: verificationForm.description || `Educational institution seeking verification`,
+            capacity: verificationForm.capacity ? parseInt(verificationForm.capacity) : null,
+            submitterName: user?.user_metadata?.firstName && user?.user_metadata?.lastName
+              ? `${user.user_metadata.firstName} ${user.user_metadata.lastName}`
+              : 'Organization Representative',
+            submitterEmail: verificationForm.email,
+            submitterRole: verificationForm.role,
+            userId: user?.id
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          setVerificationError(data.error || 'Failed to submit verification request');
+          return;
+        }
+
+        setVerificationSuccess(true);
+        setTimeout(() => {
+          setShowVerificationModal(false);
+          setVerificationSuccess(false);
+          setVerificationForm({
+            name: '',
+            type: '',
+            country: '',
+            region: '',
+            website: '',
+            email: '',
+            role: '',
+            capacity: '',
+            description: ''
+          });
+        }, 4000);
+      } catch (error) {
+        console.error('Verification submission error:', error);
+        setVerificationError('Failed to submit verification request. Please try again.');
+      } finally {
+        setVerificationSubmitting(false);
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto p-8 shadow-2xl">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-semibold text-gray-800">Get Your Organization Verified</h3>
+                  <p className="text-gray-600">Join 100+ verified partners on The Virtual Exchange</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-2xl font-semibold text-gray-800">Get Your Organization Verified</h3>
-                <p className="text-gray-600">Join 100+ verified partners on The Virtual Exchange</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowVerificationModal(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          {verificationSuccess ? (
+            <div className="text-center py-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Verification Request Submitted!</h3>
+              <p className="text-gray-600 mb-4">
+                We've sent a verification email to {verificationForm.email}. Please check your inbox and click the verification link.
+              </p>
+              <p className="text-sm text-gray-500">
+                After email verification, our team will review your organization (1-3 business days) and you'll receive approval notification.
+              </p>
             </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowVerificationModal(false)}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X size={24} />
-          </button>
-        </div>
+          ) : (
+            <>
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-semibold text-blue-900 mb-2">Why Get Verified?</h4>
+                <ul className="space-y-2 text-sm text-blue-800">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
+                    <span>Build trust with global partners - verified badge shows authenticity</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
+                    <span>Appear higher in search results and AI recommendations</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
+                    <span>Access to premium partnership tools and resources</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
+                    <span>Free - verification is completely free for all educational institutions</span>
+                  </li>
+                </ul>
+              </div>
 
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <h4 className="font-semibold text-blue-900 mb-2">Why Get Verified?</h4>
-          <ul className="space-y-2 text-sm text-blue-800">
-            <li className="flex items-start gap-2">
-              <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
-              <span>Build trust with global partners - verified badge shows authenticity</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
-              <span>Appear higher in search results and AI recommendations</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
-              <span>Access to premium partnership tools and resources</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
-              <span>Free - verification is completely free for all educational institutions</span>
-            </li>
-          </ul>
-        </div>
+              {verificationError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {verificationError}
+                </div>
+              )}
 
-        <form className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Organization Name *</label>
-              <input
-                type="text"
-                placeholder="e.g., Lincoln High School"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Organization Type *</label>
-              <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
-                <option value="">Select type...</option>
-                <option value="primary">Primary/Elementary School (Ages 5-11)</option>
-                <option value="middle">Middle/Junior Secondary (Ages 11-14)</option>
-                <option value="high">High/Upper Secondary (Ages 14-18)</option>
-                <option value="university">University/Higher Education (Ages 18+)</option>
-                <option value="provider">Exchange Provider/Organization</option>
-              </select>
-            </div>
-          </div>
+              <form onSubmit={handleVerificationSubmit} className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Organization Name *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Lincoln High School"
+                      value={verificationForm.name}
+                      onChange={(e) => setVerificationForm({...verificationForm, name: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Organization Type *</label>
+                    <select
+                      value={verificationForm.type}
+                      onChange={(e) => setVerificationForm({...verificationForm, type: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      required
+                    >
+                      <option value="">Select type...</option>
+                      <option value="primary">Primary/Elementary School (Ages 5-11)</option>
+                      <option value="middle">Middle/Junior Secondary (Ages 11-14)</option>
+                      <option value="high">High/Upper Secondary (Ages 14-18)</option>
+                      <option value="university">University/Higher Education (Ages 18+)</option>
+                      <option value="provider">Exchange Provider/Organization</option>
+                    </select>
+                  </div>
+                </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Country *</label>
-              <input
-                type="text"
-                placeholder="e.g., United States"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">City/Region *</label>
-              <input
-                type="text"
-                placeholder="e.g., Boston, MA"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                required
-              />
-            </div>
-          </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Country *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., United States"
+                      value={verificationForm.country}
+                      onChange={(e) => setVerificationForm({...verificationForm, country: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">City/Region *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Boston, MA"
+                      value={verificationForm.region}
+                      onChange={(e) => setVerificationForm({...verificationForm, region: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      required
+                    />
+                  </div>
+                </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Official Website URL *</label>
-            <input
-              type="url"
-              placeholder="https://www.yourschool.edu"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">We'll verify your organization using your official website</p>
-          </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Official Website URL *</label>
+                  <input
+                    type="url"
+                    placeholder="https://www.yourschool.edu"
+                    value={verificationForm.website}
+                    onChange={(e) => setVerificationForm({...verificationForm, website: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">We'll verify your organization using your official website</p>
+                </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Official Email Address *</label>
-            <input
-              type="email"
-              placeholder="admin@yourschool.edu"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">Must be from your organization's domain (we'll send a verification email)</p>
-          </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Official Email Address *</label>
+                  <input
+                    type="email"
+                    placeholder="admin@yourschool.edu"
+                    value={verificationForm.email}
+                    onChange={(e) => setVerificationForm({...verificationForm, email: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Must be from your organization's domain (we'll send a verification email)</p>
+                </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Your Role *</label>
-            <input
-              type="text"
-              placeholder="e.g., Principal, Director of International Programs, Teacher"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-          </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Your Role *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Principal, Director of International Programs, Teacher"
+                    value={verificationForm.role}
+                    onChange={(e) => setVerificationForm({...verificationForm, role: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Number of Students (Approximate)</label>
-            <input
-              type="number"
-              placeholder="e.g., 500"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
-          </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Number of Students (Approximate)</label>
+                  <input
+                    type="number"
+                    placeholder="e.g., 500"
+                    value={verificationForm.capacity}
+                    onChange={(e) => setVerificationForm({...verificationForm, capacity: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
 
           <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
             <h4 className="font-semibold text-gray-900 mb-3">Automated Verification Process:</h4>
@@ -3797,30 +4063,34 @@ const VirtualExchangePlatform = () => {
             </div>
           </div>
 
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2"
-            >
-              <Shield size={20} />
-              Submit for Verification
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowVerificationModal(false)}
-              className="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition"
-            >
-              Cancel
-            </button>
-          </div>
+                <div className="flex gap-4">
+                  <button
+                    type="submit"
+                    disabled={verificationSubmitting}
+                    className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Shield size={20} />
+                    {verificationSubmitting ? 'Submitting...' : 'Submit for Verification'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowVerificationModal(false)}
+                    className="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
 
-          <p className="text-xs text-gray-500 text-center">
-            By submitting, you confirm that you are an authorized representative of this organization
-          </p>
-        </form>
+                <p className="text-xs text-gray-500 text-center">
+                  By submitting, you confirm that you are an authorized representative of this organization
+                </p>
+              </form>
+            </>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Cookie Consent Component - GDPR/CCPA Compliant
   const CookieConsent = () => {
@@ -7554,18 +7824,26 @@ const VirtualExchangePlatform = () => {
       setClaimError('');
 
       try {
-        const response = await fetch('/.netlify/functions/submit-form', {
+        const response = await fetch('/api/claim-profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            type: 'claim-profile',
-            orgId: selectedOrgForRequest.id,
-            orgName: selectedOrgForRequest.name,
-            ...claimForm
+            organizationId: selectedOrgForRequest.id,
+            claimantName: claimForm.name,
+            claimantRole: claimForm.role,
+            claimantEmail: claimForm.workEmail,
+            claimantPhone: claimForm.phone,
+            additionalInfo: claimForm.message,
+            userId: user?.id
           })
         });
 
-        if (!response.ok) throw new Error('Submission failed');
+        const data = await response.json();
+
+        if (!response.ok) {
+          setClaimError(data.error || 'Failed to submit claim');
+          return;
+        }
 
         setClaimSuccess(true);
         setTimeout(() => {
@@ -7581,6 +7859,7 @@ const VirtualExchangePlatform = () => {
           });
         }, 3000);
       } catch (error) {
+        console.error('Claim profile error:', error);
         setClaimError('Failed to submit claim. Please try again.');
       } finally {
         setClaimSubmitting(false);
