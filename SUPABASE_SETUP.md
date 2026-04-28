@@ -96,11 +96,28 @@ CREATE TABLE public.connection_requests (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Verification requests table (for verified badge requests)
+CREATE TABLE public.verification_requests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID REFERENCES organizations(id) NOT NULL,
+  user_id UUID REFERENCES auth.users(id) NOT NULL,
+  official_email TEXT NOT NULL,
+  website_url TEXT NOT NULL,
+  role TEXT NOT NULL,
+  domains_match BOOLEAN DEFAULT false,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  rejection_reason TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  reviewed_at TIMESTAMP WITH TIME ZONE,
+  reviewed_by UUID REFERENCES auth.users(id)
+);
+
 -- Enable Row Level Security
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profile_claims ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.connection_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.verification_requests ENABLE ROW LEVEL SECURITY;
 
 -- Policies for profiles
 CREATE POLICY "Public profiles are viewable by everyone"
@@ -145,6 +162,15 @@ CREATE POLICY "Users can view requests they created"
 CREATE POLICY "Users can create connection requests"
   ON public.connection_requests FOR INSERT
   WITH CHECK (from_user_id = auth.uid());
+
+-- Policies for verification requests
+CREATE POLICY "Users can view their own verification requests"
+  ON public.verification_requests FOR SELECT
+  USING (user_id = auth.uid());
+
+CREATE POLICY "Users can create verification requests"
+  ON public.verification_requests FOR INSERT
+  WITH CHECK (user_id = auth.uid());
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

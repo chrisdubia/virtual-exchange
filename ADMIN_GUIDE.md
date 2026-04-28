@@ -4,9 +4,10 @@ This guide explains how to review and approve new organization submissions and p
 
 ## Overview
 
-There are two types of approvals:
+There are three types of approvals:
 1. **Profile Claims** - Existing organizations being claimed by users
 2. **New Organizations** - Brand new organizations requesting to be added
+3. **Verification Requests** - Organizations requesting verified badge
 
 ## Approval Workflow
 
@@ -15,6 +16,7 @@ There are two types of approvals:
 You'll receive emails at `hello@mapworkslearning.org` for:
 - New organization submissions
 - Profile claim requests
+- Verification badge requests
 
 Each email contains:
 - Organization/claimant details
@@ -118,6 +120,56 @@ Each email contains:
    - Claimant receives approval/rejection email
    - If approved: They can now edit the organization
    - If rejected: They can appeal
+
+### Approving Verification Requests
+
+1. **Go to Supabase Dashboard**
+   - Click **Table Editor** → **verification_requests**
+
+2. **Find Pending Verification Requests**
+   - Filter by `status = 'pending'`
+   - Review organization and requester details
+   - Check if `domains_match = true` (faster approval)
+
+3. **Verify the Request**
+   - Check organization website is legitimate
+   - Verify email domain matches website domain
+   - Look up organization online
+   - Check requester's role is appropriate
+
+4. **Approve or Reject**
+
+   **To Approve:**
+   ```sql
+   -- Update verification request
+   UPDATE verification_requests 
+   SET 
+     status = 'approved',
+     reviewed_at = NOW(),
+     reviewed_by = 'your_user_id_here'
+   WHERE id = 'verification_request_id';
+   
+   -- Update organization to verified
+   UPDATE organizations 
+   SET verified = true
+   WHERE id = 'organization_id_from_request';
+   ```
+
+   **To Reject:**
+   ```sql
+   UPDATE verification_requests 
+   SET 
+     status = 'rejected',
+     reviewed_at = NOW(),
+     reviewed_by = 'your_user_id_here',
+     rejection_reason = 'Reason for rejection'
+   WHERE id = 'verification_request_id';
+   ```
+
+5. **Email Automatically Sent**
+   - Requester receives approval/rejection email
+   - If approved: Organization gets verified badge ✓
+   - If rejected: They can resubmit with more info
 
 ## Option 2: API-Based Approval (Future Admin Dashboard)
 
