@@ -84,7 +84,7 @@ export default async function handler(req, res) {
             'Authorization': `Bearer ${RESEND_API_KEY}`
           },
           body: JSON.stringify({
-            from: 'The Virtual Exchange <hello@mapworkslearning.org>',
+            from: 'The Virtual Exchange <hello@thevirtualexchange.org>',
             to: claim.email,
             subject: approved ? 'Profile Claim Approved!' : 'Profile Claim Update',
             html: approved ? `

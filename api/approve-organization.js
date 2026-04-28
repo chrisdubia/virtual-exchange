@@ -73,7 +73,7 @@ export default async function handler(req, res) {
             'Authorization': `Bearer ${RESEND_API_KEY}`
           },
           body: JSON.stringify({
-            from: 'The Virtual Exchange <hello@mapworkslearning.org>',
+            from: 'The Virtual Exchange <hello@thevirtualexchange.org>',
             to: org.submitter_email,
             subject: approved ?
               `${org.name} Approved for The Virtual Exchange!` :
@@ -130,7 +130,7 @@ export default async function handler(req, res) {
                 <p>If you believe this decision was made in error or if you have additional information to share, please reply to this email and our team will be happy to review your submission again.</p>
 
                 <div style="margin-top: 40px; padding-top: 32px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
-                  <p>Questions? Reply to this email or contact us at hello@mapworkslearning.org</p>
+                  <p>Questions? Reply to this email or contact us at hello@thevirtualexchange.org</p>
                   <p style="margin-top: 16px;"><strong>The Virtual Exchange</strong><br>A MapWorks Learning Initiative</p>
                 </div>
               </div>

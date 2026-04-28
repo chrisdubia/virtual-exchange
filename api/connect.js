@@ -45,9 +45,9 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${RESEND_API_KEY}`
       },
       body: JSON.stringify({
-        from: 'The Virtual Exchange <hello@mapworkslearning.org>',
+        from: 'The Virtual Exchange <hello@thevirtualexchange.org>',
         to: targetEmail,
-        replyTo: 'hello@mapworkslearning.org',
+        replyTo: 'hello@thevirtualexchange.org',
         subject: `Partnership Request from ${yourOrganization}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -106,7 +106,7 @@ export default async function handler(req, res) {
               A MapWorks Learning Initiative<br>
               Breaking down borders through education</p>
               <p style="margin-top: 16px;">
-                Questions? Reply to this email or contact us at hello@mapworkslearning.org
+                Questions? Reply to this email or contact us at hello@thevirtualexchange.org
               </p>
             </div>
           </div>
@@ -128,7 +128,7 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${RESEND_API_KEY}`
       },
       body: JSON.stringify({
-        from: 'The Virtual Exchange <hello@mapworkslearning.org>',
+        from: 'The Virtual Exchange <hello@thevirtualexchange.org>',
         to: 'hello@mapworkslearning.org',
         subject: 'New Connection Request',
         html: `
