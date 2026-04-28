@@ -113,7 +113,7 @@ const VirtualExchangePlatform = () => {
       interests: ["Youth Leadership", "Global Competencies", "Project-Based Learning", "Climate Action", "Peace Building"],
       capacity: "1,000+ students annually",
       email: "hello@mapworkslearning.org",
-      phone: "+1 (555) 123-4567",
+      phone: "+1 (202) 470-3226",
       verified: true,
       website: "mapworkslearning.org",
       partnershipGoals: ["Youth-led programming", "Cross-cultural collaboration", "Action-oriented exchanges"],
