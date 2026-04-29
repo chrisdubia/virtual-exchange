@@ -7,8 +7,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const supabaseUrl = process.env.VITE_SUPABASE_URL
+    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
 
     if (!supabaseUrl || !supabaseKey) {
       return res.status(500).json({ error: 'Service not configured' })
