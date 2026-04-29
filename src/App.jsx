@@ -2833,11 +2833,11 @@ const VirtualExchangePlatform = () => {
         return;
       }
 
-      // Store session from signup
-      if (data.session) {
-        setSession(data.session);
-        setUser(data.user);
-      }
+      // Sign in client-side so the session is persisted in the browser
+      await supabase.auth.signInWithPassword({
+        email: signupForm.email,
+        password: signupForm.password
+      });
 
       // Show success and reset form
       setSignupSuccess(true);
@@ -2913,28 +2913,17 @@ const VirtualExchangePlatform = () => {
     setSigninError('');
 
     try {
-      const response = await fetch('/api/auth-login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(signinForm),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: signinForm.email,
+        password: signinForm.password
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setSigninError(data.error || 'Login failed');
+      if (error) {
+        setSigninError(error.message.includes('Invalid login credentials') ? 'Invalid email or password' : error.message);
         return;
       }
 
-      // Store session from login
-      if (data.session) {
-        setSession(data.session);
-        setUser(data.user);
-      }
-
-      // Reset form and close modal
+      // onAuthStateChange will set user/session/avatar/admin
       setSigninForm({ email: '', password: '' });
       setShowAuthModal(false);
     } catch (error) {
