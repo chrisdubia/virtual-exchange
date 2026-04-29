@@ -7870,6 +7870,7 @@ const VirtualExchangePlatform = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             organizationId: selectedOrgForRequest.id,
+            organizationName: selectedOrgForRequest.name,
             name: claimForm.name,
             role: claimForm.role,
             email: claimForm.workEmail,
