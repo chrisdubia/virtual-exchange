@@ -31,6 +31,23 @@ export default async function handler(req, res) {
 
     const supabase = createClient(supabaseUrl, supabaseKey)
 
+    // Validate org exists in DB before accepting the claim.
+    const { data: org, error: orgErr } = await supabase
+      .from('organizations')
+      .select('id, claimed')
+      .eq('id', String(organizationId))
+      .maybeSingle()
+    if (orgErr) {
+      console.error('Org lookup error:', orgErr)
+      return res.status(500).json({ error: 'Failed to verify organization' })
+    }
+    if (!org) {
+      return res.status(404).json({ error: 'Organization not found. Please contact support.' })
+    }
+    if (org.claimed) {
+      return res.status(409).json({ error: 'This organization has already been claimed.' })
+    }
+
     // Create claim request
     const { data: claim, error: claimError } = await supabase
       .from('profile_claims')
