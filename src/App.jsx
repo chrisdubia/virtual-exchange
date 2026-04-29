@@ -192,7 +192,8 @@ const VirtualExchangePlatform = () => {
           website: org.website,
           partnershipGoals: org.partnership_goals || [],
           programs: typeof org.programs === 'string' ? JSON.parse(org.programs) : org.programs,
-          claimed: org.claimed || false
+          claimed: org.claimed || false,
+          claimed_by: org.claimed_by || null
         }));
 
         setOrganizationsFromDB(transformed);
@@ -8633,6 +8634,7 @@ const VirtualExchangePlatform = () => {
     });
 
     const linkedOrg = organizationsFromDB.find(o =>
+      (user?.id && o.claimed_by === user.id) ||
       o.name?.toLowerCase() === (user?.user_metadata?.organization || '').toLowerCase()
     );
 
