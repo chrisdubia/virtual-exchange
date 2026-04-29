@@ -48,8 +48,11 @@ export default async function handler(req, res) {
       .single()
 
     if (claimError) {
-      console.error('Error creating claim:', claimError)
-      return res.status(500).json({ error: 'Failed to submit claim request' })
+      console.error('Error creating claim — message:', claimError.message)
+      console.error('Error creating claim — code:', claimError.code)
+      console.error('Error creating claim — details:', claimError.details)
+      console.error('Error creating claim — hint:', claimError.hint)
+      return res.status(500).json({ error: 'Failed to submit claim request', detail: claimError.message, code: claimError.code, hint: claimError.hint })
     }
 
     // Send notification email to admin
