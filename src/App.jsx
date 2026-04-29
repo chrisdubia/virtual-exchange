@@ -8120,7 +8120,7 @@ const VirtualExchangePlatform = () => {
     };
 
     React.useEffect(() => {
-      fetch(`/api/admin-get-data?userId=${user.id}`)
+      fetch(`/api/admin?userId=${user.id}`)
         .then(r => r.json())
         .then(d => { setClaims(d.claims || []); setPendingOrgs(d.pendingOrgs || []); })
         .finally(() => setLoading(false));
@@ -8128,10 +8128,10 @@ const VirtualExchangePlatform = () => {
 
     const reviewClaim = async (claimId, action) => {
       setProcessing(claimId + action);
-      const res = await fetch('/api/admin-review-claim', {
+      const res = await fetch('/api/admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adminUserId: user.id, claimId, action, rejectionReason: rejectReason })
+        body: JSON.stringify({ adminUserId: user.id, action: 'review-claim', claimId, decision: action, rejectionReason: rejectReason })
       });
       if (res.ok) {
         setClaims(prev => prev.filter(c => c.id !== claimId));
@@ -8146,10 +8146,10 @@ const VirtualExchangePlatform = () => {
 
     const reviewOrg = async (orgId, action) => {
       setProcessing(orgId + action);
-      const res = await fetch('/api/admin-review-org', {
+      const res = await fetch('/api/admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adminUserId: user.id, orgId, action, rejectionReason: rejectReason })
+        body: JSON.stringify({ adminUserId: user.id, action: 'review-org', orgId, decision: action, rejectionReason: rejectReason })
       });
       if (res.ok) {
         setPendingOrgs(prev => prev.filter(o => o.id !== orgId));
