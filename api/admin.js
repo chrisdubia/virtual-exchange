@@ -60,9 +60,16 @@ export default async function handler(req, res) {
     }).eq('id', claimId)
 
     if (decision === 'approve') {
-      await supabase.from('organizations').update({
+      const { data: updated, error: updateErr } = await supabase.from('organizations').update({
         claimed: true, claimed_by: claim.user_id, claimed_at: new Date().toISOString()
-      }).eq('id', claim.organization_id)
+      }).eq('id', claim.organization_id).select()
+      if (updateErr) {
+        console.error('Org update error:', updateErr)
+        return res.status(500).json({ error: 'Failed to mark organization as claimed', detail: updateErr.message })
+      }
+      if (!updated || updated.length === 0) {
+        return res.status(404).json({ error: `Organization ${claim.organization_id} not found in database — cannot mark as claimed.` })
+      }
     }
 
     const orgName = claim.org_name || 'your organization'
