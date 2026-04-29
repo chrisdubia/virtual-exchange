@@ -2672,10 +2672,22 @@ const VirtualExchangePlatform = () => {
     }
   ];
 
-  // Use database organizations if loaded, otherwise fall back to hardcoded
-  const organizations = (!loadingOrganizations && organizationsFromDB.length > 0)
-    ? organizationsFromDB
-    : hardcodedOrganizations;
+  // Merge DB orgs with hardcoded — DB rows override hardcoded by name match
+  // (this lets us track claim/verification state in DB without losing hardcoded richness)
+  const organizations = (() => {
+    if (loadingOrganizations) return hardcodedOrganizations;
+    if (organizationsFromDB.length === 0) return hardcodedOrganizations;
+    const dbByName = new Map(organizationsFromDB.map(o => [o.name?.toLowerCase(), o]));
+    const merged = hardcodedOrganizations.map(h => {
+      const db = dbByName.get(h.name?.toLowerCase());
+      if (db) {
+        dbByName.delete(h.name?.toLowerCase());
+        return { ...h, claimed: db.claimed, claimed_by: db.claimed_by, verified: h.verified || db.verified };
+      }
+      return h;
+    });
+    return [...merged, ...Array.from(dbByName.values())];
+  })();
 
   // Enhanced AI Search Handler with Natural Language Processing
   const handleAISearch = () => {
@@ -8637,7 +8649,7 @@ const VirtualExchangePlatform = () => {
       exchange_interests: user?.user_metadata?.exchange_interests || [],
     });
 
-    const linkedOrg = organizationsFromDB.find(o =>
+    const linkedOrg = organizations.find(o =>
       (user?.id && o.claimed_by === user.id) ||
       o.name?.toLowerCase() === (user?.user_metadata?.organization || '').toLowerCase()
     );
