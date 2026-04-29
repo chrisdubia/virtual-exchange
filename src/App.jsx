@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Globe, Users, School, MessageSquare, Search, Filter, CheckCircle, X, Heart, Building, GraduationCap, BookOpen, Sparkles, Shield, Mail, Lock, User, ChevronDown, Download, Upload, FileText, Tag, Menu } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import imageCompression from 'browser-image-compression';
 
 const VirtualExchangePlatform = () => {
   const [activeTab, setActiveTab] = useState('home');
@@ -2867,11 +2868,15 @@ const VirtualExchangePlatform = () => {
     if (!file || !user) return
     setAvatarUploading(true)
     try {
-      const ext = file.name.split('.').pop()
-      const path = `${user.id}/avatar.${ext}`
+      const compressed = await imageCompression(file, {
+        maxSizeMB: 0.2,
+        maxWidthOrHeight: 800,
+        useWebWorker: true
+      })
+      const path = `${user.id}/avatar.webp`
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(path, file, { upsert: true })
+        .upload(path, compressed, { upsert: true, contentType: 'image/webp' })
       if (uploadError) throw uploadError
       const { data } = supabase.storage.from('avatars').getPublicUrl(path)
       const url = data.publicUrl
