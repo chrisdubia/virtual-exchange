@@ -4519,7 +4519,7 @@ const VirtualExchangePlatform = () => {
           <div className="flex gap-4 justify-center">
             <button
               type="button"
-              onClick={() => setShowAuthModal(true)}
+              onClick={() => { setAuthMode('signin'); setShowAuthModal(true); }}
               className="bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition shadow-lg"
             >
               Get Started
@@ -9139,7 +9139,7 @@ const VirtualExchangePlatform = () => {
               ) : (
                 <button
                   type="button"
-                  onClick={() => setShowAuthModal(true)}
+                  onClick={() => { setAuthMode('signin'); setShowAuthModal(true); }}
                   className="px-6 py-2 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition"
                 >
                   Sign In
@@ -9307,7 +9307,7 @@ const VirtualExchangePlatform = () => {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => { setShowAuthModal(true); setShowMobileMenu(false); }}
+                      onClick={() => { setAuthMode('signin'); setShowAuthModal(true); setShowMobileMenu(false); }}
                       className="w-full px-6 py-3 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition"
                     >
                       Sign In
