@@ -69,6 +69,7 @@ const VirtualExchangePlatform = () => {
   const [session, setSession] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [organizationsFromDB, setOrganizationsFromDB] = useState([]);
   const [loadingOrganizations, setLoadingOrganizations] = useState(true);
 
@@ -118,6 +119,12 @@ const VirtualExchangePlatform = () => {
     );
   };
 
+  const checkAdminStatus = async (userId) => {
+    if (!userId) { setIsAdmin(false); return; }
+    const { data } = await supabase.from('profiles').select('is_admin').eq('id', userId).single();
+    setIsAdmin(!!data?.is_admin);
+  };
+
   // Load user session on mount
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -125,6 +132,7 @@ const VirtualExchangePlatform = () => {
       const u = session?.user ?? null;
       setUser(u);
       setAvatarUrl(u?.user_metadata?.avatar_url ?? null);
+      checkAdminStatus(u?.id ?? null);
     });
 
     const {
@@ -134,6 +142,7 @@ const VirtualExchangePlatform = () => {
       const u = session?.user ?? null;
       setUser(u);
       setAvatarUrl(u?.user_metadata?.avatar_url ?? null);
+      checkAdminStatus(u?.id ?? null);
     });
 
     return () => subscription.unsubscribe();
@@ -2893,6 +2902,7 @@ const VirtualExchangePlatform = () => {
     await supabase.auth.signOut()
     setUser(null)
     setSession(null)
+    setIsAdmin(false)
     setShowUserMenu(false)
   }
 
@@ -8093,6 +8103,236 @@ const VirtualExchangePlatform = () => {
     );
   };
 
+  // ── ADMIN PANEL ──────────────────────────────────────────────────────────
+  const AdminPanel = () => {
+    const [adminTab, setAdminTab] = React.useState('claims');
+    const [claims, setClaims] = React.useState([]);
+    const [pendingOrgs, setPendingOrgs] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [rejectingId, setRejectingId] = React.useState(null);
+    const [rejectReason, setRejectReason] = React.useState('');
+    const [processing, setProcessing] = React.useState(null);
+    const [toast, setToast] = React.useState(null);
+
+    const showToast = (msg, type = 'success') => {
+      setToast({ msg, type });
+      setTimeout(() => setToast(null), 3500);
+    };
+
+    React.useEffect(() => {
+      fetch(`/api/admin-get-data?userId=${user.id}`)
+        .then(r => r.json())
+        .then(d => { setClaims(d.claims || []); setPendingOrgs(d.pendingOrgs || []); })
+        .finally(() => setLoading(false));
+    }, []);
+
+    const reviewClaim = async (claimId, action) => {
+      setProcessing(claimId + action);
+      const res = await fetch('/api/admin-review-claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminUserId: user.id, claimId, action, rejectionReason: rejectReason })
+      });
+      if (res.ok) {
+        setClaims(prev => prev.filter(c => c.id !== claimId));
+        showToast(action === 'approve' ? 'Claim approved — org marked as claimed.' : 'Claim rejected.');
+      } else {
+        showToast('Something went wrong.', 'error');
+      }
+      setRejectingId(null);
+      setRejectReason('');
+      setProcessing(null);
+    };
+
+    const reviewOrg = async (orgId, action) => {
+      setProcessing(orgId + action);
+      const res = await fetch('/api/admin-review-org', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminUserId: user.id, orgId, action, rejectionReason: rejectReason })
+      });
+      if (res.ok) {
+        setPendingOrgs(prev => prev.filter(o => o.id !== orgId));
+        showToast(action === 'approve' ? 'Organization approved and now live.' : 'Organization rejected.');
+      } else {
+        showToast('Something went wrong.', 'error');
+      }
+      setRejectingId(null);
+      setRejectReason('');
+      setProcessing(null);
+    };
+
+    const fmt = (iso) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-800">
+        {/* Header */}
+        <div className="relative overflow-hidden px-6 py-16 text-center">
+          <div className="absolute inset-0 opacity-20" style={{ background: 'radial-gradient(ellipse at 60% 0%, #7c3aed 0%, transparent 70%)' }} />
+          <div className="relative">
+            <div className="inline-flex items-center gap-2 bg-purple-500/20 border border-purple-400/30 rounded-full px-4 py-1.5 text-purple-300 text-sm font-medium mb-4">
+              <Shield size={14} /> Site Admin
+            </div>
+            <h1 className="text-4xl font-bold text-white mb-2">Admin Panel</h1>
+            <p className="text-slate-400">Review and approve pending requests</p>
+          </div>
+        </div>
+
+        {/* Toast */}
+        {toast && (
+          <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-medium text-white transition ${toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'}`}>
+            {toast.msg}
+          </div>
+        )}
+
+        <div className="max-w-5xl mx-auto px-6 pb-20">
+          {/* Tabs */}
+          <div className="flex gap-1 bg-white/5 rounded-xl p-1 mb-8 w-fit">
+            <button
+              type="button"
+              onClick={() => setAdminTab('claims')}
+              className={`px-5 py-2 rounded-lg text-sm font-medium transition ${adminTab === 'claims' ? 'bg-white text-slate-900' : 'text-slate-400 hover:text-white'}`}
+            >
+              Profile Claims {claims.length > 0 && <span className="ml-1.5 bg-purple-600 text-white text-xs rounded-full px-1.5 py-0.5">{claims.length}</span>}
+            </button>
+            <button
+              type="button"
+              onClick={() => setAdminTab('orgs')}
+              className={`px-5 py-2 rounded-lg text-sm font-medium transition ${adminTab === 'orgs' ? 'bg-white text-slate-900' : 'text-slate-400 hover:text-white'}`}
+            >
+              New Organizations {pendingOrgs.length > 0 && <span className="ml-1.5 bg-purple-600 text-white text-xs rounded-full px-1.5 py-0.5">{pendingOrgs.length}</span>}
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-20 text-slate-400">
+              <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mr-3" />
+              Loading...
+            </div>
+          ) : adminTab === 'claims' ? (
+            <div className="space-y-4">
+              {claims.length === 0 ? (
+                <div className="text-center py-20 text-slate-500">
+                  <CheckCircle size={40} className="mx-auto mb-3 text-emerald-600/50" />
+                  <p>No pending claim requests</p>
+                </div>
+              ) : claims.map(claim => (
+                <div key={claim.id} className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Building size={16} className="text-purple-400" />
+                        <span className="font-semibold text-white">{claim.organizations?.name || claim.organization_id}</span>
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-x-8 gap-y-1 text-sm text-slate-400 mt-2">
+                        <span><span className="text-slate-500">Name:</span> {claim.name}</span>
+                        <span><span className="text-slate-500">Email:</span> {claim.email}</span>
+                        <span><span className="text-slate-500">Role:</span> {claim.role}</span>
+                        <span><span className="text-slate-500">Submitted:</span> {fmt(claim.created_at)}</span>
+                      </div>
+                      {claim.verification_doc && (
+                        <p className="text-sm text-slate-400 mt-2"><span className="text-slate-500">Verification:</span> {claim.verification_doc}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      {rejectingId === claim.id ? (
+                        <div className="flex flex-col gap-2 min-w-[220px]">
+                          <textarea
+                            value={rejectReason}
+                            onChange={e => setRejectReason(e.target.value)}
+                            placeholder="Rejection reason (optional)"
+                            rows={2}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm text-white placeholder-slate-500 resize-none focus:outline-none focus:border-purple-400"
+                          />
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => reviewClaim(claim.id, 'reject')} disabled={!!processing} className="flex-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-50">
+                              {processing === claim.id + 'reject' ? '...' : 'Confirm Reject'}
+                            </button>
+                            <button type="button" onClick={() => { setRejectingId(null); setRejectReason(''); }} className="px-3 py-1.5 bg-white/10 text-slate-300 rounded-lg text-sm transition hover:bg-white/20">
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <button type="button" onClick={() => reviewClaim(claim.id, 'approve')} disabled={!!processing} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-50">
+                            {processing === claim.id + 'approve' ? '...' : 'Approve'}
+                          </button>
+                          <button type="button" onClick={() => setRejectingId(claim.id)} disabled={!!processing} className="px-4 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/30 rounded-lg text-sm font-medium transition disabled:opacity-50">
+                            Reject
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {pendingOrgs.length === 0 ? (
+                <div className="text-center py-20 text-slate-500">
+                  <CheckCircle size={40} className="mx-auto mb-3 text-emerald-600/50" />
+                  <p>No pending organization submissions</p>
+                </div>
+              ) : pendingOrgs.map(org => (
+                <div key={org.id} className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Globe size={16} className="text-purple-400" />
+                        <span className="font-semibold text-white">{org.name}</span>
+                        <span className="text-xs bg-white/10 text-slate-400 px-2 py-0.5 rounded-full">{org.type}</span>
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-x-8 gap-y-1 text-sm text-slate-400 mt-2">
+                        {org.country && <span><span className="text-slate-500">Country:</span> {org.country}</span>}
+                        {org.submitter_name && <span><span className="text-slate-500">Submitted by:</span> {org.submitter_name}</span>}
+                        {org.submitter_email && <span><span className="text-slate-500">Email:</span> {org.submitter_email}</span>}
+                        {org.submitter_role && <span><span className="text-slate-500">Role:</span> {org.submitter_role}</span>}
+                        <span><span className="text-slate-500">Date:</span> {fmt(org.created_at)}</span>
+                      </div>
+                      {org.description && <p className="text-sm text-slate-400 mt-2 line-clamp-2">{org.description}</p>}
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      {rejectingId === org.id ? (
+                        <div className="flex flex-col gap-2 min-w-[220px]">
+                          <textarea
+                            value={rejectReason}
+                            onChange={e => setRejectReason(e.target.value)}
+                            placeholder="Rejection reason (optional)"
+                            rows={2}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm text-white placeholder-slate-500 resize-none focus:outline-none focus:border-purple-400"
+                          />
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => reviewOrg(org.id, 'reject')} disabled={!!processing} className="flex-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-50">
+                              {processing === org.id + 'reject' ? '...' : 'Confirm Reject'}
+                            </button>
+                            <button type="button" onClick={() => { setRejectingId(null); setRejectReason(''); }} className="px-3 py-1.5 bg-white/10 text-slate-300 rounded-lg text-sm transition hover:bg-white/20">
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <button type="button" onClick={() => reviewOrg(org.id, 'approve')} disabled={!!processing} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-50">
+                            {processing === org.id + 'approve' ? '...' : 'Approve'}
+                          </button>
+                          <button type="button" onClick={() => setRejectingId(org.id)} disabled={!!processing} className="px-4 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/30 rounded-lg text-sm font-medium transition disabled:opacity-50">
+                            Reject
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   // ── MY PROFILE PAGE ──────────────────────────────────────────────────────
   const MyProfilePage = () => {
     const [editMode, setEditMode] = React.useState(false);
@@ -8586,6 +8826,15 @@ const VirtualExchangePlatform = () => {
                             My Organization
                           </button>
                         )}
+                        {isAdmin && (
+                          <>
+                            <div className="border-t border-gray-100 my-1" />
+                            <button type="button" onClick={() => { setActiveTab('admin'); setShowUserMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-purple-700 hover:bg-purple-50 transition flex items-center gap-2">
+                              <Shield size={15} />
+                              Admin Panel
+                            </button>
+                          </>
+                        )}
                         <div className="border-t border-gray-100 my-1" />
                         <button type="button" onClick={handleSignOut} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition flex items-center gap-2">
                           <Lock size={15} />
@@ -8780,8 +9029,11 @@ const VirtualExchangePlatform = () => {
       {/* Profile page — full width, outside main container */}
       {activeTab === 'my-profile' && user && <MyProfilePage />}
 
+      {/* Admin panel — full width */}
+      {activeTab === 'admin' && user && isAdmin && <AdminPanel />}
+
       {/* Main Content */}
-      {activeTab !== 'my-profile' && (
+      {activeTab !== 'my-profile' && activeTab !== 'admin' && (
         <main className="max-w-7xl mx-auto px-6 py-12">
           {activeTab === 'home' && <HomePage />}
           {activeTab === 'browse' && <BrowsePage />}
