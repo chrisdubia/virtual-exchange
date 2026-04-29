@@ -3824,17 +3824,19 @@ const VirtualExchangePlatform = () => {
                 />
               </button>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedOrgForRequest(org);
-                setShowClaimProfileModal(true);
-                setShowProfileModal(false);
-              }}
-              className="w-full py-3 border border-yellow-400 bg-yellow-50 text-yellow-800 rounded-lg font-semibold hover:bg-yellow-100 transition"
-            >
-              Claim this Profile
-            </button>
+            {!org.claimed && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedOrgForRequest(org);
+                  setShowClaimProfileModal(true);
+                  setShowProfileModal(false);
+                }}
+                className="w-full py-3 border border-yellow-400 bg-yellow-50 text-yellow-800 rounded-lg font-semibold hover:bg-yellow-100 transition"
+              >
+                Claim this Profile
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -4483,16 +4485,18 @@ const VirtualExchangePlatform = () => {
             />
           </button>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            setSelectedOrgForRequest(org);
-            setShowClaimProfileModal(true);
-          }}
-          className="w-full py-2 border border-yellow-400 bg-yellow-50 text-yellow-800 rounded-lg font-semibold hover:bg-yellow-100 transition text-sm"
-        >
-          Claim this Profile
-        </button>
+        {!org.claimed && (
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedOrgForRequest(org);
+              setShowClaimProfileModal(true);
+            }}
+            className="w-full py-2 border border-yellow-400 bg-yellow-50 text-yellow-800 rounded-lg font-semibold hover:bg-yellow-100 transition text-sm"
+          >
+            Claim this Profile
+          </button>
+        )}
       </div>
     </div>
     );
