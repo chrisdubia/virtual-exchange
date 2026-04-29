@@ -66,6 +66,8 @@ const VirtualExchangePlatform = () => {
   // Authentication & Database State
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [organizationsFromDB, setOrganizationsFromDB] = useState([]);
   const [loadingOrganizations, setLoadingOrganizations] = useState(true);
 
@@ -119,14 +121,18 @@ const VirtualExchangePlatform = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      const u = session?.user ?? null;
+      setUser(u);
+      setAvatarUrl(u?.user_metadata?.avatar_url ?? null);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      const u = session?.user ?? null;
+      setUser(u);
+      setAvatarUrl(u?.user_metadata?.avatar_url ?? null);
     });
 
     return () => subscription.unsubscribe();
@@ -2855,6 +2861,28 @@ const VirtualExchangePlatform = () => {
       setSignupSubmitting(false);
     }
   };
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !user) return
+    setAvatarUploading(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `${user.id}/avatar.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true })
+      if (uploadError) throw uploadError
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+      const url = data.publicUrl
+      await supabase.auth.updateUser({ data: { avatar_url: url } })
+      setAvatarUrl(url)
+    } catch (err) {
+      console.error('Avatar upload failed:', err)
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -8203,8 +8231,11 @@ const VirtualExchangePlatform = () => {
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition"
                   >
-                    <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-semibold">
-                      {(user.user_metadata?.first_name?.[0] || user.email?.[0] || 'U').toUpperCase()}
+                    <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-semibold overflow-hidden">
+                      {avatarUrl
+                        ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                        : (user.user_metadata?.first_name?.[0] || user.email?.[0] || 'U').toUpperCase()
+                      }
                     </div>
                     <span className="text-sm font-medium text-gray-700">
                       {user.user_metadata?.first_name || user.email?.split('@')[0]}
@@ -8215,9 +8246,27 @@ const VirtualExchangePlatform = () => {
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
                       <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                        <div className="px-4 py-2 border-b border-gray-100">
-                          <p className="text-sm font-medium text-gray-800">{user.user_metadata?.first_name} {user.user_metadata?.last_name}</p>
-                          <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                        <div className="px-4 py-3 border-b border-gray-100">
+                          <label className="flex items-center gap-3 cursor-pointer group" title="Click photo to change">
+                            <div className="relative w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg font-semibold overflow-hidden flex-shrink-0">
+                              {avatarUrl
+                                ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                                : (user.user_metadata?.first_name?.[0] || user.email?.[0] || 'U').toUpperCase()
+                              }
+                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition flex items-center justify-center">
+                                {avatarUploading
+                                  ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                  : <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition">📷</span>
+                                }
+                              </div>
+                            </div>
+                            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                            <div>
+                              <p className="text-sm font-medium text-gray-800">{user.user_metadata?.first_name} {user.user_metadata?.last_name}</p>
+                              <p className="text-xs text-gray-500 truncate max-w-[120px]">{user.email}</p>
+                              <p className="text-xs text-blue-500 group-hover:underline">Change photo</p>
+                            </div>
+                          </label>
                         </div>
                         <button type="button" className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
                           <User size={15} />
@@ -8378,8 +8427,11 @@ const VirtualExchangePlatform = () => {
                   {user ? (
                     <div className="space-y-1">
                       <div className="flex items-center gap-3 px-4 py-3">
-                        <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-semibold">
-                          {(user.user_metadata?.first_name?.[0] || user.email?.[0] || 'U').toUpperCase()}
+                        <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-semibold overflow-hidden">
+                          {avatarUrl
+                            ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                            : (user.user_metadata?.first_name?.[0] || user.email?.[0] || 'U').toUpperCase()
+                          }
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-800">{user.user_metadata?.first_name} {user.user_metadata?.last_name}</p>
