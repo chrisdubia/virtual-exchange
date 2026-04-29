@@ -8449,15 +8449,15 @@ const VirtualExchangePlatform = () => {
       </footer>
 
       {/* Modals */}
-      {showAuthModal && <AuthModal />}
-      {showConnectModal && selectedOrg && <ConnectModal org={selectedOrg} />}
-      {showProfileModal && selectedOrg && <OrganizationProfileModal org={selectedOrg} />}
-      {showVerificationModal && <VerificationModal />}
-      {showLessonPlanModal && selectedLessonPlan && <LessonPlanModal />}
-      {showResourceSubmitModal && <ResourceSubmitModal />}
-      {showIntroductionRequestModal && selectedOrgForRequest && <IntroductionRequestModal />}
-      {showFavoritesModal && <FavoritesModal />}
-      {showClaimProfileModal && selectedOrgForRequest && <ClaimProfileModal />}
+      {showAuthModal && AuthModal()}
+      {showConnectModal && selectedOrg && ConnectModal({ org: selectedOrg })}
+      {showProfileModal && selectedOrg && OrganizationProfileModal({ org: selectedOrg })}
+      {showVerificationModal && VerificationModal()}
+      {showLessonPlanModal && selectedLessonPlan && LessonPlanModal()}
+      {showResourceSubmitModal && ResourceSubmitModal()}
+      {showIntroductionRequestModal && selectedOrgForRequest && IntroductionRequestModal()}
+      {showFavoritesModal && FavoritesModal()}
+      {showClaimProfileModal && selectedOrgForRequest && ClaimProfileModal()}
 
       {/* Cookie Consent */}
       <CookieConsent />
