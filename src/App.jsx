@@ -8088,6 +8088,309 @@ const VirtualExchangePlatform = () => {
     );
   };
 
+  // ── MY PROFILE PAGE ──────────────────────────────────────────────────────
+  const MyProfilePage = () => {
+    const [editMode, setEditMode] = React.useState(false);
+    const [saving, setSaving] = React.useState(false);
+    const [form, setForm] = React.useState({
+      first_name: user?.user_metadata?.first_name || '',
+      last_name: user?.user_metadata?.last_name || '',
+      role: user?.user_metadata?.role || '',
+      bio: user?.user_metadata?.bio || '',
+      location: user?.user_metadata?.location || '',
+      languages: user?.user_metadata?.languages || [],
+      grade_levels: user?.user_metadata?.grade_levels || [],
+      subjects: user?.user_metadata?.subjects || [],
+      exchange_interests: user?.user_metadata?.exchange_interests || [],
+    });
+
+    const linkedOrg = organizationsFromDB.find(o =>
+      o.name?.toLowerCase() === (user?.user_metadata?.organization || '').toLowerCase()
+    );
+
+    const gradeOptions = ['K–2','3–5','6–8','9–12','Higher Ed','Adult'];
+    const subjectOptions = ['English/Language Arts','Social Studies','History','Science','Math','Art','World Languages','PE/Health','Technology','Other'];
+    const interestOptions = ['Pen-pal / Letter exchange','Live video exchange','Joint project','Cultural sharing','Debate / Discussion','Co-teaching','Research collaboration','Student mentoring'];
+
+    const toggleArrayItem = (arr, item) =>
+      arr.includes(item) ? arr.filter(x => x !== item) : [...arr, item];
+
+    const handleSave = async () => {
+      setSaving(true);
+      try {
+        await supabase.auth.updateUser({ data: { ...user.user_metadata, ...form } });
+        setUser(prev => ({ ...prev, user_metadata: { ...prev.user_metadata, ...form } }));
+        setEditMode(false);
+      } catch (err) {
+        console.error('Profile save error:', err);
+      } finally {
+        setSaving(false);
+      }
+    };
+
+    const initials = ((form.first_name?.[0] || '') + (form.last_name?.[0] || '')).toUpperCase() || (user?.email?.[0] || 'U').toUpperCase();
+
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Hero */}
+        <div className="relative bg-gradient-to-br from-slate-900 via-blue-950 to-slate-800 overflow-hidden">
+          <div className="absolute inset-0 opacity-10"
+            style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #3b82f6 0%, transparent 50%), radial-gradient(circle at 80% 20%, #6366f1 0%, transparent 40%)' }}
+          />
+          <div className="relative max-w-5xl mx-auto px-6 py-16">
+            <div className="flex flex-col md:flex-row items-start md:items-end gap-8">
+              {/* Avatar with upload */}
+              <div className="relative flex-shrink-0">
+                <label className="cursor-pointer group block">
+                  <div className="w-32 h-32 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-4xl font-bold overflow-hidden ring-4 ring-white/20 shadow-2xl">
+                    {avatarUrl
+                      ? <img src={avatarUrl} alt="profile" className="w-full h-full object-cover" />
+                      : initials
+                    }
+                    <div className="absolute inset-0 rounded-2xl bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
+                      {avatarUploading
+                        ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        : <div className="opacity-0 group-hover:opacity-100 transition text-white text-center">
+                            <div className="text-2xl">📷</div>
+                            <div className="text-xs mt-1">Change</div>
+                          </div>
+                      }
+                    </div>
+                  </div>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                </label>
+              </div>
+
+              {/* Name / role / org */}
+              <div className="flex-1">
+                {editMode ? (
+                  <div className="flex gap-3 mb-2">
+                    <input value={form.first_name} onChange={e => setForm(f => ({...f, first_name: e.target.value}))}
+                      className="bg-white/10 text-white placeholder-white/50 border border-white/20 rounded-lg px-3 py-2 text-2xl font-light w-40 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      placeholder="First" />
+                    <input value={form.last_name} onChange={e => setForm(f => ({...f, last_name: e.target.value}))}
+                      className="bg-white/10 text-white placeholder-white/50 border border-white/20 rounded-lg px-3 py-2 text-2xl font-light w-40 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      placeholder="Last" />
+                  </div>
+                ) : (
+                  <h1 className="text-4xl font-light text-white mb-1">{form.first_name} {form.last_name}</h1>
+                )}
+                {editMode ? (
+                  <input value={form.role} onChange={e => setForm(f => ({...f, role: e.target.value}))}
+                    className="bg-white/10 text-white placeholder-white/50 border border-white/20 rounded-lg px-3 py-1.5 text-sm w-64 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    placeholder="Your role (e.g. 8th Grade Social Studies Teacher)" />
+                ) : (
+                  <p className="text-blue-300 text-lg mb-3">{form.role || <span className="opacity-50 italic">Add your role</span>}</p>
+                )}
+                <div className="flex flex-wrap gap-3 items-center">
+                  {linkedOrg && (
+                    <button type="button" onClick={() => { setSelectedOrg(linkedOrg); setShowProfileModal(true); }}
+                      className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-full text-sm transition border border-white/20">
+                      <Building size={14} />
+                      {linkedOrg.name}
+                      {linkedOrg.verified && <CheckCircle size={12} className="text-blue-300" />}
+                    </button>
+                  )}
+                  {editMode ? (
+                    <input value={form.location} onChange={e => setForm(f => ({...f, location: e.target.value}))}
+                      className="bg-white/10 text-white placeholder-white/50 border border-white/20 rounded-lg px-3 py-1.5 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      placeholder="City, Country" />
+                  ) : form.location ? (
+                    <span className="flex items-center gap-1.5 text-white/70 text-sm"><Globe size={13} />{form.location}</span>
+                  ) : null}
+                  <span className="text-white/40 text-sm">Member since {new Date(user?.created_at || Date.now()).getFullYear()}</span>
+                </div>
+              </div>
+
+              {/* Edit / Save buttons */}
+              <div className="flex gap-2">
+                {editMode ? (
+                  <>
+                    <button type="button" onClick={() => setEditMode(false)}
+                      className="px-4 py-2 rounded-lg border border-white/30 text-white/80 text-sm hover:bg-white/10 transition">
+                      Cancel
+                    </button>
+                    <button type="button" onClick={handleSave} disabled={saving}
+                      className="px-5 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-white text-sm font-medium transition disabled:opacity-50">
+                      {saving ? 'Saving…' : 'Save Profile'}
+                    </button>
+                  </>
+                ) : (
+                  <button type="button" onClick={() => setEditMode(true)}
+                    className="px-5 py-2 rounded-lg border border-white/30 text-white text-sm hover:bg-white/10 transition">
+                    Edit Profile
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="max-w-5xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+
+          {/* Left column — About + Languages */}
+          <div className="md:col-span-2 space-y-8">
+            {/* Bio */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-3">About</h2>
+              {editMode ? (
+                <textarea value={form.bio} onChange={e => setForm(f => ({...f, bio: e.target.value}))}
+                  rows={4} placeholder="Tell the community about yourself, your classroom, and why you're interested in virtual exchange…"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
+              ) : (
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {form.bio || <span className="text-gray-400 italic">Click "Edit Profile" to add a bio.</span>}
+                </p>
+              )}
+            </div>
+
+            {/* Grade Levels */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-3">Grade Levels</h2>
+              {editMode ? (
+                <div className="flex flex-wrap gap-2">
+                  {gradeOptions.map(g => (
+                    <button key={g} type="button"
+                      onClick={() => setForm(f => ({...f, grade_levels: toggleArrayItem(f.grade_levels, g)}))}
+                      className={`px-3 py-1.5 rounded-full text-sm border transition ${form.grade_levels.includes(g) ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-200 text-gray-600 hover:border-blue-300'}`}>
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              ) : form.grade_levels.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {form.grade_levels.map(g => <span key={g} className="px-3 py-1.5 rounded-full text-sm bg-blue-50 text-blue-700 border border-blue-100">{g}</span>)}
+                </div>
+              ) : (
+                <p className="text-gray-400 italic text-sm">No grade levels added yet.</p>
+              )}
+            </div>
+
+            {/* Subjects */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-3">Subjects</h2>
+              {editMode ? (
+                <div className="flex flex-wrap gap-2">
+                  {subjectOptions.map(s => (
+                    <button key={s} type="button"
+                      onClick={() => setForm(f => ({...f, subjects: toggleArrayItem(f.subjects, s)}))}
+                      className={`px-3 py-1.5 rounded-full text-sm border transition ${form.subjects.includes(s) ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-gray-200 text-gray-600 hover:border-indigo-300'}`}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              ) : form.subjects.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {form.subjects.map(s => <span key={s} className="px-3 py-1.5 rounded-full text-sm bg-indigo-50 text-indigo-700 border border-indigo-100">{s}</span>)}
+                </div>
+              ) : (
+                <p className="text-gray-400 italic text-sm">No subjects added yet.</p>
+              )}
+            </div>
+
+            {/* Exchange Interests */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">Exchange Interests</h2>
+              <p className="text-xs text-gray-400 mb-3">What kinds of exchanges are you looking for?</p>
+              {editMode ? (
+                <div className="flex flex-wrap gap-2">
+                  {interestOptions.map(i => (
+                    <button key={i} type="button"
+                      onClick={() => setForm(f => ({...f, exchange_interests: toggleArrayItem(f.exchange_interests, i)}))}
+                      className={`px-3 py-1.5 rounded-full text-sm border transition ${form.exchange_interests.includes(i) ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-gray-200 text-gray-600 hover:border-emerald-300'}`}>
+                      {i}
+                    </button>
+                  ))}
+                </div>
+              ) : form.exchange_interests.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {form.exchange_interests.map(i => <span key={i} className="px-3 py-1.5 rounded-full text-sm bg-emerald-50 text-emerald-700 border border-emerald-100">{i}</span>)}
+                </div>
+              ) : (
+                <p className="text-gray-400 italic text-sm">No exchange interests added yet.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Right column — Account + Org card */}
+          <div className="space-y-6">
+            {/* Account info */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Account</h2>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Mail size={15} className="text-gray-400" />
+                  <span className="truncate">{user?.email}</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-500">
+                  <Shield size={15} className="text-gray-400" />
+                  <span>Member since {new Date(user?.created_at || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Languages */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-3">Languages</h2>
+              {editMode ? (
+                <input
+                  value={form.languages.join(', ')}
+                  onChange={e => setForm(f => ({...f, languages: e.target.value.split(',').map(l => l.trim()).filter(Boolean)}))}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  placeholder="English, Spanish, French…" />
+              ) : form.languages.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {form.languages.map(l => <span key={l} className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-600">{l}</span>)}
+                </div>
+              ) : (
+                <p className="text-gray-400 italic text-sm">No languages added yet.</p>
+              )}
+            </div>
+
+            {/* Linked org card */}
+            {linkedOrg && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100">
+                  <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">My Organization</h2>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <Building size={18} className="text-blue-600" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-semibold text-gray-800 text-sm">{linkedOrg.name}</h3>
+                        {linkedOrg.verified && <CheckCircle size={13} className="text-blue-500" />}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">{linkedOrg.type} · {linkedOrg.country}</p>
+                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">{linkedOrg.description}</p>
+                    </div>
+                  </div>
+                  <button type="button"
+                    onClick={() => { setSelectedOrg(linkedOrg); setShowProfileModal(true); }}
+                    className="mt-4 w-full px-4 py-2 rounded-lg border border-blue-200 text-blue-600 text-sm hover:bg-blue-50 transition">
+                    View Full Profile →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {!linkedOrg && (
+              <div className="bg-white rounded-2xl shadow-sm border border-dashed border-gray-200 p-6 text-center">
+                <Building size={28} className="text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-500 mb-3">Not linked to an organization yet.</p>
+                <button type="button" onClick={() => setActiveTab('browse')}
+                  className="text-sm text-blue-600 hover:underline">Browse & Claim a Profile →</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
@@ -8268,7 +8571,7 @@ const VirtualExchangePlatform = () => {
                             </div>
                           </label>
                         </div>
-                        <button type="button" className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
+                        <button type="button" onClick={() => { setActiveTab('my-profile'); setShowUserMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
                           <User size={15} />
                           My Profile
                         </button>
@@ -8469,18 +8772,23 @@ const VirtualExchangePlatform = () => {
         </>
       )}
 
+      {/* Profile page — full width, outside main container */}
+      {activeTab === 'my-profile' && user && <MyProfilePage />}
+
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {activeTab === 'home' && <HomePage />}
-        {activeTab === 'browse' && <BrowsePage />}
-        {activeTab === 'getting-started' && <GettingStartedPage />}
-        {activeTab === 'lesson-plans' && <LessonPlansPage />}
-        {activeTab === 'resources' && <ResourcesPage />}
-        {activeTab === 'impact-snapshot' && <ImpactSnapshotPage />}
-        {activeTab === 'about' && <AboutPage />}
-        {activeTab === 'contact' && <ContactPage />}
-        {activeTab === 'donate' && <DonatePage />}
-      </main>
+      {activeTab !== 'my-profile' && (
+        <main className="max-w-7xl mx-auto px-6 py-12">
+          {activeTab === 'home' && <HomePage />}
+          {activeTab === 'browse' && <BrowsePage />}
+          {activeTab === 'getting-started' && <GettingStartedPage />}
+          {activeTab === 'lesson-plans' && <LessonPlansPage />}
+          {activeTab === 'resources' && <ResourcesPage />}
+          {activeTab === 'impact-snapshot' && <ImpactSnapshotPage />}
+          {activeTab === 'about' && <AboutPage />}
+          {activeTab === 'contact' && <ContactPage />}
+          {activeTab === 'donate' && <DonatePage />}
+        </main>
+      )}
 
       {/* Footer */}
       <footer className="bg-gray-50 border-t border-gray-200 mt-20">
