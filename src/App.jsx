@@ -2966,8 +2966,8 @@ const VirtualExchangePlatform = () => {
             <h3 className="text-2xl font-light text-gray-800 mb-2">Welcome Back</h3>
             <p className="text-sm text-gray-600 mb-6">
               Don't have an account?{' '}
-              <button type="button" onClick={() => setAuthMode('signup')} className="text-gray-800 font-medium hover:underline">
-                Sign Up
+              <button type="button" onClick={() => { setShowAuthModal(false); setShowVerificationModal(true); }} className="text-gray-800 font-medium hover:underline">
+                Get Verified
               </button>
             </p>
 
@@ -3843,6 +3843,9 @@ const VirtualExchangePlatform = () => {
   // Verification Modal - Automated verification system
   const VerificationModal = () => {
     const [verificationForm, setVerificationForm] = useState({
+      firstName: '',
+      lastName: '',
+      password: '',
       name: '',
       type: '',
       country: '',
@@ -3863,6 +3866,41 @@ const VirtualExchangePlatform = () => {
       setVerificationError('');
 
       try {
+        // If user is not logged in, create their account first (signup + verify in one flow)
+        let activeUser = user;
+        if (!activeUser) {
+          if (!verificationForm.firstName || !verificationForm.lastName || !verificationForm.password) {
+            setVerificationError('Please provide your name and a password to create your account.');
+            setVerificationSubmitting(false);
+            return;
+          }
+          if (verificationForm.password.length < 8) {
+            setVerificationError('Password must be at least 8 characters.');
+            setVerificationSubmitting(false);
+            return;
+          }
+          const { data: signupData, error: signupError } = await supabase.auth.signUp({
+            email: verificationForm.email,
+            password: verificationForm.password,
+            options: {
+              data: {
+                first_name: verificationForm.firstName,
+                last_name: verificationForm.lastName,
+                role: verificationForm.role,
+                organization: verificationForm.name
+              }
+            }
+          });
+          if (signupError) {
+            setVerificationError(signupError.message.includes('already registered')
+              ? 'This email is already registered. Please sign in instead.'
+              : signupError.message);
+            setVerificationSubmitting(false);
+            return;
+          }
+          activeUser = signupData.user;
+        }
+
         const response = await fetch('/api/submit-new-organization', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -3875,12 +3913,14 @@ const VirtualExchangePlatform = () => {
             email: verificationForm.email,
             description: verificationForm.description || `Educational institution seeking verification`,
             capacity: verificationForm.capacity ? parseInt(verificationForm.capacity) : null,
-            submitterName: user?.user_metadata?.firstName && user?.user_metadata?.lastName
-              ? `${user.user_metadata.firstName} ${user.user_metadata.lastName}`
-              : 'Organization Representative',
+            submitterName: verificationForm.firstName && verificationForm.lastName
+              ? `${verificationForm.firstName} ${verificationForm.lastName}`
+              : (activeUser?.user_metadata?.first_name && activeUser?.user_metadata?.last_name
+                  ? `${activeUser.user_metadata.first_name} ${activeUser.user_metadata.last_name}`
+                  : 'Organization Representative'),
             submitterEmail: verificationForm.email,
             submitterRole: verificationForm.role,
-            userId: user?.id
+            userId: activeUser?.id
           })
         });
 
@@ -3896,6 +3936,9 @@ const VirtualExchangePlatform = () => {
           setShowVerificationModal(false);
           setVerificationSuccess(false);
           setVerificationForm({
+            firstName: '',
+            lastName: '',
+            password: '',
             name: '',
             type: '',
             country: '',
@@ -3983,6 +4026,46 @@ const VirtualExchangePlatform = () => {
               )}
 
               <form onSubmit={handleVerificationSubmit} className="space-y-6">
+                {!user && (
+                  <div className="border border-gray-200 rounded-lg p-5 bg-gray-50">
+                    <h4 className="font-semibold text-gray-800 mb-4">Create Your Account</h4>
+                    <div className="grid md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                        <input
+                          type="text"
+                          value={verificationForm.firstName}
+                          onChange={(e) => setVerificationForm({...verificationForm, firstName: e.target.value})}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                        <input
+                          type="text"
+                          value={verificationForm.lastName}
+                          onChange={(e) => setVerificationForm({...verificationForm, lastName: e.target.value})}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+                      <input
+                        type="password"
+                        placeholder="At least 8 characters"
+                        value={verificationForm.password}
+                        onChange={(e) => setVerificationForm({...verificationForm, password: e.target.value})}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        required
+                        minLength={8}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-3">Already have an account? <button type="button" onClick={() => { setShowVerificationModal(false); setAuthMode('signin'); setShowAuthModal(true); }} className="text-green-700 font-medium hover:underline">Sign In</button></p>
+                  </div>
+                )}
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Organization Name *</label>
@@ -8956,14 +9039,16 @@ const VirtualExchangePlatform = () => {
                 Contact
               </button>
 
-              <button
-                type="button"
-                onClick={() => setShowVerificationModal(true)}
-                className="font-medium text-gray-600 hover:text-gray-900 transition"
-                title="Get your organization verified"
-              >
-                Get Verified
-              </button>
+              {!user && (
+                <button
+                  type="button"
+                  onClick={() => setShowVerificationModal(true)}
+                  className="font-medium text-gray-600 hover:text-gray-900 transition"
+                  title="Get verified and create your account"
+                >
+                  Get Verified
+                </button>
+              )}
 
               <button
                 type="button"
@@ -9170,13 +9255,15 @@ const VirtualExchangePlatform = () => {
                   Contact
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => { setShowVerificationModal(true); setShowMobileMenu(false); }}
-                  className="w-full text-left px-4 py-3 rounded-lg font-medium transition text-gray-700 hover:bg-gray-50"
-                >
-                  Get Verified
-                </button>
+                {!user && (
+                  <button
+                    type="button"
+                    onClick={() => { setShowVerificationModal(true); setShowMobileMenu(false); }}
+                    className="w-full text-left px-4 py-3 rounded-lg font-medium transition text-gray-700 hover:bg-gray-50"
+                  >
+                    Get Verified
+                  </button>
+                )}
 
                 <button
                   type="button"
