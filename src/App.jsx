@@ -23,6 +23,13 @@ const VirtualExchangePlatform = () => {
   const [showResourceSubmitModal, setShowResourceSubmitModal] = useState(false);
   const [showIntroductionRequestModal, setShowIntroductionRequestModal] = useState(false);
   const [showClaimProfileModal, setShowClaimProfileModal] = useState(false);
+  const [showEditOrgModal, setShowEditOrgModal] = useState(false);
+  const [editOrgForm, setEditOrgForm] = useState({
+    description: '', website: '', email: '', phone: '',
+    capacity: '', languages: '', interests: '', partnershipGoals: ''
+  });
+  const [editOrgSubmitting, setEditOrgSubmitting] = useState(false);
+  const [editOrgError, setEditOrgError] = useState('');
   const [selectedOrgForRequest, setSelectedOrgForRequest] = useState(null);
   const [favorites, setFavorites] = useState(() => {
     const saved = localStorage.getItem('userFavorites');
@@ -162,53 +169,48 @@ const VirtualExchangePlatform = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Load organizations from database
-  useEffect(() => {
-    async function loadOrganizations() {
-      try {
-        setLoadingOrganizations(true);
-        const { data, error } = await supabase
-          .from('organizations')
-          .select('*')
-          .eq('approval_status', 'approved')
-          .order('name');
+  const loadOrganizations = async () => {
+    try {
+      setLoadingOrganizations(true);
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('approval_status', 'approved')
+        .order('name');
 
-        if (error) throw error;
+      if (error) throw error;
 
-        // Transform database format to match component expectations
-        const transformed = data.map(org => ({
-          id: org.id,
-          name: org.name,
-          type: org.type,
-          category: org.category,
-          country: org.country,
-          region: org.region,
-          description: org.description,
-          languages: org.languages || [],
-          interests: org.interests || [],
-          capacity: org.capacity,
-          email: org.email,
-          phone: org.phone,
-          verified: org.verified || false,
-          website: org.website,
-          partnershipGoals: org.partnership_goals || [],
-          programs: typeof org.programs === 'string' ? JSON.parse(org.programs) : org.programs,
-          claimed: org.claimed || false,
-          claimed_by: org.claimed_by || null
-        }));
+      const transformed = data.map(org => ({
+        id: org.id,
+        name: org.name,
+        type: org.type,
+        category: org.category,
+        country: org.country,
+        region: org.region,
+        description: org.description,
+        languages: org.languages || [],
+        interests: org.interests || [],
+        capacity: org.capacity,
+        email: org.email,
+        phone: org.phone,
+        verified: org.verified || false,
+        website: org.website,
+        partnershipGoals: org.partnership_goals || [],
+        programs: typeof org.programs === 'string' ? JSON.parse(org.programs) : org.programs,
+        claimed: org.claimed || false,
+        claimed_by: org.claimed_by || null
+      }));
 
-        setOrganizationsFromDB(transformed);
-      } catch (error) {
-        console.error('Error loading organizations:', error);
-        // Fall back to hardcoded if database fails
-        setOrganizationsFromDB([]);
-      } finally {
-        setLoadingOrganizations(false);
-      }
+      setOrganizationsFromDB(transformed);
+    } catch (error) {
+      console.error('Error loading organizations:', error);
+      setOrganizationsFromDB([]);
+    } finally {
+      setLoadingOrganizations(false);
     }
+  };
 
-    loadOrganizations();
-  }, []);
+  useEffect(() => { loadOrganizations(); }, []);
 
 
   // Organizations come from the DB. The hardcodedOrganizations module is now
@@ -216,6 +218,17 @@ const VirtualExchangePlatform = () => {
   const organizations = (!loadingOrganizations && organizationsFromDB.length > 0)
     ? organizationsFromDB
     : hardcodedOrganizations;
+
+  // The current user's claimed org (if any)
+  const myOrg = user ? organizations.find(o => o.claimed_by === user.id) : null;
+
+  const openMyOrg = () => {
+    if (!myOrg) return;
+    setSelectedOrg(myOrg);
+    setShowProfileModal(true);
+    setShowUserMenu(false);
+    setShowMobileMenu(false);
+  };
 
   // Enhanced AI Search Handler with Natural Language Processing
   const handleAISearch = () => {
@@ -1375,6 +1388,28 @@ const VirtualExchangePlatform = () => {
                 className="w-full py-3 border border-yellow-400 bg-yellow-50 text-yellow-800 rounded-lg font-semibold hover:bg-yellow-100 transition"
               >
                 Claim this Profile
+              </button>
+            )}
+            {user?.id && org.claimed_by === user.id && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditOrgForm({
+                    description: org.description || '',
+                    website: org.website || '',
+                    email: org.email || '',
+                    phone: org.phone || '',
+                    capacity: org.capacity || '',
+                    languages: (org.languages || []).join(', '),
+                    interests: (org.interests || []).join(', '),
+                    partnershipGoals: (org.partnershipGoals || []).join('\n')
+                  });
+                  setEditOrgError('');
+                  setShowEditOrgModal(true);
+                }}
+                className="w-full py-3 border border-blue-400 bg-blue-50 text-blue-800 rounded-lg font-semibold hover:bg-blue-100 transition"
+              >
+                Edit Organization Profile
               </button>
             )}
           </div>
@@ -5496,6 +5531,107 @@ const VirtualExchangePlatform = () => {
     );
   };
 
+  // Edit Organization Modal - Org owners edit their profile
+  const EditOrgModal = () => {
+    if (!showEditOrgModal || !selectedOrg) return null;
+
+    const handleSave = async (e) => {
+      e.preventDefault();
+      setEditOrgError('');
+      setEditOrgSubmitting(true);
+      try {
+        const toArray = (s) => s.split(',').map(x => x.trim()).filter(Boolean);
+        const toLines = (s) => s.split('\n').map(x => x.trim()).filter(Boolean);
+        const { error } = await supabase.from('organizations').update({
+          description: editOrgForm.description,
+          website: editOrgForm.website,
+          email: editOrgForm.email,
+          phone: editOrgForm.phone,
+          capacity: editOrgForm.capacity,
+          languages: toArray(editOrgForm.languages),
+          interests: toArray(editOrgForm.interests),
+          partnership_goals: toLines(editOrgForm.partnershipGoals)
+        }).eq('id', selectedOrg.id);
+        if (error) throw error;
+        await loadOrganizations();
+        setShowEditOrgModal(false);
+      } catch (err) {
+        console.error('Edit org error:', err);
+        setEditOrgError(err.message || 'Failed to save changes');
+      } finally {
+        setEditOrgSubmitting(false);
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto" onClick={() => setShowEditOrgModal(false)}>
+        <div className="bg-white rounded-2xl max-w-2xl w-full my-8 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="border-b border-gray-200 p-6 flex justify-between items-center">
+            <h3 className="text-xl font-semibold text-gray-800">Edit {selectedOrg.name}</h3>
+            <button type="button" onClick={() => setShowEditOrgModal(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          </div>
+          <form onSubmit={handleSave} className="p-6 space-y-4">
+            {editOrgError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">{editOrgError}</div>
+            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                value={editOrgForm.description}
+                onChange={(e) => setEditOrgForm({ ...editOrgForm, description: e.target.value })}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                <input type="text" value={editOrgForm.website} onChange={(e) => setEditOrgForm({ ...editOrgForm, website: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" value={editOrgForm.email} onChange={(e) => setEditOrgForm({ ...editOrgForm, email: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input type="text" value={editOrgForm.phone} onChange={(e) => setEditOrgForm({ ...editOrgForm, phone: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
+                <input type="text" value={editOrgForm.capacity} onChange={(e) => setEditOrgForm({ ...editOrgForm, capacity: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Languages <span className="text-gray-400 font-normal">(comma-separated)</span></label>
+              <input type="text" value={editOrgForm.languages} onChange={(e) => setEditOrgForm({ ...editOrgForm, languages: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="English, Spanish, Arabic" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Focus Areas <span className="text-gray-400 font-normal">(comma-separated)</span></label>
+              <input type="text" value={editOrgForm.interests} onChange={(e) => setEditOrgForm({ ...editOrgForm, interests: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Youth Leadership, Climate Action" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Partnership Goals <span className="text-gray-400 font-normal">(one per line)</span></label>
+              <textarea
+                value={editOrgForm.partnershipGoals}
+                onChange={(e) => setEditOrgForm({ ...editOrgForm, partnershipGoals: e.target.value })}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button type="submit" disabled={editOrgSubmitting} className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+                {editOrgSubmitting ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button type="button" onClick={() => setShowEditOrgModal(false)} className="px-6 py-2.5 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
   // Claim Profile Modal - Organizations can claim their profiles
   const ClaimProfileModal = () => {
     const [claimForm, setClaimForm] = useState({
@@ -6658,8 +6794,8 @@ const VirtualExchangePlatform = () => {
                             <span className="ml-auto bg-blue-600 text-white text-xs rounded-full px-2 py-0.5">{unreadMessageCount}</span>
                           )}
                         </button>
-                        {user.user_metadata?.organization && (
-                          <button type="button" className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
+                        {myOrg && (
+                          <button type="button" onClick={openMyOrg} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
                             <Building size={15} />
                             My Organization
                           </button>
@@ -6839,8 +6975,8 @@ const VirtualExchangePlatform = () => {
                         <User size={15} />
                         My Profile
                       </button>
-                      {user.user_metadata?.organization && (
-                        <button type="button" onClick={() => setShowMobileMenu(false)} className="w-full text-left px-4 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
+                      {myOrg && (
+                        <button type="button" onClick={openMyOrg} className="w-full text-left px-4 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
                           <Building size={15} />
                           My Organization
                         </button>
@@ -6999,6 +7135,7 @@ const VirtualExchangePlatform = () => {
       {showIntroductionRequestModal && selectedOrgForRequest && <IntroductionRequestModal />}
       {showFavoritesModal && <FavoritesModal />}
       {showClaimProfileModal && selectedOrgForRequest && <ClaimProfileModal />}
+      {showEditOrgModal && selectedOrg && <EditOrgModal />}
 
       {/* Cookie Consent */}
       <CookieConsent />
