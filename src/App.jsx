@@ -1347,17 +1347,19 @@ const VirtualExchangePlatform = () => {
           {/* Action Buttons */}
           <div className="border-t border-gray-200 p-6 space-y-3 bg-gray-50 rounded-b-2xl">
             <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedOrgForRequest(org);
-                  setShowIntroductionRequestModal(true);
-                  setShowProfileModal(false);
-                }}
-                className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-              >
-                Request an Introduction
-              </button>
+              {user?.id !== org.claimed_by && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedOrgForRequest(org);
+                    setShowIntroductionRequestModal(true);
+                    setShowProfileModal(false);
+                  }}
+                  className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+                >
+                  Request an Introduction
+                </button>
+              )}
               <button
                 type="button"
                 onClick={(e) => {
