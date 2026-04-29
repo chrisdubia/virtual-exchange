@@ -70,6 +70,7 @@ const VirtualExchangePlatform = () => {
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const [organizationsFromDB, setOrganizationsFromDB] = useState([]);
   const [loadingOrganizations, setLoadingOrganizations] = useState(true);
 
@@ -125,6 +126,16 @@ const VirtualExchangePlatform = () => {
     setIsAdmin(!!data?.is_admin);
   };
 
+  const refreshUnreadCount = async (userId) => {
+    if (!userId) { setUnreadMessageCount(0); return; }
+    const { count } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_id', userId)
+      .is('read_at', null);
+    setUnreadMessageCount(count || 0);
+  };
+
   // Load user session on mount
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -133,6 +144,7 @@ const VirtualExchangePlatform = () => {
       setUser(u);
       setAvatarUrl(u?.user_metadata?.avatar_url ?? null);
       checkAdminStatus(u?.id ?? null);
+      refreshUnreadCount(u?.id ?? null);
     });
 
     const {
@@ -143,6 +155,7 @@ const VirtualExchangePlatform = () => {
       setUser(u);
       setAvatarUrl(u?.user_metadata?.avatar_url ?? null);
       checkAdminStatus(u?.id ?? null);
+      refreshUnreadCount(u?.id ?? null);
     });
 
     return () => subscription.unsubscribe();
@@ -7692,6 +7705,17 @@ const VirtualExchangePlatform = () => {
 
         if (!response.ok) throw new Error('Submission failed');
 
+        // If logged in and target org has a claimed owner, also drop a message in their inbox
+        if (user && selectedOrgForRequest.claimed_by) {
+          await supabase.from('messages').insert({
+            sender_id: user.id,
+            recipient_id: selectedOrgForRequest.claimed_by,
+            subject: `Introduction request from ${requestForm.organization || requestForm.yourName}`,
+            body: requestForm.message || requestForm.partnershipInterest || '',
+            org_context_name: selectedOrgForRequest.name
+          });
+        }
+
         setRequestSuccess(true);
         setTimeout(() => {
           setShowIntroductionRequestModal(false);
@@ -8088,6 +8112,192 @@ const VirtualExchangePlatform = () => {
               </div>
             )}
           </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── INBOX ────────────────────────────────────────────────────────────────
+  const Inbox = () => {
+    const [messages, setMessages] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [activeThreadUserId, setActiveThreadUserId] = React.useState(null);
+    const [profilesById, setProfilesById] = React.useState({});
+    const [reply, setReply] = React.useState('');
+    const [sending, setSending] = React.useState(false);
+
+    const loadAll = async () => {
+      const { data } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
+        .order('created_at', { ascending: true });
+      const list = data || [];
+      setMessages(list);
+      const otherIds = Array.from(new Set(list.flatMap(m => [m.sender_id, m.recipient_id]).filter(id => id !== user.id)));
+      if (otherIds.length) {
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('id, email, first_name, last_name')
+          .in('id', otherIds);
+        const byId = {};
+        (profs || []).forEach(p => { byId[p.id] = p; });
+        setProfilesById(byId);
+      }
+      setLoading(false);
+    };
+
+    React.useEffect(() => { loadAll(); }, []);
+
+    const threads = React.useMemo(() => {
+      const map = new Map();
+      messages.forEach(m => {
+        const other = m.sender_id === user.id ? m.recipient_id : m.sender_id;
+        if (!map.has(other)) map.set(other, []);
+        map.get(other).push(m);
+      });
+      return Array.from(map.entries()).map(([otherId, msgs]) => ({
+        otherId,
+        msgs,
+        last: msgs[msgs.length - 1],
+        unread: msgs.some(m => m.recipient_id === user.id && !m.read_at)
+      })).sort((a, b) => new Date(b.last.created_at) - new Date(a.last.created_at));
+    }, [messages]);
+
+    const activeThread = threads.find(t => t.otherId === activeThreadUserId);
+
+    React.useEffect(() => {
+      if (!activeThread) return;
+      const unreadIds = activeThread.msgs.filter(m => m.recipient_id === user.id && !m.read_at).map(m => m.id);
+      if (!unreadIds.length) return;
+      supabase.from('messages').update({ read_at: new Date().toISOString() }).in('id', unreadIds).then(() => {
+        setMessages(prev => prev.map(m => unreadIds.includes(m.id) ? { ...m, read_at: new Date().toISOString() } : m));
+        refreshUnreadCount(user.id);
+      });
+    }, [activeThreadUserId]);
+
+    const sendReply = async () => {
+      if (!reply.trim() || !activeThreadUserId) return;
+      setSending(true);
+      const { data } = await supabase.from('messages').insert({
+        sender_id: user.id,
+        recipient_id: activeThreadUserId,
+        body: reply.trim()
+      }).select().single();
+      if (data) setMessages(prev => [...prev, data]);
+      setReply('');
+      setSending(false);
+    };
+
+    const nameOf = (id) => {
+      const p = profilesById[id];
+      if (!p) return 'User';
+      return `${p.first_name || ''} ${p.last_name || ''}`.trim() || p.email || 'User';
+    };
+
+    const fmt = (iso) => {
+      const d = new Date(iso);
+      const today = new Date();
+      const same = d.toDateString() === today.toDateString();
+      return same ? d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="max-w-6xl mx-auto px-6 py-12">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Inbox</h1>
+            <p className="text-gray-500 mt-1">Conversations from connection requests</p>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-20 text-gray-400">
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-3" />
+              Loading messages...
+            </div>
+          ) : threads.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-200 p-16 text-center">
+              <MessageSquare size={40} className="mx-auto mb-4 text-gray-300" />
+              <p className="text-gray-500">No messages yet.</p>
+              <p className="text-gray-400 text-sm mt-1">When someone requests an introduction to your organization, it will appear here.</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-[320px_1fr] gap-4 bg-white rounded-2xl border border-gray-200 overflow-hidden" style={{ minHeight: '600px' }}>
+              {/* Thread list */}
+              <div className="border-r border-gray-200 overflow-y-auto">
+                {threads.map(t => (
+                  <button
+                    key={t.otherId}
+                    type="button"
+                    onClick={() => setActiveThreadUserId(t.otherId)}
+                    className={`w-full text-left px-5 py-4 border-b border-gray-100 hover:bg-gray-50 transition ${activeThreadUserId === t.otherId ? 'bg-blue-50' : ''}`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`font-medium ${t.unread ? 'text-gray-900' : 'text-gray-700'}`}>{nameOf(t.otherId)}</span>
+                      <span className="text-xs text-gray-400">{fmt(t.last.created_at)}</span>
+                    </div>
+                    <p className={`text-sm truncate ${t.unread ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>
+                      {t.last.sender_id === user.id ? 'You: ' : ''}{t.last.subject || t.last.body}
+                    </p>
+                    {t.unread && <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mt-1" />}
+                  </button>
+                ))}
+              </div>
+
+              {/* Thread view */}
+              <div className="flex flex-col">
+                {!activeThread ? (
+                  <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+                    Select a conversation
+                  </div>
+                ) : (
+                  <>
+                    <div className="px-6 py-4 border-b border-gray-200">
+                      <h2 className="font-semibold text-gray-900">{nameOf(activeThread.otherId)}</h2>
+                      {profilesById[activeThread.otherId]?.email && (
+                        <p className="text-xs text-gray-500">{profilesById[activeThread.otherId].email}</p>
+                      )}
+                    </div>
+                    <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+                      {activeThread.msgs.map(m => {
+                        const mine = m.sender_id === user.id;
+                        return (
+                          <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-[75%] rounded-2xl px-4 py-3 ${mine ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
+                              {m.subject && <p className={`text-xs font-semibold mb-1 ${mine ? 'text-blue-100' : 'text-gray-500'}`}>{m.subject}</p>}
+                              {m.org_context_name && <p className={`text-xs mb-1 ${mine ? 'text-blue-100' : 'text-gray-500'}`}>Re: {m.org_context_name}</p>}
+                              <p className="whitespace-pre-wrap text-sm">{m.body}</p>
+                              <p className={`text-xs mt-1 ${mine ? 'text-blue-100' : 'text-gray-400'}`}>{fmt(m.created_at)}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="border-t border-gray-200 p-4">
+                      <div className="flex gap-2">
+                        <textarea
+                          value={reply}
+                          onChange={e => setReply(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) sendReply(); }}
+                          placeholder="Type a reply... (Cmd+Enter to send)"
+                          rows={2}
+                          className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 resize-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={sendReply}
+                          disabled={!reply.trim() || sending}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+                        >
+                          {sending ? '...' : 'Send'}
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -8810,6 +9020,13 @@ const VirtualExchangePlatform = () => {
                           <User size={15} />
                           My Profile
                         </button>
+                        <button type="button" onClick={() => { setActiveTab('inbox'); setShowUserMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
+                          <MessageSquare size={15} />
+                          Inbox
+                          {unreadMessageCount > 0 && (
+                            <span className="ml-auto bg-blue-600 text-white text-xs rounded-full px-2 py-0.5">{unreadMessageCount}</span>
+                          )}
+                        </button>
                         {user.user_metadata?.organization && (
                           <button type="button" className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
                             <Building size={15} />
@@ -9022,8 +9239,11 @@ const VirtualExchangePlatform = () => {
       {/* Admin panel — full width */}
       {activeTab === 'admin' && user && isAdmin && <AdminPanel />}
 
+      {/* Inbox — full width */}
+      {activeTab === 'inbox' && user && <Inbox />}
+
       {/* Main Content */}
-      {activeTab !== 'my-profile' && activeTab !== 'admin' && (
+      {activeTab !== 'my-profile' && activeTab !== 'admin' && activeTab !== 'inbox' && (
         <main className="max-w-7xl mx-auto px-6 py-12">
           {activeTab === 'home' && <HomePage />}
           {activeTab === 'browse' && <BrowsePage />}
