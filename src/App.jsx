@@ -7639,7 +7639,7 @@ const VirtualExchangePlatform = () => {
       setRequestError('');
 
       try {
-        const response = await fetch('/.netlify/functions/submit-form', {
+        const response = await fetch('/api/connect', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -8451,14 +8451,14 @@ const VirtualExchangePlatform = () => {
 
       {/* Modals */}
       {showAuthModal && AuthModal()}
-      {showConnectModal && selectedOrg && ConnectModal({ org: selectedOrg })}
-      {showProfileModal && selectedOrg && OrganizationProfileModal({ org: selectedOrg })}
-      {showVerificationModal && VerificationModal()}
-      {showLessonPlanModal && selectedLessonPlan && LessonPlanModal()}
-      {showResourceSubmitModal && ResourceSubmitModal()}
-      {showIntroductionRequestModal && selectedOrgForRequest && IntroductionRequestModal()}
-      {showFavoritesModal && FavoritesModal()}
-      {showClaimProfileModal && selectedOrgForRequest && ClaimProfileModal()}
+      {showConnectModal && selectedOrg && <ConnectModal org={selectedOrg} />}
+      {showProfileModal && selectedOrg && <OrganizationProfileModal org={selectedOrg} />}
+      {showVerificationModal && <VerificationModal />}
+      {showLessonPlanModal && selectedLessonPlan && <LessonPlanModal />}
+      {showResourceSubmitModal && <ResourceSubmitModal />}
+      {showIntroductionRequestModal && selectedOrgForRequest && <IntroductionRequestModal />}
+      {showFavoritesModal && <FavoritesModal />}
+      {showClaimProfileModal && selectedOrgForRequest && <ClaimProfileModal />}
 
       {/* Cookie Consent */}
       <CookieConsent />
