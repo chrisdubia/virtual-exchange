@@ -8222,7 +8222,7 @@ const VirtualExchangePlatform = () => {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <Building size={16} className="text-purple-400" />
-                        <span className="font-semibold text-white">{claim.organizations?.name || claim.organization_id}</span>
+                        <span className="font-semibold text-white">{claim.org_name || claim.organization_id}</span>
                       </div>
                       <div className="grid sm:grid-cols-2 gap-x-8 gap-y-1 text-sm text-slate-400 mt-2">
                         <span><span className="text-slate-500">Name:</span> {claim.name}</span>
