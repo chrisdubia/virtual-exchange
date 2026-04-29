@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     if (!profile?.is_admin) return res.status(403).json({ error: 'Forbidden' })
 
     const [claimsResult, orgsResult] = await Promise.all([
-      supabase.from('profile_claims').select('*, organizations(name)').eq('status', 'pending').order('created_at', { ascending: false }),
+      supabase.from('profile_claims').select('*').eq('status', 'pending').order('created_at', { ascending: false }),
       supabase.from('organizations').select('*').eq('approval_status', 'pending').order('created_at', { ascending: false })
     ])
 
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     const { claimId, decision } = req.body
     if (!claimId || !decision) return res.status(400).json({ error: 'Missing claimId or decision' })
 
-    const { data: claim } = await supabase.from('profile_claims').select('*, organizations(name)').eq('id', claimId).single()
+    const { data: claim } = await supabase.from('profile_claims').select('*').eq('id', claimId).single()
     if (!claim) return res.status(404).json({ error: 'Claim not found' })
 
     await supabase.from('profile_claims').update({
@@ -65,7 +65,7 @@ export default async function handler(req, res) {
       }).eq('id', claim.organization_id)
     }
 
-    const orgName = claim.organizations?.name || 'your organization'
+    const orgName = claim.org_name || 'your organization'
     const approved = decision === 'approve'
     await sendEmail(
       claim.email,

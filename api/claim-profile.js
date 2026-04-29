@@ -31,22 +31,12 @@ export default async function handler(req, res) {
 
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Check if organization is already claimed
-    const { data: org } = await supabase
-      .from('organizations')
-      .select('claimed, claimed_by')
-      .eq('id', organizationId)
-      .single()
-
-    if (org && org.claimed) {
-      return res.status(400).json({ error: 'This organization has already been claimed' })
-    }
-
     // Create claim request
     const { data: claim, error: claimError } = await supabase
       .from('profile_claims')
       .insert({
-        organization_id: organizationId,
+        organization_id: String(organizationId),
+        org_name: organizationName,
         user_id: userId,
         name,
         email,
