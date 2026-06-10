@@ -59,10 +59,10 @@ export default async function handler(req, res) {
     approved_by: 'email-link'
   }).eq('id', orgId)
 
-  // Notify submitter
+  // Notify submitter — must await before returning or Vercel kills the request
   const RESEND_API_KEY = process.env.RESEND_API_KEY
   if (RESEND_API_KEY && org.submitter_email) {
-    fetch('https://api.resend.com/emails', {
+    await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_API_KEY}` },
       body: JSON.stringify({
