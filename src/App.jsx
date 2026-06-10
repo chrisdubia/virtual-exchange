@@ -7085,8 +7085,73 @@ const VirtualExchangePlatform = () => {
       {/* Inbox — full width */}
       {activeTab === 'inbox' && user && <Inbox />}
 
+      {/* Privacy Policy */}
+      {activeTab === 'privacy' && (
+        <div className="max-w-3xl mx-auto px-6 py-12">
+          <button type="button" onClick={() => setActiveTab('home')} className="text-sm text-blue-600 hover:underline mb-6 block">← Back to Home</button>
+          <h1 className="text-3xl font-light text-gray-800 mb-2">Privacy Policy</h1>
+          <p className="text-sm text-gray-500 mb-8">Last updated: June 2026</p>
+
+          <div className="prose prose-gray max-w-none space-y-6 text-gray-700">
+            <section>
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">Who We Are</h2>
+              <p>The Virtual Exchange is a platform operated by MapWorks Learning, a nonprofit organization dedicated to connecting schools and organizations worldwide for virtual exchange programs. Our website is <strong>thevirtualexchange.org</strong>.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">Information We Collect</h2>
+              <ul className="list-disc pl-5 space-y-1">
+                <li><strong>Account information:</strong> name, email address, and password when you create an account</li>
+                <li><strong>Organization information:</strong> details you provide when submitting or claiming an organization profile</li>
+                <li><strong>Usage data:</strong> pages visited, searches performed, and connection requests sent</li>
+                <li><strong>Profile data:</strong> bio, photo, grade levels, subjects, and exchange interests you add to your profile</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">How We Use Your Information</h2>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>To operate and improve The Virtual Exchange platform</li>
+                <li>To facilitate connection requests between organizations</li>
+                <li>To verify organization profiles and process claim requests</li>
+                <li>To send transactional emails (connection requests, verification, account notices)</li>
+                <li>We do not sell your personal information to third parties</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">Third-Party Services</h2>
+              <p>We use the following services to operate the platform:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li><strong>Supabase</strong> — authentication and database hosting</li>
+                <li><strong>Vercel</strong> — website hosting</li>
+                <li><strong>Resend</strong> — transactional email delivery</li>
+                <li><strong>Google OAuth</strong> — optional sign-in with Google (governed by Google's Privacy Policy)</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">Data Retention</h2>
+              <p>We retain your account information for as long as your account is active. You may request deletion of your account and associated data at any time by contacting us.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">Your Rights</h2>
+              <p>You have the right to access, correct, or delete your personal data. To exercise these rights, contact us at <a href="mailto:hello@thevirtualexchange.org" className="text-blue-600 hover:underline">hello@thevirtualexchange.org</a>.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">Contact</h2>
+              <p>MapWorks Learning<br />
+              hello@mapworkslearning.org<br />
+              thevirtualexchange.org</p>
+            </section>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
-      {activeTab !== 'my-profile' && activeTab !== 'admin' && activeTab !== 'inbox' && (
+      {activeTab !== 'my-profile' && activeTab !== 'admin' && activeTab !== 'inbox' && activeTab !== 'privacy' && (
         <main className="max-w-7xl mx-auto px-6 py-12">
           {activeTab === 'home' && <HomePage />}
           {activeTab === 'browse' && <BrowsePage />}
