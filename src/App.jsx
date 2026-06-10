@@ -240,133 +240,57 @@ const VirtualExchangePlatform = () => {
     setShowMobileMenu(false);
   };
 
-  // Enhanced AI Search Handler with Natural Language Processing
+  // Search handler: word-by-word match across every org field
   const handleAISearch = () => {
     const query = aiSearchRef.current?.value || '';
     if (!query.trim()) return;
 
-    const keywords = query.toLowerCase();
+    // Split into meaningful words (skip short stop words)
+    const stopWords = new Set(['the','and','for','with','that','this','from','have','are','was','were','they','their','what','when','where','who','will','can','not','but','has','had','been','would','could','should','into','onto','about','like','just','some','more','also','than','then','our','your','its','all','any','one','two','how','why','which']);
+    const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
 
-    // Extract school level from query
-    let schoolLevelMatch = null;
-    if (keywords.match(/\b(elementary|primary|k-5|kindergarten|grade 1-5)\b/)) {
-      schoolLevelMatch = 'Primary School';
-    } else if (keywords.match(/\b(middle school|junior high|grades? 6-8|6th|7th|8th)\b/)) {
-      schoolLevelMatch = 'Middle School';
-    } else if (keywords.match(/\b(high school|secondary|grades? 9-12|freshman|sophomore|junior|senior|9th|10th|11th|12th)\b/)) {
-      schoolLevelMatch = 'High School';
-    } else if (keywords.match(/\b(university|college|higher education)\b/)) {
-      schoolLevelMatch = 'University';
-    }
+    if (words.length === 0) return;
 
-    // Extract languages from query
-    const languageKeywords = ['spanish', 'english', 'french', 'german', 'mandarin', 'chinese', 'arabic', 'portuguese', 'russian'];
-    const languageMatch = languageKeywords.find(lang => keywords.includes(lang));
+    const scoredResults = organizations
+      .map(org => {
+        // Build a flat searchable string from every field
+        const haystack = [
+          org.name,
+          org.description,
+          org.type,
+          org.category,
+          org.country,
+          org.region,
+          org.email,
+          org.website,
+          ...(org.languages || []),
+          ...(org.interests || []),
+          ...(org.partnershipGoals || []),
+          ...(Array.isArray(org.programs)
+            ? org.programs.flatMap(p => [p.name, p.description, p.subject, p.duration])
+            : [])
+        ].filter(Boolean).join(' ').toLowerCase();
 
-    // Extract subject areas from query
-    const subjectMatches = [];
-    if (keywords.match(/\b(stem|science|technology|engineering|math|mathematics|computer|coding|robotics)\b/)) {
-      subjectMatches.push('STEM');
-    }
-    if (keywords.match(/\b(art|arts|music|theater|theatre|dance|visual|creative)\b/)) {
-      subjectMatches.push('Arts');
-    }
-    if (keywords.match(/\b(environment|environmental|climate|sustainability|green|ecology)\b/)) {
-      subjectMatches.push('Environmental');
-    }
-    if (keywords.match(/\b(culture|cultural|language|international|global)\b/)) {
-      subjectMatches.push('Cultural');
-    }
+        let score = 0;
+        words.forEach(word => {
+          // Exact word boundary match scores higher than substring
+          const boundary = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
+          if (boundary.test(haystack)) {
+            score += 3;
+          } else if (haystack.includes(word)) {
+            score += 1;
+          }
+        });
 
-    // Extract regions/countries from query
-    const regionKeywords = {
-      'north america': 'North America',
-      'usa': 'United States',
-      'united states': 'United States',
-      'us': 'United States',
-      'america': 'United States',
-      'canada': 'Canada',
-      'europe': 'Europe',
-      'european': 'Europe',
-      'spain': 'Spain',
-      'france': 'France',
-      'germany': 'Germany',
-      'uk': 'United Kingdom',
-      'united kingdom': 'United Kingdom',
-      'asia': 'Asia',
-      'china': 'China',
-      'japan': 'Japan',
-      'south america': 'South America',
-      'brazil': 'Brazil',
-      'middle east': 'Middle East'
-    };
+        // Bonus: name match is most relevant
+        const nameHaystack = org.name.toLowerCase();
+        words.forEach(word => { if (nameHaystack.includes(word)) score += 4; });
 
-    let regionMatch = null;
-    for (const [keyword, region] of Object.entries(regionKeywords)) {
-      if (keywords.includes(keyword)) {
-        regionMatch = region;
-        break;
-      }
-    }
+        return { ...org, score };
+      })
+      .filter(org => org.score > 0)
+      .sort((a, b) => b.score - a.score);
 
-    // Filter organizations based on extracted criteria
-    const filtered = organizations.filter(org => {
-      // Basic text search
-      const searchText = `${org.name} ${org.description} ${org.interests?.join(' ')} ${org.country} ${org.city || ''} ${org.state || ''}`.toLowerCase();
-      const matchesKeywords = searchText.includes(keywords) ||
-                             org.type.toLowerCase().includes(keywords) ||
-                             org.region.toLowerCase().includes(keywords);
-
-      // School level match
-      const matchesSchoolLevel = !schoolLevelMatch || org.type === schoolLevelMatch;
-
-      // Language match
-      const matchesLanguage = !languageMatch ||
-                             (org.languages && org.languages.some(lang =>
-                               lang.toLowerCase().includes(languageMatch)
-                             ));
-
-      // Subject match
-      const matchesSubject = subjectMatches.length === 0 ||
-                            (org.interests && subjectMatches.some(subject =>
-                              org.interests.some(interest =>
-                                interest.toLowerCase().includes(subject.toLowerCase())
-                              )
-                            ));
-
-      // Region/Country match
-      const matchesRegion = !regionMatch ||
-                           org.region === regionMatch ||
-                           org.country === regionMatch;
-
-      // Only use criteria-based matching if at least one criterion was extracted
-      const hasSpecificCriteria = schoolLevelMatch || languageMatch || subjectMatches.length > 0 || regionMatch;
-      return matchesKeywords || (hasSpecificCriteria && matchesSchoolLevel && matchesLanguage && matchesSubject && matchesRegion);
-    });
-
-    // Sort results by relevance (most matches first)
-    const scoredResults = filtered.map(org => {
-      let score = 0;
-      const searchText = `${org.name} ${org.description} ${org.interests?.join(' ')}`.toLowerCase();
-
-      // Increase score for keyword matches
-      const words = keywords.split(' ').filter(w => w.length > 2);
-      words.forEach(word => {
-        if (searchText.includes(word)) score += 2;
-      });
-
-      // Increase score for specific criteria matches
-      if (schoolLevelMatch && org.type === schoolLevelMatch) score += 5;
-      if (languageMatch && org.languages?.some(l => l.toLowerCase().includes(languageMatch))) score += 3;
-      if (subjectMatches.length > 0 && org.interests?.some(i =>
-        subjectMatches.some(s => i.toLowerCase().includes(s.toLowerCase()))
-      )) score += 4;
-      if (regionMatch && (org.region === regionMatch || org.country === regionMatch)) score += 3;
-
-      return { ...org, score };
-    });
-
-    scoredResults.sort((a, b) => b.score - a.score);
     setAiSearchQuery(query.trim());
     setSearchResults(scoredResults);
   };
