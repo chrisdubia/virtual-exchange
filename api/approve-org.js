@@ -56,7 +56,6 @@ export default async function handler(req, res) {
   const { error: updateErr } = await supabase.from('organizations').update({
     approval_status: approved ? 'approved' : 'rejected',
     approved_at: approved ? new Date().toISOString() : null,
-    approved_by: 'email-link'
   }).eq('id', orgId)
 
   if (updateErr) {
