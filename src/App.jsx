@@ -1900,7 +1900,7 @@ const VirtualExchangePlatform = () => {
                 We use cookies and similar technologies to improve your experience, analyze site performance, and enable essential features.
                 By clicking "Accept All", you consent to our use of cookies. You can manage your preferences or decline non-essential cookies.
                 {' '}
-                <button type="button" onClick={() => setActiveTab('privacy')} className="text-gray-800 underline hover:text-gray-900">
+                <button type="button" onClick={() => { setActiveTab('privacy'); setShowCookieConsent(false); }} className="text-gray-800 underline hover:text-gray-900">
                   Learn more in our Privacy Policy
                 </button>
               </p>
