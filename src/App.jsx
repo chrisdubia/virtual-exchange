@@ -13,6 +13,7 @@ const VirtualExchangePlatform = () => {
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [aiSearchQuery, setAiSearchQuery] = useState('');
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [showCookieConsent, setShowCookieConsent] = useState(() => {
     return !localStorage.getItem('cookieConsent');
@@ -338,8 +339,9 @@ const VirtualExchangePlatform = () => {
                            org.region === regionMatch ||
                            org.country === regionMatch;
 
-      // Return true if matches keywords OR matches specific criteria
-      return matchesKeywords || (matchesSchoolLevel && matchesLanguage && matchesSubject && matchesRegion);
+      // Only use criteria-based matching if at least one criterion was extracted
+      const hasSpecificCriteria = schoolLevelMatch || languageMatch || subjectMatches.length > 0 || regionMatch;
+      return matchesKeywords || (hasSpecificCriteria && matchesSchoolLevel && matchesLanguage && matchesSubject && matchesRegion);
     });
 
     // Sort results by relevance (most matches first)
@@ -365,6 +367,7 @@ const VirtualExchangePlatform = () => {
     });
 
     scoredResults.sort((a, b) => b.score - a.score);
+    setAiSearchQuery(query.trim());
     setSearchResults(scoredResults);
   };
 
@@ -2270,6 +2273,14 @@ const VirtualExchangePlatform = () => {
           </div>
         </div>
         
+        {aiSearchQuery && searchResults.length === 0 && (
+          <div className="mt-8 max-w-6xl mx-auto text-center py-12">
+            <p className="text-gray-500 text-lg mb-2">No organizations matched <strong>"{aiSearchQuery}"</strong></p>
+            <p className="text-gray-400 text-sm">Try different keywords — for example, a subject area, grade level, country, or language.</p>
+            <button type="button" onClick={() => { setAiSearchQuery(''); if (aiSearchRef.current) aiSearchRef.current.value = ''; }} className="mt-4 text-blue-600 hover:underline text-sm">Clear search</button>
+          </div>
+        )}
+
         {searchResults.length > 0 && (
           <div className="mt-8 max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-4">
@@ -2278,7 +2289,7 @@ const VirtualExchangePlatform = () => {
               </h3>
               <button
                 type="button"
-                onClick={() => setSearchResults([])}
+                onClick={() => { setSearchResults([]); setAiSearchQuery(''); if (aiSearchRef.current) aiSearchRef.current.value = ''; }}
                 className="text-gray-600 hover:text-gray-800 text-sm font-medium"
               >
                 Clear Results
