@@ -24,6 +24,7 @@ const VirtualExchangePlatform = () => {
   const [showIntroductionRequestModal, setShowIntroductionRequestModal] = useState(false);
   const [showClaimProfileModal, setShowClaimProfileModal] = useState(false);
   const [showEditOrgModal, setShowEditOrgModal] = useState(false);
+  const [showNewUserWelcome, setShowNewUserWelcome] = useState(false);
   const [editOrgForm, setEditOrgForm] = useState({
     description: '', website: '', email: '', phone: '',
     capacity: '', languages: '', interests: '', partnershipGoals: ''
@@ -157,13 +158,21 @@ const VirtualExchangePlatform = () => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       const u = session?.user ?? null;
       setUser(u);
       setAvatarUrl(u?.user_metadata?.avatar_url ?? null);
       checkAdminStatus(u?.id ?? null);
       refreshUnreadCount(u?.id ?? null);
+      // Show welcome prompt for first-time OAuth signups
+      if (event === 'SIGNED_IN' && u?.app_metadata?.provider !== 'email') {
+        const isNew = !localStorage.getItem(`welcomed_${u.id}`);
+        if (isNew) {
+          localStorage.setItem(`welcomed_${u.id}`, '1');
+          setShowNewUserWelcome(true);
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -7275,6 +7284,35 @@ const VirtualExchangePlatform = () => {
       {showFavoritesModal && <FavoritesModal />}
       {showClaimProfileModal && selectedOrgForRequest && <ClaimProfileModal />}
       {showEditOrgModal && selectedOrg && <EditOrgModal />}
+      {showNewUserWelcome && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle size={32} className="text-green-600" />
+              </div>
+              <h3 className="text-2xl font-light text-gray-800 mb-2">Welcome to The Virtual Exchange!</h3>
+              <p className="text-gray-500 text-sm">You're signed in. Would you like to connect your organization?</p>
+            </div>
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => { setShowNewUserWelcome(false); setShowVerificationModal(true); }}
+                className="w-full bg-gray-800 text-white py-3 rounded-xl font-semibold hover:bg-gray-900 transition"
+              >
+                Yes, get my organization verified
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowNewUserWelcome(false)}
+                className="w-full border border-gray-300 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-50 transition"
+              >
+                I'm just browsing for now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cookie Consent */}
       <CookieConsent />

@@ -63,13 +63,7 @@ export default async function handler(req, res) {
       })
     }
 
-    // Generate email verification token
-    const crypto = require('crypto')
-    const verificationToken = crypto.randomBytes(32).toString('hex')
-    const expiresAt = new Date()
-    expiresAt.setHours(expiresAt.getHours() + 48) // 48 hour expiration
-
-    // Create new organization with email_pending status
+    // Create new organization with pending status
     const { data: newOrg, error: createError } = await supabase
       .from('organizations')
       .insert({
@@ -89,10 +83,7 @@ export default async function handler(req, res) {
         programs: programs ? JSON.stringify(programs) : null,
         verified: false,
         claimed: false,
-        approval_status: 'email_pending', // Waiting for email verification
-        email_verification_token: verificationToken,
-        email_verification_status: 'pending',
-        verification_token_expires_at: expiresAt.toISOString(),
+        approval_status: 'pending',
         submitted_by: userId,
         submitter_name: submitterName,
         submitter_email: submitterEmail,
@@ -179,10 +170,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: 'Please check your email to verify your address and complete your submission',
-      organizationId: newOrg.id,
-      requiresEmailVerification: true,
-      verificationEmail: submitterEmail
+      message: 'Your organization has been submitted for review. We\'ll be in touch within 1-3 business days.',
+      organizationId: newOrg.id
     })
 
   } catch (error) {
