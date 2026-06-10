@@ -503,9 +503,14 @@ const VirtualExchangePlatform = () => {
 
   // Comprehensive Registration Modal - Minimal Elegant Design
   const AuthModal = () => {
-    const handleSocialLogin = (provider) => {
-      console.log(`${provider} login clicked - OAuth integration needed`);
-      // TODO: Implement OAuth flow with backend
+    const handleSocialLogin = async (provider) => {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: provider.toLowerCase(),
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) console.error(`${provider} login error:`, error.message);
     };
 
     if (authMode === 'signin') {
