@@ -460,9 +460,9 @@ const VirtualExchangePlatform = () => {
 
             <h3 className="text-2xl font-light text-gray-800 mb-2">Welcome Back</h3>
             <p className="text-sm text-gray-600 mb-6">
-              Don't have an account?{' '}
+              New here?{' '}
               <button type="button" onClick={() => { setShowAuthModal(false); setShowVerificationModal(true); }} className="text-gray-800 font-medium hover:underline">
-                Get Verified
+                Get Started
               </button>
             </p>
 
@@ -6766,6 +6766,15 @@ const VirtualExchangePlatform = () => {
               >
                 Donate
               </button>
+              {!user && (
+                <button
+                  type="button"
+                  onClick={() => setShowVerificationModal(true)}
+                  className="px-5 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition text-sm"
+                >
+                  Get Started
+                </button>
+              )}
               {user ? (
                 <div className="relative">
                   <button
