@@ -10,11 +10,14 @@ const getSupabase = () => {
 const sendEmail = async (to, subject, html) => {
   const key = process.env.RESEND_API_KEY
   if (!key) return
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-    body: JSON.stringify({ from: 'The Virtual Exchange <hello@thevirtualexchange.org>', to, subject, html })
-  }).catch(e => console.error('Email error:', e))
+  try {
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+      body: JSON.stringify({ from: 'The Virtual Exchange <hello@thevirtualexchange.org>', to, subject, html })
+    })
+    if (!r.ok) { const b = await r.json().catch(() => ({})); console.error('Email send failed:', b) }
+  } catch (e) { console.error('Email error:', e) }
 }
 
 export default async function handler(req, res) {
@@ -94,12 +97,17 @@ export default async function handler(req, res) {
     if (!org) return res.status(404).json({ error: 'Organization not found' })
 
     const approved = decision === 'approve'
-    await supabase.from('organizations').update({
+    const updatePayload = {
       approval_status: approved ? 'approved' : 'rejected',
       approved_at: approved ? new Date().toISOString() : null,
       approved_by: approved ? adminUserId : null,
-      rejection_reason: approved ? null : (rejectionReason || null)
-    }).eq('id', orgId)
+    }
+
+    const { error: updateErr } = await supabase.from('organizations').update(updatePayload).eq('id', orgId)
+    if (updateErr) {
+      console.error('Org approval update failed:', updateErr)
+      return res.status(500).json({ error: 'Failed to update organization status', detail: updateErr.message })
+    }
 
     if (org.submitter_email) {
       await sendEmail(
