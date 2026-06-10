@@ -102,79 +102,72 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to submit organization', detail: createError.message })
     }
 
-    // Send confirmation email to submitter
+    // Send emails — must be awaited before returning or Vercel kills the process
     const RESEND_API_KEY = process.env.RESEND_API_KEY
     if (RESEND_API_KEY) {
-      fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${RESEND_API_KEY}`
-        },
-        body: JSON.stringify({
-          from: 'The Virtual Exchange <hello@thevirtualexchange.org>',
-          to: submitterEmail,
-          subject: `Submission Received: ${name}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #1f2937;">Submission Received!</h2>
-              <p>Hi ${submitterName},</p>
-              <p>Thank you for submitting <strong>${name}</strong> to The Virtual Exchange.</p>
-              <p>Our team will review your submission and get back to you within 1–3 business days.</p>
-              <div style="background-color: #eff6ff; border-radius: 8px; padding: 20px; margin: 24px 0;">
-                <h3 style="color: #1f2937; margin-top: 0; font-size: 16px;">What happens next:</h3>
-                <ol style="color: #6b7280; line-height: 1.8; padding-left: 20px; margin: 0;">
-                  <li>Our team reviews your organization (1–3 business days)</li>
-                  <li>You receive an approval notification</li>
-                  <li>Your organization goes live on The Virtual Exchange ✓</li>
-                </ol>
-              </div>
-              <p style="color: #6b7280; font-size: 14px;">
-                Questions? Contact us at hello@thevirtualexchange.org
-              </p>
-              <p style="color: #6b7280; font-size: 14px;"><strong>The Virtual Exchange</strong><br>A MapWorks Learning Initiative</p>
-            </div>
-          `
-        })
-      }).catch(e => console.error('Failed to send confirmation email:', e))
-
-      // Notify admin with one-click approve/reject buttons
       const approvalToken = makeApprovalToken(newOrg.id)
       const baseUrl = 'https://virtual-exchange.vercel.app'
       const approveUrl = `${baseUrl}/api/approve-org?id=${newOrg.id}&token=${approvalToken}&action=approve`
       const rejectUrl  = `${baseUrl}/api/approve-org?id=${newOrg.id}&token=${approvalToken}&action=reject`
 
-      fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${RESEND_API_KEY}`
-        },
-        body: JSON.stringify({
-          from: 'The Virtual Exchange <hello@thevirtualexchange.org>',
-          to: 'chris@mapworkslearning.org',
-          subject: `New Org Submission: ${name}`,
-          html: `
-            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-              <h2 style="color:#1f2937">New Organization Submitted</h2>
-              <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
-                <tr><td style="padding:8px 0;color:#6b7280;font-size:14px;width:140px">Organization</td><td style="padding:8px 0;font-weight:600">${name}</td></tr>
-                <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Type</td><td style="padding:8px 0">${type}</td></tr>
-                <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Country</td><td style="padding:8px 0">${country}${region ? ` / ${region}` : ''}</td></tr>
-                <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Website</td><td style="padding:8px 0">${website || '—'}</td></tr>
-                <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Email</td><td style="padding:8px 0">${email}</td></tr>
-                <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Submitted by</td><td style="padding:8px 0">${submitterName} · ${submitterEmail} · ${submitterRole || '—'}</td></tr>
-                ${description ? `<tr><td style="padding:8px 0;color:#6b7280;font-size:14px;vertical-align:top">Description</td><td style="padding:8px 0">${description}</td></tr>` : ''}
-              </table>
-              <div style="display:flex;gap:12px;margin:32px 0">
-                <a href="${approveUrl}" style="background:#16a34a;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block">✓ Approve</a>
-                <a href="${rejectUrl}"  style="background:#dc2626;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block;margin-left:12px">✗ Reject</a>
+      await Promise.allSettled([
+        fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_API_KEY}` },
+          body: JSON.stringify({
+            from: 'The Virtual Exchange <hello@thevirtualexchange.org>',
+            to: submitterEmail,
+            subject: `Submission Received: ${name}`,
+            html: `
+              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+                <h2 style="color:#1f2937">Submission Received!</h2>
+                <p>Hi ${submitterName},</p>
+                <p>Thank you for submitting <strong>${name}</strong> to The Virtual Exchange.</p>
+                <p>Our team will review your submission and get back to you within 1–3 business days.</p>
+                <div style="background:#eff6ff;border-radius:8px;padding:20px;margin:24px 0">
+                  <h3 style="color:#1f2937;margin-top:0;font-size:16px">What happens next:</h3>
+                  <ol style="color:#6b7280;line-height:1.8;padding-left:20px;margin:0">
+                    <li>Our team reviews your organization (1–3 business days)</li>
+                    <li>You receive an approval notification</li>
+                    <li>Your organization goes live on The Virtual Exchange ✓</li>
+                  </ol>
+                </div>
+                <p style="color:#6b7280;font-size:14px">Questions? hello@thevirtualexchange.org</p>
+                <p style="color:#6b7280;font-size:14px"><strong>The Virtual Exchange</strong><br>A MapWorks Learning Initiative</p>
               </div>
-              <p style="color:#9ca3af;font-size:12px">Clicking Approve or Reject instantly updates the listing and notifies the submitter.</p>
-            </div>
-          `
-        })
-      }).catch(e => console.error('Failed to send admin notification:', e))
+            `
+          })
+        }).then(r => r.ok ? null : r.json().then(b => console.error('Submitter email failed:', b))).catch(e => console.error('Submitter email error:', e)),
+
+        fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_API_KEY}` },
+          body: JSON.stringify({
+            from: 'The Virtual Exchange <hello@thevirtualexchange.org>',
+            to: 'chris@mapworkslearning.org',
+            subject: `New Org Submission: ${name}`,
+            html: `
+              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+                <h2 style="color:#1f2937">New Organization Submitted</h2>
+                <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
+                  <tr><td style="padding:8px 0;color:#6b7280;font-size:14px;width:140px">Organization</td><td style="padding:8px 0;font-weight:600">${name}</td></tr>
+                  <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Type</td><td style="padding:8px 0">${type}</td></tr>
+                  <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Country</td><td style="padding:8px 0">${country}${region ? ` / ${region}` : ''}</td></tr>
+                  <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Website</td><td style="padding:8px 0">${website || '—'}</td></tr>
+                  <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Email</td><td style="padding:8px 0">${email}</td></tr>
+                  <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Submitted by</td><td style="padding:8px 0">${submitterName} · ${submitterEmail} · ${submitterRole || '—'}</td></tr>
+                  ${description ? `<tr><td style="padding:8px 0;color:#6b7280;font-size:14px;vertical-align:top">Description</td><td style="padding:8px 0">${description}</td></tr>` : ''}
+                </table>
+                <div style="margin:32px 0">
+                  <a href="${approveUrl}" style="background:#16a34a;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block">✓ Approve</a>
+                  <a href="${rejectUrl}" style="background:#dc2626;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block;margin-left:12px">✗ Reject</a>
+                </div>
+                <p style="color:#9ca3af;font-size:12px">Clicking Approve or Reject instantly updates the listing and notifies the submitter.</p>
+              </div>
+            `
+          })
+        }).then(r => r.ok ? null : r.json().then(b => console.error('Admin email failed:', b))).catch(e => console.error('Admin email error:', e))
+      ])
     }
 
     return res.status(200).json({
