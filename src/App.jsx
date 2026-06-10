@@ -1471,24 +1471,6 @@ const VirtualExchangePlatform = () => {
         }
 
         setVerificationSuccess(true);
-        setTimeout(() => {
-          setShowVerificationModal(false);
-          setVerificationSuccess(false);
-          setVerificationForm({
-            firstName: '',
-            lastName: '',
-            password: '',
-            name: '',
-            type: '',
-            country: '',
-            region: '',
-            website: '',
-            email: '',
-            role: '',
-            capacity: '',
-            description: ''
-          });
-        }, 4000);
       } catch (error) {
         console.error('Verification submission error:', error);
         setVerificationError('Failed to submit verification request. Please try again.');
@@ -1522,17 +1504,28 @@ const VirtualExchangePlatform = () => {
           </div>
 
           {verificationSuccess ? (
-            <div className="text-center py-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="text-center py-10 px-4">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
+                <CheckCircle className="w-10 h-10 text-green-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Verification Request Submitted!</h3>
-              <p className="text-gray-600 mb-4">
-                We've sent a verification email to {verificationForm.email}. Please check your inbox and click the verification link.
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Submission Received!</h3>
+              <p className="text-gray-600 mb-3">
+                Your organization has been submitted for review. You'll receive a confirmation at <strong>{verificationForm.email || 'your email'}</strong>.
               </p>
-              <p className="text-sm text-gray-500">
-                After email verification, our team will review your organization (1-3 business days) and you'll receive approval notification.
+              <p className="text-sm text-gray-500 mb-8">
+                Our team will review your submission within 1–3 business days and notify you once it's approved and live.
               </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowVerificationModal(false);
+                  setVerificationSuccess(false);
+                  setVerificationForm({ firstName:'', lastName:'', password:'', name:'', type:'', country:'', region:'', website:'', email:'', role:'', capacity:'', description:'' });
+                }}
+                className="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+              >
+                Done
+              </button>
             </div>
           ) : (
             <>
