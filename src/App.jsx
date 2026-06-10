@@ -6830,10 +6830,15 @@ const VirtualExchangePlatform = () => {
                             <span className="ml-auto bg-blue-600 text-white text-xs rounded-full px-2 py-0.5">{unreadMessageCount}</span>
                           )}
                         </button>
-                        {myOrg && (
+                        {myOrg ? (
                           <button type="button" onClick={openMyOrg} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
                             <Building size={15} />
                             My Organization
+                          </button>
+                        ) : (
+                          <button type="button" onClick={() => { setShowVerificationModal(true); setShowUserMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition flex items-center gap-2">
+                            <Building size={15} />
+                            Add Your Organization
                           </button>
                         )}
                         {isAdmin && (
@@ -7011,10 +7016,15 @@ const VirtualExchangePlatform = () => {
                         <User size={15} />
                         My Profile
                       </button>
-                      {myOrg && (
+                      {myOrg ? (
                         <button type="button" onClick={openMyOrg} className="w-full text-left px-4 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
                           <Building size={15} />
                           My Organization
+                        </button>
+                      ) : (
+                        <button type="button" onClick={() => { setShowVerificationModal(true); setShowMobileMenu(false); }} className="w-full text-left px-4 py-2 rounded-lg text-sm text-blue-600 hover:bg-blue-50 transition flex items-center gap-2">
+                          <Building size={15} />
+                          Add Your Organization
                         </button>
                       )}
                       <button type="button" onClick={() => { handleSignOut(); setShowMobileMenu(false); }} className="w-full text-left px-4 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition flex items-center gap-2">

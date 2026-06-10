@@ -1,5 +1,11 @@
 // Submit new organization for approval
 import { createClient } from '@supabase/supabase-js'
+import crypto from 'node:crypto'
+
+const secret = process.env.ADMIN_APPROVAL_SECRET || 'vex-approval-secret-changeme'
+function makeApprovalToken(orgId) {
+  return crypto.createHmac('sha256', secret).update(String(orgId)).digest('hex')
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -129,7 +135,12 @@ export default async function handler(req, res) {
         })
       }).catch(e => console.error('Failed to send confirmation email:', e))
 
-      // Notify admin
+      // Notify admin with one-click approve/reject buttons
+      const approvalToken = makeApprovalToken(newOrg.id)
+      const baseUrl = 'https://virtual-exchange.vercel.app'
+      const approveUrl = `${baseUrl}/api/approve-org?id=${newOrg.id}&token=${approvalToken}&action=approve`
+      const rejectUrl  = `${baseUrl}/api/approve-org?id=${newOrg.id}&token=${approvalToken}&action=reject`
+
       fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -138,16 +149,26 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           from: 'The Virtual Exchange <hello@thevirtualexchange.org>',
-          to: 'hello@mapworkslearning.org',
-          subject: `New Organization Submission: ${name}`,
+          to: 'chris@mapworkslearning.org',
+          subject: `New Org Submission: ${name}`,
           html: `
-            <h2>New Organization Submitted for Review</h2>
-            <p><strong>Organization:</strong> ${name}</p>
-            <p><strong>Type:</strong> ${type}</p>
-            <p><strong>Country:</strong> ${country}</p>
-            <p><strong>Submitted by:</strong> ${submitterName} (${submitterEmail})</p>
-            <p><strong>Role:</strong> ${submitterRole || 'Not specified'}</p>
-            <p>Review this submission in the Admin Panel.</p>
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+              <h2 style="color:#1f2937">New Organization Submitted</h2>
+              <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
+                <tr><td style="padding:8px 0;color:#6b7280;font-size:14px;width:140px">Organization</td><td style="padding:8px 0;font-weight:600">${name}</td></tr>
+                <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Type</td><td style="padding:8px 0">${type}</td></tr>
+                <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Country</td><td style="padding:8px 0">${country}${region ? ` / ${region}` : ''}</td></tr>
+                <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Website</td><td style="padding:8px 0">${website || '—'}</td></tr>
+                <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Email</td><td style="padding:8px 0">${email}</td></tr>
+                <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Submitted by</td><td style="padding:8px 0">${submitterName} · ${submitterEmail} · ${submitterRole || '—'}</td></tr>
+                ${description ? `<tr><td style="padding:8px 0;color:#6b7280;font-size:14px;vertical-align:top">Description</td><td style="padding:8px 0">${description}</td></tr>` : ''}
+              </table>
+              <div style="display:flex;gap:12px;margin:32px 0">
+                <a href="${approveUrl}" style="background:#16a34a;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block">✓ Approve</a>
+                <a href="${rejectUrl}"  style="background:#dc2626;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block;margin-left:12px">✗ Reject</a>
+              </div>
+              <p style="color:#9ca3af;font-size:12px">Clicking Approve or Reject instantly updates the listing and notifies the submitter.</p>
+            </div>
           `
         })
       }).catch(e => console.error('Failed to send admin notification:', e))
