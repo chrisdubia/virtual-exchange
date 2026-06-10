@@ -1,6 +1,6 @@
 // One-click org approval/rejection from admin email link
 import { createClient } from '@supabase/supabase-js'
-import crypto from 'node:crypto'
+import crypto from 'crypto'
 
 const secret = process.env.ADMIN_APPROVAL_SECRET || 'vex-approval-secret-changeme'
 
@@ -100,4 +100,3 @@ export default async function handler(req, res) {
   ))
 }
 
-export { makeToken }

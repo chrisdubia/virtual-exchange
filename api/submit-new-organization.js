@@ -1,6 +1,6 @@
 // Submit new organization for approval
 import { createClient } from '@supabase/supabase-js'
-import crypto from 'node:crypto'
+import crypto from 'crypto'
 
 const secret = process.env.ADMIN_APPROVAL_SECRET || 'vex-approval-secret-changeme'
 function makeApprovalToken(orgId) {
