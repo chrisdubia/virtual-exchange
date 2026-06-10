@@ -1433,13 +1433,18 @@ const VirtualExchangePlatform = () => {
       password: '',
       name: '',
       type: '',
+      category: '',
       country: '',
       region: '',
       website: '',
       email: '',
+      phone: '',
       role: '',
       capacity: '',
-      description: ''
+      description: '',
+      languages: '',
+      interests: '',
+      partnershipGoals: ''
     });
     const [verificationSubmitting, setVerificationSubmitting] = useState(false);
     const [verificationSuccess, setVerificationSuccess] = useState(false);
@@ -1486,18 +1491,26 @@ const VirtualExchangePlatform = () => {
           activeUser = signupData.user;
         }
 
+        const toArray = (s) => s ? s.split(',').map(x => x.trim()).filter(Boolean) : [];
+        const toLines = (s) => s ? s.split('\n').map(x => x.trim()).filter(Boolean) : [];
+
         const response = await fetch('/api/submit-new-organization', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: verificationForm.name,
             type: verificationForm.type,
+            category: verificationForm.category || verificationForm.type,
             country: verificationForm.country,
             region: verificationForm.region,
             website: verificationForm.website,
             email: verificationForm.email,
-            description: verificationForm.description || `Educational institution seeking verification`,
-            capacity: verificationForm.capacity ? parseInt(verificationForm.capacity) : null,
+            phone: verificationForm.phone,
+            description: verificationForm.description || 'Educational institution seeking verification',
+            capacity: verificationForm.capacity || null,
+            languages: toArray(verificationForm.languages),
+            interests: toArray(verificationForm.interests),
+            partnershipGoals: toLines(verificationForm.partnershipGoals),
             submitterName: verificationForm.firstName && verificationForm.lastName
               ? `${verificationForm.firstName} ${verificationForm.lastName}`
               : (activeUser?.user_metadata?.first_name && activeUser?.user_metadata?.last_name
@@ -1745,12 +1758,56 @@ const VirtualExchangePlatform = () => {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., +1 (202) 555-0100"
+                    value={verificationForm.phone}
+                    onChange={(e) => setVerificationForm({...verificationForm, phone: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Number of Students (Approximate)</label>
                   <input
-                    type="number"
-                    placeholder="e.g., 500"
+                    type="text"
+                    placeholder="e.g., 500 students annually"
                     value={verificationForm.capacity}
                     onChange={(e) => setVerificationForm({...verificationForm, capacity: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Languages Supported <span className="text-gray-400 font-normal">(comma-separated)</span></label>
+                  <input
+                    type="text"
+                    placeholder="e.g., English, Spanish, Arabic"
+                    value={verificationForm.languages}
+                    onChange={(e) => setVerificationForm({...verificationForm, languages: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Focus Areas <span className="text-gray-400 font-normal">(comma-separated)</span></label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Youth Leadership, Climate Action, STEM"
+                    value={verificationForm.interests}
+                    onChange={(e) => setVerificationForm({...verificationForm, interests: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Partnership Goals <span className="text-gray-400 font-normal">(one per line)</span></label>
+                  <textarea
+                    placeholder={"e.g., Cross-cultural collaboration\nJoint curriculum projects\nStudent mentoring"}
+                    value={verificationForm.partnershipGoals}
+                    onChange={(e) => setVerificationForm({...verificationForm, partnershipGoals: e.target.value})}
+                    rows={3}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
