@@ -95,8 +95,11 @@ export default async function handler(req, res) {
       .single()
 
     if (createError) {
-      console.error('Error creating organization:', createError)
-      return res.status(500).json({ error: 'Failed to submit organization' })
+      console.error('Error creating organization — message:', createError.message)
+      console.error('Error creating organization — code:', createError.code)
+      console.error('Error creating organization — details:', createError.details)
+      console.error('Error creating organization — hint:', createError.hint)
+      return res.status(500).json({ error: 'Failed to submit organization', detail: createError.message })
     }
 
     // Send confirmation email to submitter
