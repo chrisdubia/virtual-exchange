@@ -1379,7 +1379,12 @@ const VirtualExchangePlatform = () => {
                 />
               </button>
             </div>
-            {!org.claimed && (
+            {org.claimed ? (
+              <div className="w-full py-3 flex items-center justify-center gap-2 bg-green-50 border border-green-200 rounded-lg text-green-700 font-medium">
+                <CheckCircle size={16} />
+                Actively Managed
+              </div>
+            ) : (
               <button
                 type="button"
                 onClick={() => {
@@ -2062,7 +2067,12 @@ const VirtualExchangePlatform = () => {
             />
           </button>
         </div>
-        {!org.claimed && (
+        {org.claimed ? (
+          <div className="w-full py-2 flex items-center justify-center gap-1.5 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium">
+            <CheckCircle size={14} />
+            Actively Managed
+          </div>
+        ) : (
           <button
             type="button"
             onClick={() => {
