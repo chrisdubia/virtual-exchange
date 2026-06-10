@@ -6149,8 +6149,10 @@ const VirtualExchangePlatform = () => {
       if (res.ok) {
         setPendingOrgs(prev => prev.filter(o => o.id !== orgId));
         showToast(action === 'approve' ? 'Organization approved and now live.' : 'Organization rejected.');
+        if (action === 'approve') loadOrganizations();
       } else {
-        showToast('Something went wrong.', 'error');
+        const errData = await res.json().catch(() => ({}));
+        showToast('Something went wrong: ' + (errData.detail || errData.error || 'unknown error'), 'error');
       }
       setRejectingId(null);
       setRejectReason('');

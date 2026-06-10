@@ -53,11 +53,16 @@ export default async function handler(req, res) {
   }
 
   const approved = action === 'approve'
-  await supabase.from('organizations').update({
+  const { error: updateErr } = await supabase.from('organizations').update({
     approval_status: approved ? 'approved' : 'rejected',
     approved_at: approved ? new Date().toISOString() : null,
     approved_by: 'email-link'
   }).eq('id', orgId)
+
+  if (updateErr) {
+    console.error('Approval update failed:', updateErr)
+    return res.status(500).send(html('Error', `<h2>Update Failed</h2><p>Could not update organization status: ${updateErr.message}</p>`, '#dc2626'))
+  }
 
   // Notify submitter — must await before returning or Vercel kills the request
   const RESEND_API_KEY = process.env.RESEND_API_KEY
