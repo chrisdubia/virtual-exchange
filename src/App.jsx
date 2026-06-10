@@ -221,6 +221,7 @@ const VirtualExchangePlatform = () => {
   };
 
   useEffect(() => { loadOrganizations(); }, []);
+  useEffect(() => { if (activeTab === 'browse') loadOrganizations(); }, [activeTab]);
 
 
   // Organizations come from the DB. The hardcodedOrganizations module is now
