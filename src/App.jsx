@@ -1466,7 +1466,7 @@ const VirtualExchangePlatform = () => {
         const data = await response.json();
 
         if (!response.ok) {
-          setVerificationError(data.error || 'Failed to submit verification request');
+          setVerificationError((data.error || 'Failed to submit') + (data.detail ? `: ${data.detail}` : ''));
           return;
         }
 
