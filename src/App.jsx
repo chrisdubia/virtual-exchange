@@ -28,7 +28,7 @@ const VirtualExchangePlatform = () => {
   const [showNewUserWelcome, setShowNewUserWelcome] = useState(false);
   const [editOrgForm, setEditOrgForm] = useState({
     description: '', website: '', email: '', phone: '',
-    capacity: '', languages: '', interests: '', partnershipGoals: ''
+    capacity: '', languages: '', interests: '', partnershipGoals: '', programs: []
   });
   const [editOrgSubmitting, setEditOrgSubmitting] = useState(false);
   const [editOrgError, setEditOrgError] = useState('');
@@ -1999,7 +1999,7 @@ const VirtualExchangePlatform = () => {
               </button>
             )}
             {user?.id && org.claimed_by === user.id && (
-              <button type="button" onClick={() => { setEditOrgForm({ description: org.description || '', website: org.website || '', email: org.email || '', phone: org.phone || '', capacity: org.capacity || '', languages: (org.languages || []).join(', '), interests: (org.interests || []).join(', '), partnershipGoals: (org.partnershipGoals || []).join('\n') }); setEditOrgError(''); setShowEditOrgModal(true); }}
+              <button type="button" onClick={() => { setEditOrgForm({ description: org.description || '', website: org.website || '', email: org.email || '', phone: org.phone || '', capacity: org.capacity || '', languages: (org.languages || []).join(', '), interests: (org.interests || []).join(', '), partnershipGoals: (org.partnershipGoals || []).join('\n'), programs: Array.isArray(org.programs) ? org.programs : [] }); setEditOrgError(''); setShowEditOrgModal(true); }}
                 className="w-full py-2.5 border border-blue-400 bg-blue-50 text-blue-800 rounded-lg font-semibold hover:bg-blue-100 transition text-sm">
                 Edit Organization Profile
               </button>
@@ -6230,7 +6230,8 @@ const VirtualExchangePlatform = () => {
           capacity: editOrgForm.capacity,
           languages: toArray(editOrgForm.languages),
           interests: toArray(editOrgForm.interests),
-          partnership_goals: toLines(editOrgForm.partnershipGoals)
+          partnership_goals: toLines(editOrgForm.partnershipGoals),
+          programs: editOrgForm.programs
         }).eq('id', selectedOrg.id);
         if (error) throw error;
         await loadOrganizations();
@@ -6298,6 +6299,73 @@ const VirtualExchangePlatform = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
+            {/* Programs */}
+            <div className="border-t border-gray-100 pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-sm font-medium text-gray-700">Programs</label>
+                <button type="button"
+                  onClick={() => setEditOrgForm(f => ({ ...f, programs: [...f.programs, { name: '', description: '', status: 'current', duration: '', participants: '', technology: '', cost: '', applicationDeadline: '' }] }))}
+                  className="text-xs px-3 py-1 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition">
+                  + Add Program
+                </button>
+              </div>
+              {editOrgForm.programs.length === 0 && (
+                <p className="text-sm text-gray-400 italic">No programs yet — click "Add Program" to list what you offer.</p>
+              )}
+              <div className="space-y-4">
+                {editOrgForm.programs.map((prog, i) => {
+                  const update = (field, val) => setEditOrgForm(f => { const p = [...f.programs]; p[i] = { ...p[i], [field]: val }; return { ...f, programs: p }; });
+                  return (
+                    <div key={i} className="bg-gray-50 border border-gray-200 rounded-xl p-4 relative">
+                      <button type="button" onClick={() => setEditOrgForm(f => ({ ...f, programs: f.programs.filter((_, j) => j !== i) }))}
+                        className="absolute top-2 right-2 text-gray-400 hover:text-red-500"><X size={15} /></button>
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs text-gray-500 mb-1 block">Program Name *</label>
+                            <input value={prog.name} onChange={e => update('name', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="Youth Climate Exchange" />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-500 mb-1 block">Status</label>
+                            <select value={prog.status} onChange={e => update('status', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400">
+                              <option value="current">Open Now</option>
+                              <option value="upcoming">Upcoming</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">Description</label>
+                          <textarea value={prog.description} onChange={e => update('description', e.target.value)} rows={2} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs text-gray-500 mb-1 block">Duration</label>
+                            <input value={prog.duration} onChange={e => update('duration', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="8 weeks" />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-500 mb-1 block">Participants</label>
+                            <input value={prog.participants} onChange={e => update('participants', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="Ages 14–18" />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-500 mb-1 block">Technology</label>
+                            <input value={prog.technology} onChange={e => update('technology', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="Zoom, Google Meet" />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-500 mb-1 block">Cost</label>
+                            <input value={prog.cost} onChange={e => update('cost', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="Free" />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">Application Deadline</label>
+                          <input value={prog.applicationDeadline} onChange={e => update('applicationDeadline', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="March 15, 2026" />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="flex gap-3 pt-2">
               <button type="submit" disabled={editOrgSubmitting} className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50">
                 {editOrgSubmitting ? 'Saving...' : 'Save Changes'}
