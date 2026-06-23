@@ -263,9 +263,11 @@ const VirtualExchangePlatform = () => {
       }));
 
       setOrganizationsFromDB(transformed);
+      return transformed;
     } catch (error) {
       console.error('Error loading organizations:', error);
       setOrganizationsFromDB([]);
+      return [];
     } finally {
       setLoadingOrganizations(false);
     }
@@ -1629,8 +1631,17 @@ const VirtualExchangePlatform = () => {
                       <input value={composerResGrade} onChange={e => setComposerResGrade(e.target.value)} placeholder="Grade / Year level (e.g. 6–10)"
                         className="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
                     </div>
-                    <input value={composerResLicense} onChange={e => setComposerResLicense(e.target.value)} placeholder="License (e.g. CC BY 4.0)"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                    <select value={composerResLicense} onChange={e => setComposerResLicense(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700">
+                      <option value="">License (optional)</option>
+                      <option value="CC BY 4.0">CC BY 4.0 — Credit required, free to adapt</option>
+                      <option value="CC BY-SA 4.0">CC BY-SA 4.0 — Credit + share alike</option>
+                      <option value="CC BY-NC 4.0">CC BY-NC 4.0 — Non-commercial only</option>
+                      <option value="CC BY-NC-SA 4.0">CC BY-NC-SA 4.0 — Non-commercial, share alike</option>
+                      <option value="CC BY-ND 4.0">CC BY-ND 4.0 — No derivatives</option>
+                      <option value="CC BY-NC-ND 4.0">CC BY-NC-ND 4.0 — Non-commercial, no derivatives</option>
+                      <option value="CC0 1.0">CC0 1.0 — Public domain</option>
+                    </select>
                     <div className="flex gap-2 items-center">
                       <input value={composerResUrl} onChange={e => setComposerResUrl(e.target.value)} placeholder="Paste a link, or upload a file →"
                         className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm" />
@@ -1639,11 +1650,15 @@ const VirtualExchangePlatform = () => {
                         <input type="file" className="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.mp4,.mov"
                           onChange={async e => {
                             const file = e.target.files?.[0]; if (!file) return;
-                            const path = `journey/${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
-                            const { error } = await supabase.storage.from('journey-resources').upload(path, file, { upsert: false });
-                            if (error) { alert('Upload failed: ' + error.message); return; }
-                            const { data } = supabase.storage.from('journey-resources').getPublicUrl(path);
-                            setComposerResUrl(data.publicUrl);
+                            const r = await fetch('/api/journey', {
+                              method: 'POST', headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ action: 'get-upload-url', filename: file.name, userId: user?.id })
+                            });
+                            const d = await r.json();
+                            if (!r.ok) { alert('Upload failed: ' + (d.error || 'Unknown error')); return; }
+                            const uploadRes = await fetch(d.signedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+                            if (!uploadRes.ok) { alert('Upload failed: could not upload file'); return; }
+                            setComposerResUrl(d.publicUrl);
                             if (!composerResTitle) setComposerResTitle(file.name.replace(/\.[^.]+$/, ''));
                           }}
                         />
@@ -6299,7 +6314,9 @@ const VirtualExchangePlatform = () => {
           programs: editOrgForm.programs
         }).eq('id', selectedOrg.id);
         if (error) throw error;
-        await loadOrganizations();
+        const fresh = await loadOrganizations();
+        const freshOrg = fresh?.find(o => o.id === selectedOrg.id);
+        if (freshOrg) setSelectedOrg(freshOrg);
         setShowEditOrgModal(false);
       } catch (err) {
         console.error('Edit org error:', err);

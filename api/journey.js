@@ -268,5 +268,16 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true })
   }
 
+  if (action === 'get-upload-url') {
+    const { filename, userId } = req.body
+    if (!userId || !filename) return res.status(400).json({ error: 'Missing fields' })
+    const safe = filename.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '')
+    const path = `journey/${Date.now()}-${safe}`
+    const { data, error } = await supabase.storage.from('journey-resources').createSignedUploadUrl(path)
+    if (error) return res.status(500).json({ error: error.message })
+    const { data: pub } = supabase.storage.from('journey-resources').getPublicUrl(path)
+    return res.status(200).json({ signedUrl: data.signedUrl, path, publicUrl: pub.publicUrl })
+  }
+
   return res.status(400).json({ error: 'Unknown action' })
 }
