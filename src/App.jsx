@@ -1878,7 +1878,7 @@ const VirtualExchangePlatform = () => {
           <div className="relative flex-1 min-h-0">
             <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none rounded-none" />
             <div
-              className="h-full overflow-y-auto px-6 py-5"
+              className="org-modal-scroll h-full overflow-y-auto px-6 py-5"
               style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(156,163,175,0.4) transparent', WebkitOverflowScrolling: 'touch' }}
             >
               <style>{`
@@ -1977,8 +1977,8 @@ const VirtualExchangePlatform = () => {
             <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none" />
           </div>
 
-          {/* PINNED: Footer actions */}
-          <div className="flex-shrink-0 border-t border-gray-100 px-5 py-4 bg-gray-50 rounded-b-2xl space-y-2">
+          {/* PINNED: Footer actions — hidden on Journey tab (has its own action row) */}
+          {profileTab !== 'journey' && <div className="flex-shrink-0 border-t border-gray-100 px-5 py-4 bg-gray-50 rounded-b-2xl space-y-2">
             <div className="flex gap-2">
               {user?.id !== org.claimed_by && (
                 <button type="button" onClick={() => { setSelectedOrgForRequest(org); setShowIntroductionRequestModal(true); close(); }}
@@ -2004,7 +2004,7 @@ const VirtualExchangePlatform = () => {
                 Edit Organization Profile
               </button>
             )}
-          </div>
+          </div>}
         </div>
       </div>
     );
