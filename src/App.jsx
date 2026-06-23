@@ -4,6 +4,55 @@ import { supabase } from './supabaseClient';
 import imageCompression from 'browser-image-compression';
 import { hardcodedOrganizations } from './data/organizations';
 
+// Module-level component so React never remounts it on parent re-render
+const ProgramsEditor = ({ programs, onChange }) => {
+  const add = () => onChange([...programs, { name: '', description: '', status: 'current', duration: '', participants: '', technology: '', cost: '', applicationDeadline: '' }]);
+  const remove = (i) => onChange(programs.filter((_, j) => j !== i));
+  const update = (i, field, val) => { const p = programs.map((prog, j) => j === i ? { ...prog, [field]: val } : prog); onChange(p); };
+  return (
+    <div className="border-t border-gray-100 pt-4">
+      <div className="flex items-center justify-between mb-3">
+        <label className="text-sm font-medium text-gray-700">Programs</label>
+        <button type="button" onClick={add} className="text-xs px-3 py-1 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition">+ Add Program</button>
+      </div>
+      {programs.length === 0 && <p className="text-sm text-gray-400 italic">No programs yet — click "Add Program" to list what you offer.</p>}
+      <div className="space-y-4">
+        {programs.map((prog, i) => (
+          <div key={i} className="bg-gray-50 border border-gray-200 rounded-xl p-4 relative">
+            <button type="button" onClick={() => remove(i)} className="absolute top-2 right-2 text-gray-400 hover:text-red-500"><X size={15} /></button>
+            <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block">Program Name *</label>
+                  <input value={prog.name} onChange={e => update(i, 'name', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="Youth Climate Exchange" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block">Status</label>
+                  <select value={prog.status} onChange={e => update(i, 'status', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400">
+                    <option value="current">Open Now</option>
+                    <option value="upcoming">Upcoming</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Description</label>
+                <textarea value={prog.description} onChange={e => update(i, 'description', e.target.value)} rows={2} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-xs text-gray-500 mb-1 block">Duration</label><input value={prog.duration} onChange={e => update(i, 'duration', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="8 weeks" /></div>
+                <div><label className="text-xs text-gray-500 mb-1 block">Participants</label><input value={prog.participants} onChange={e => update(i, 'participants', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="Ages 14–18" /></div>
+                <div><label className="text-xs text-gray-500 mb-1 block">Technology</label><input value={prog.technology} onChange={e => update(i, 'technology', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="Zoom, Google Meet" /></div>
+                <div><label className="text-xs text-gray-500 mb-1 block">Cost</label><input value={prog.cost} onChange={e => update(i, 'cost', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="Free" /></div>
+              </div>
+              <div><label className="text-xs text-gray-500 mb-1 block">Application Deadline</label><input value={prog.applicationDeadline} onChange={e => update(i, 'applicationDeadline', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="March 15, 2026" /></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const VirtualExchangePlatform = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -1582,8 +1631,24 @@ const VirtualExchangePlatform = () => {
                     </div>
                     <input value={composerResLicense} onChange={e => setComposerResLicense(e.target.value)} placeholder="License (e.g. CC BY 4.0)"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                    <input value={composerResUrl} onChange={e => setComposerResUrl(e.target.value)} placeholder="Download URL"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                    <div className="flex gap-2 items-center">
+                      <input value={composerResUrl} onChange={e => setComposerResUrl(e.target.value)} placeholder="Paste a link, or upload a file →"
+                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                      <label className="shrink-0 cursor-pointer flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
+                        <Upload size={14} /> Upload
+                        <input type="file" className="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.mp4,.mov"
+                          onChange={async e => {
+                            const file = e.target.files?.[0]; if (!file) return;
+                            const path = `journey/${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
+                            const { error } = await supabase.storage.from('journey-resources').upload(path, file, { upsert: false });
+                            if (error) { alert('Upload failed: ' + error.message); return; }
+                            const { data } = supabase.storage.from('journey-resources').getPublicUrl(path);
+                            setComposerResUrl(data.publicUrl);
+                            if (!composerResTitle) setComposerResTitle(file.name.replace(/\.[^.]+$/, ''));
+                          }}
+                        />
+                      </label>
+                    </div>
                   </div>
                 )}
                 {composerFilter && !composerFilter.ok && (
@@ -6299,72 +6364,10 @@ const VirtualExchangePlatform = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
-            {/* Programs */}
-            <div className="border-t border-gray-100 pt-4">
-              <div className="flex items-center justify-between mb-3">
-                <label className="text-sm font-medium text-gray-700">Programs</label>
-                <button type="button"
-                  onClick={() => setEditOrgForm(f => ({ ...f, programs: [...f.programs, { name: '', description: '', status: 'current', duration: '', participants: '', technology: '', cost: '', applicationDeadline: '' }] }))}
-                  className="text-xs px-3 py-1 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition">
-                  + Add Program
-                </button>
-              </div>
-              {editOrgForm.programs.length === 0 && (
-                <p className="text-sm text-gray-400 italic">No programs yet — click "Add Program" to list what you offer.</p>
-              )}
-              <div className="space-y-4">
-                {editOrgForm.programs.map((prog, i) => {
-                  const update = (field, val) => setEditOrgForm(f => { const p = [...f.programs]; p[i] = { ...p[i], [field]: val }; return { ...f, programs: p }; });
-                  return (
-                    <div key={i} className="bg-gray-50 border border-gray-200 rounded-xl p-4 relative">
-                      <button type="button" onClick={() => setEditOrgForm(f => ({ ...f, programs: f.programs.filter((_, j) => j !== i) }))}
-                        className="absolute top-2 right-2 text-gray-400 hover:text-red-500"><X size={15} /></button>
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-xs text-gray-500 mb-1 block">Program Name *</label>
-                            <input value={prog.name} onChange={e => update('name', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="Youth Climate Exchange" />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-500 mb-1 block">Status</label>
-                            <select value={prog.status} onChange={e => update('status', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400">
-                              <option value="current">Open Now</option>
-                              <option value="upcoming">Upcoming</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-500 mb-1 block">Description</label>
-                          <textarea value={prog.description} onChange={e => update('description', e.target.value)} rows={2} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-xs text-gray-500 mb-1 block">Duration</label>
-                            <input value={prog.duration} onChange={e => update('duration', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="8 weeks" />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-500 mb-1 block">Participants</label>
-                            <input value={prog.participants} onChange={e => update('participants', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="Ages 14–18" />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-500 mb-1 block">Technology</label>
-                            <input value={prog.technology} onChange={e => update('technology', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="Zoom, Google Meet" />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-500 mb-1 block">Cost</label>
-                            <input value={prog.cost} onChange={e => update('cost', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="Free" />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-500 mb-1 block">Application Deadline</label>
-                          <input value={prog.applicationDeadline} onChange={e => update('applicationDeadline', e.target.value)} className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="March 15, 2026" />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <ProgramsEditor
+              programs={editOrgForm.programs}
+              onChange={progs => setEditOrgForm(f => ({ ...f, programs: progs }))}
+            />
 
             <div className="flex gap-3 pt-2">
               <button type="submit" disabled={editOrgSubmitting} className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50">
