@@ -1896,7 +1896,7 @@ const VirtualExchangePlatform = () => {
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={close}>
-        <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col overflow-hidden" style={{ maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
+        <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col overflow-hidden" style={{ maxHeight: '90vh', minHeight: '60vh' }} onClick={e => e.stopPropagation()}>
 
           {/* PINNED: Header */}
           <div className="flex-shrink-0 px-6 pt-5 pb-3">
@@ -8137,7 +8137,7 @@ const VirtualExchangePlatform = () => {
       {showIntroductionRequestModal && selectedOrgForRequest && <IntroductionRequestModal />}
       {showFavoritesModal && <FavoritesModal />}
       {showClaimProfileModal && selectedOrgForRequest && <ClaimProfileModal />}
-      {showEditOrgModal && selectedOrg && <EditOrgModal />}
+      {showEditOrgModal && selectedOrg && EditOrgModal()}
       {showNewUserWelcome && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl">
