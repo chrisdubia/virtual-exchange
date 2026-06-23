@@ -1940,10 +1940,10 @@ const VirtualExchangePlatform = () => {
           </div>
 
           {/* SCROLLABLE: Body with top/bottom fade masks */}
-          <div className="relative flex-1 min-h-0">
-            <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none rounded-none" />
+          <div className="relative flex-1 overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none" />
             <div
-              className="org-modal-scroll h-full overflow-y-auto px-6 py-5"
+              className="org-modal-scroll absolute inset-0 overflow-y-auto px-6 py-5"
               style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(156,163,175,0.4) transparent', WebkitOverflowScrolling: 'touch' }}
             >
               <style>{`
