@@ -83,6 +83,8 @@ const VirtualExchangePlatform = () => {
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const [organizationsFromDB, setOrganizationsFromDB] = useState([]);
   const [loadingOrganizations, setLoadingOrganizations] = useState(true);
+  const [snapshotPrefill, setSnapshotPrefill] = useState(null);
+  const [funderToken, setFunderToken] = useState(null);
 
   const aiSearchRef = useRef(null);
 
@@ -222,6 +224,13 @@ const VirtualExchangePlatform = () => {
 
   useEffect(() => { loadOrganizations(); }, []);
   useEffect(() => { if (activeTab === 'browse') loadOrganizations(); }, [activeTab]);
+
+  // Detect funder token in URL on mount (?funder=TOKEN)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get('funder');
+    if (t) { setFunderToken(t); setActiveTab('funder-journey'); }
+  }, []);
 
 
   // Organizations come from the DB. The hardcodedOrganizations module is now
@@ -1073,291 +1082,925 @@ const VirtualExchangePlatform = () => {
     );
   };
 
-  // Organization Profile Modal - Shows full organization details including programs
-  const OrganizationProfileModal = ({ org }) => {
-    if (!org) return null;
+  // ── JOURNEY TRACKER COMPONENTS ──────────────────────────────────────────
 
-    const gradeLabel = getGradeLabel(org);
+  const StatusPill = ({ status, currentWeek, totalWeeks }) => {
+    if (status === 'live') {
+      const wk = currentWeek && totalWeeks ? ` · week ${currentWeek} of ${totalWeeks}` : '';
+      return (
+        <span className="inline-flex items-center gap-1.5 text-xs text-green-700 bg-green-100 px-2.5 py-1 rounded-md font-medium whitespace-nowrap">
+          <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse flex-shrink-0" />
+          Live{wk}
+        </span>
+      );
+    }
+    if (status === 'completed') return <span className="text-xs text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md font-medium">Completed</span>;
+    return <span className="text-xs text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md font-medium">Planning</span>;
+  };
+
+  const screenText = (text) => {
+    if (!text) return { ok: true, reasons: [] };
+    const reasons = [];
+    const EMAIL_RE = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/;
+    const PHONE_RE = /(\+?1[\s\-.]?)?\(?\d{3}\)?[\s\-.]?\d{3}[\s\-.]?\d{4}/;
+    const MINOR_RE = /\b[A-Z][a-z]+\s+[A-Z][a-z]+\b.{0,50}\b(student|age\s+\d{1,2}|year[\s-]old|\d{1,2}[\s-]year)/i;
+    const PROFANITY = ['fuck','shit','bitch','asshole','bastard','cunt','dick','nigger','nigga','spic','kike','faggot','fag','retard','slut','whore'];
+    for (const w of PROFANITY) { if (new RegExp(`\\b${w}\\b`, 'i').test(text)) { reasons.push('profanity or slur'); break; } }
+    if (EMAIL_RE.test(text)) reasons.push('email address');
+    if (PHONE_RE.test(text)) reasons.push('phone number');
+    if (MINOR_RE.test(text)) reasons.push('possible student full name');
+    return { ok: reasons.length === 0, reasons };
+  };
+
+  const ExchangeJourneyView = ({ exchange: initialExchange, org, userRole, onBack, onRefresh }) => {
+    const [exchange, setExchange] = React.useState(initialExchange);
+    const [entries, setEntries] = React.useState([]);
+    const [orgs, setOrgs] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [expandOrgs, setExpandOrgs] = React.useState(false);
+    const [showComposer, setShowComposer] = React.useState(false);
+    const [showAddOrg, setShowAddOrg] = React.useState(false);
+    const [showMetrics, setShowMetrics] = React.useState(false);
+    const [showFunderDialog, setShowFunderDialog] = React.useState(false);
+    const [funderLink, setFunderLink] = React.useState('');
+    const [generatingToken, setGeneratingToken] = React.useState(false);
+    const [editingEntry, setEditingEntry] = React.useState(null);
+    const [composerTitle, setComposerTitle] = React.useState('');
+    const [composerBody, setComposerBody] = React.useState('');
+    const [composerLabel, setComposerLabel] = React.useState('');
+    const [composerType, setComposerType] = React.useState('milestone');
+    const [composerState, setComposerState] = React.useState('done');
+    const [composerPublic, setComposerPublic] = React.useState(true);
+    const [composerResUrl, setComposerResUrl] = React.useState('');
+    const [composerResTitle, setComposerResTitle] = React.useState('');
+    const [composerResType, setComposerResType] = React.useState('');
+    const [composerResLicense, setComposerResLicense] = React.useState('');
+    const [composerResGrade, setComposerResGrade] = React.useState('');
+    const [composerFilter, setComposerFilter] = React.useState(null);
+    const [composerPosting, setComposerPosting] = React.useState(false);
+    const [composerError, setComposerError] = React.useState('');
+    const [metricsForm, setMetricsForm] = React.useState({});
+    const [metricsSaving, setMetricsSaving] = React.useState(false);
+    const [addOrgSearch, setAddOrgSearch] = React.useState('');
+    const [addOrgRole, setAddOrgRole] = React.useState('participant');
+    const [addOrgResult, setAddOrgResult] = React.useState(null);
+    const [addOrgSending, setAddOrgSending] = React.useState(false);
+    const [addOrgError, setAddOrgError] = React.useState('');
+    const [addOrgSuccess, setAddOrgSuccess] = React.useState('');
+
+    const isCoOrganizer = userRole === 'co_organizer';
+    const confirmedOrgs = orgs.filter(o => o.confirmed);
+    const multiCoOrg = orgs.filter(o => o.role === 'co_organizer' && o.confirmed).length > 1;
+    const CHIP_LIMIT = 4;
+
+    const loadData = React.useCallback(async () => {
+      setLoading(true);
+      try {
+        const r = await fetch(`/api/journey?exchangeId=${exchange.id}`);
+        const d = await r.json();
+        if (d.exchange) {
+          setExchange(d.exchange);
+          setMetricsForm({
+            studentsReached: d.exchange.students_reached || 0,
+            teachersReached: d.exchange.teachers_reached || 0,
+            schoolsCount: d.exchange.schools_count || 0,
+            countriesCount: d.exchange.countries_count || 0,
+            reuseCount: d.exchange.reuse_count || 0,
+            facilitatorCount: d.exchange.facilitator_count || '',
+            facilitatorOrg: d.exchange.facilitator_org || '',
+            currentWeek: d.exchange.current_week || '',
+            totalWeeks: d.exchange.total_weeks || ''
+          });
+        }
+        setEntries(d.entries || []);
+        setOrgs(d.orgs || []);
+      } catch (e) { console.error('Journey load error:', e); }
+      setLoading(false);
+    }, [exchange.id]);
+
+    React.useEffect(() => { loadData(); }, [loadData]);
+
+    const postEntry = async (confirmed = false) => {
+      setComposerError('');
+      const check = screenText([composerTitle, composerBody].filter(Boolean).join(' '));
+      if (!check.ok && !confirmed) { setComposerFilter(check); return; }
+      setComposerPosting(true);
+      const payload = {
+        action: editingEntry ? 'edit-entry' : 'post-entry',
+        userId: user?.id, orgId: org.id, exchangeId: exchange.id,
+        type: composerType, label: composerLabel, title: composerTitle, body: composerBody,
+        state: composerState, isPublic: composerPublic,
+        resourceUrl: composerResUrl, resourceTitle: composerResTitle,
+        resourceType: composerResType, resourceLicense: composerResLicense,
+        resourceGradeRange: composerResGrade
+      };
+      if (editingEntry) payload.entryId = editingEntry.id;
+      const r = await fetch('/api/journey', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const d = await r.json();
+      if (!r.ok) { setComposerError(d.error || 'Failed to post'); setComposerPosting(false); return; }
+      resetComposer();
+      await loadData();
+      setComposerPosting(false);
+    };
+
+    const resetComposer = () => {
+      setShowComposer(false); setEditingEntry(null);
+      setComposerTitle(''); setComposerBody(''); setComposerLabel('');
+      setComposerType('milestone'); setComposerState('done'); setComposerPublic(true);
+      setComposerResUrl(''); setComposerResTitle(''); setComposerResType('');
+      setComposerResLicense(''); setComposerResGrade(''); setComposerFilter(null); setComposerError('');
+    };
+
+    const openEdit = (entry) => {
+      setEditingEntry(entry); setComposerType(entry.type); setComposerLabel(entry.label || '');
+      setComposerTitle(entry.title); setComposerBody(entry.body || ''); setComposerState(entry.state);
+      setComposerPublic(entry.is_public); setComposerResUrl(entry.resource_url || '');
+      setComposerResTitle(entry.resource_title || ''); setComposerResType(entry.resource_type || '');
+      setComposerResLicense(entry.resource_license || ''); setComposerResGrade(entry.resource_grade_range || '');
+      setComposerFilter(null); setComposerError(''); setShowComposer(true);
+    };
+
+    const deleteEntry = async (entryId) => {
+      if (!window.confirm('Delete this entry?')) return;
+      await fetch('/api/journey', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete-entry', userId: user?.id, orgId: org.id, exchangeId: exchange.id, entryId }) });
+      await loadData();
+    };
+
+    const saveMetrics = async () => {
+      setMetricsSaving(true);
+      await fetch('/api/journey', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update-metrics', userId: user?.id, orgId: org.id, exchangeId: exchange.id, metrics: metricsForm }) });
+      await loadData(); setShowMetrics(false); setMetricsSaving(false);
+    };
+
+    const searchOrgForInvite = (name) => {
+      if (!name.trim()) { setAddOrgResult(null); return; }
+      const found = organizations.find(o => o.name.toLowerCase().includes(name.toLowerCase()) && o.id !== org.id);
+      setAddOrgResult(found || false);
+    };
+
+    const sendInvite = async () => {
+      if (!addOrgResult) { setAddOrgError('Please select a valid organization'); return; }
+      setAddOrgSending(true); setAddOrgError('');
+      const r = await fetch('/api/journey', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'invite-org', userId: user?.id, inviterOrgId: org.id, invitedOrgId: addOrgResult.id, exchangeId: exchange.id, role: addOrgRole }) });
+      const d = await r.json();
+      if (!r.ok) { setAddOrgError(d.error || 'Failed to send invite'); }
+      else { setAddOrgSuccess(`Invite sent to ${addOrgResult.name}!`); setAddOrgSearch(''); setAddOrgResult(null); await loadData(); }
+      setAddOrgSending(false);
+    };
+
+    const genFunderToken = async () => {
+      setGeneratingToken(true);
+      const r = await fetch('/api/journey', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'gen-funder-token', userId: user?.id, orgId: org.id, exchangeId: exchange.id }) });
+      const d = await r.json();
+      if (r.ok) setFunderLink(`${window.location.origin}/?funder=${d.token}`);
+      setGeneratingToken(false);
+    };
+
+    const goToSnapshot = () => {
+      const quotes = entries.filter(e => e.type === 'quote').slice(0, 3);
+      setSnapshotPrefill({
+        programName: exchange.name, organizationName: org.name,
+        totalParticipants: String(exchange.students_reached || ''),
+        partnerCountries: confirmedOrgs.filter(o => o.org?.id !== org.id).map(o => o.org?.country).filter(Boolean).join(', '),
+        sessionsCompleted: String(entries.filter(e => e.type === 'milestone').length),
+        studentQuote1: quotes[0]?.body || '', studentQuote2: quotes[1]?.body || '', studentQuote3: quotes[2]?.body || ''
+      });
+      setShowProfileModal(false); setSelectedOrg(null); setActiveTab('impact-snapshot');
+    };
+
+    if (loading) return <div className="flex items-center justify-center py-14"><div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
+
+    const visibleOrgs = expandOrgs ? confirmedOrgs : confirmedOrgs.slice(0, CHIP_LIMIT);
+    const hiddenCount = confirmedOrgs.length - CHIP_LIMIT;
 
     return (
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto"
-        onClick={() => { setShowProfileModal(false); setSelectedOrg(null); }}
-      >
-        <div
-          className="bg-white rounded-2xl max-w-4xl w-full my-8 shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h2 className="text-3xl font-bold text-gray-900">{org.name}</h2>
-                  {org.verified && (
-                    <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
-                      <CheckCircle size={16} />
-                      <span className="text-sm font-semibold">Verified Profile</span>
-                    </div>
-                  )}
+      <div className="pb-6 space-y-5">
+        {onBack && (
+          <button type="button" onClick={onBack} className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 -mt-1">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+            All exchanges
+          </button>
+        )}
+
+        {/* Header */}
+        <div>
+          <div className="flex items-center gap-3 flex-wrap mb-1">
+            <h3 className="text-lg font-semibold text-gray-900">{exchange.name}</h3>
+            <StatusPill status={exchange.status} currentWeek={exchange.current_week} totalWeeks={exchange.total_weeks} />
+          </div>
+          {confirmedOrgs.filter(o => o.role === 'co_organizer').length > 1 && (
+            <p className="text-sm text-gray-500">Organized by {confirmedOrgs.filter(o => o.role === 'co_organizer').map(o => o.org?.name).filter(Boolean).join(' & ')}</p>
+          )}
+          {exchange.summary && <p className="text-sm text-gray-600 mt-1">{exchange.summary}</p>}
+        </div>
+
+        {/* Participating orgs */}
+        {confirmedOrgs.length > 0 && (
+          <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+            <p className="text-sm text-gray-500 mb-2">Schools or orgs taking part</p>
+            <div className="flex gap-2 flex-wrap">
+              {visibleOrgs.map(eo => (
+                <span key={eo.id} className="text-sm text-blue-700 bg-blue-50 px-3 py-1.5 rounded-md">
+                  {eo.org?.name}{eo.org?.country ? ` · ${eo.org.country}` : ''}
+                </span>
+              ))}
+              {!expandOrgs && hiddenCount > 0 && (
+                <button type="button" onClick={() => setExpandOrgs(true)} className="text-sm text-gray-600 bg-white border border-gray-200 px-3 py-1.5 rounded-md hover:bg-gray-50">
+                  +{hiddenCount} more
+                </button>
+              )}
+            </div>
+            {isCoOrganizer && orgs.filter(o => !o.confirmed).length > 0 && (
+              <p className="text-xs text-gray-400 mt-2">{orgs.filter(o => !o.confirmed).length} invite(s) pending acceptance</p>
+            )}
+          </div>
+        )}
+
+        {/* Metric cards */}
+        <div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
+            {[
+              ['Students reached', exchange.students_reached],
+              ['Teachers reached', exchange.teachers_reached],
+              ['Schools · countries', (exchange.schools_count || exchange.countries_count) ? `${exchange.schools_count ?? '—'} · ${exchange.countries_count ?? '—'}` : '—'],
+              ['Free resources made', entries.filter(e => e.type === 'resource').length],
+              ['Times reused', exchange.reuse_count]
+            ].map(([label, value]) => (
+              <div key={label} className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs text-gray-500">{label}</p>
+                <p className="text-xl font-semibold mt-0.5">{value ?? '—'}</p>
+              </div>
+            ))}
+            {isCoOrganizer && (
+              <button type="button" onClick={() => setShowMetrics(!showMetrics)}
+                className="bg-gray-50 rounded-lg p-3 text-left border-2 border-dashed border-gray-200 hover:bg-gray-100 transition">
+                <p className="text-xs text-gray-500">Update metrics</p>
+                <p className="text-lg font-semibold mt-0.5 text-blue-600">✎ Edit</p>
+              </button>
+            )}
+          </div>
+          {(exchange.facilitator_count > 0) && (
+            <p className="text-sm text-gray-500">Facilitated by {exchange.facilitator_count} trained facilitators{exchange.facilitator_org ? ` from ${exchange.facilitator_org}` : ''}.</p>
+          )}
+        </div>
+
+        {/* Metrics editor */}
+        {showMetrics && isCoOrganizer && (
+          <div className="border border-gray-200 rounded-xl p-4 bg-gray-50 space-y-3">
+            <h4 className="font-medium text-gray-900 text-sm">Update metrics</h4>
+            <div className="grid grid-cols-2 gap-3">
+              {[['studentsReached','Students reached'],['teachersReached','Teachers reached'],['schoolsCount','Schools'],['countriesCount','Countries'],['reuseCount','Times reused']].map(([k, l]) => (
+                <div key={k}>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{l}</label>
+                  <input type="number" min="0" value={metricsForm[k] || ''} onChange={e => setMetricsForm(p => ({ ...p, [k]: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm" />
                 </div>
-                <div className="flex items-center gap-3 text-sm text-gray-600 flex-wrap">
-                  <span className="flex items-center gap-1">
-                    <Globe size={16} />
-                    {org.country}
-                  </span>
-                  <span>•</span>
-                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm font-medium">
-                    {gradeLabel}
-                  </span>
-                  {org.students && (
-                    <>
-                      <span>•</span>
-                      <span>{org.students.toLocaleString()} students</span>
-                    </>
-                  )}
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Facilitator count</label>
+                <input type="number" min="0" value={metricsForm.facilitatorCount || ''} onChange={e => setMetricsForm(p => ({ ...p, facilitatorCount: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Facilitator org</label>
+                <input value={metricsForm.facilitatorOrg || ''} onChange={e => setMetricsForm(p => ({ ...p, facilitatorOrg: e.target.value }))} placeholder="e.g. MapWorks Learning" className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Current week</label>
+                <input type="number" min="1" value={metricsForm.currentWeek || ''} onChange={e => setMetricsForm(p => ({ ...p, currentWeek: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Total weeks</label>
+                <input type="number" min="1" value={metricsForm.totalWeeks || ''} onChange={e => setMetricsForm(p => ({ ...p, totalWeeks: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm" />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button type="button" onClick={saveMetrics} disabled={metricsSaving}
+                className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition">
+                {metricsSaving ? 'Saving…' : 'Save metrics'}
+              </button>
+              <button type="button" onClick={() => setShowMetrics(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* Timeline */}
+        <div>
+          <h4 className="font-semibold text-gray-900 mb-4">The journey so far</h4>
+          {entries.length === 0 ? (
+            <p className="text-sm text-gray-400 italic">{isCoOrganizer ? 'No entries yet — add the first update below.' : 'No entries yet.'}</p>
+          ) : (
+            <div className="relative pl-6">
+              <div className="absolute left-[7px] top-1.5 bottom-1.5 w-0.5 bg-gray-200" />
+              {entries.map((entry, idx) => {
+                const isKickoff = idx === entries.length - 1;
+                const nodeClass = isKickoff
+                  ? 'w-3.5 h-3.5 rounded-full bg-gray-300 border-[2.5px] border-white'
+                  : entry.state === 'in_progress'
+                    ? 'w-3.5 h-3.5 rounded-full bg-green-100 ring-2 ring-green-500 border-[2.5px] border-white'
+                    : 'w-3.5 h-3.5 rounded-full bg-blue-600 border-[2.5px] border-white';
+                const postedOrg = multiCoOrg && orgs.find(o => o.org_id === entry.posted_by_org_id)?.org?.name;
+                return (
+                  <div key={entry.id} className="relative mb-5 group">
+                    <div className={`absolute -left-6 top-0.5 ${nodeClass}`} />
+                    <p className="text-xs text-gray-400 mb-0.5">
+                      {entry.state === 'in_progress' ? 'Happening now' : (entry.label || '')}
+                      {postedOrg ? ` · posted by ${postedOrg}` : ''}
+                    </p>
+                    {entry.type === 'resource' ? (
+                      <div>
+                        {entry.label && <p className="text-xs text-gray-400 mb-1">A free resource came out of this</p>}
+                        <div className="bg-white border border-gray-200 rounded-xl p-4">
+                          <div className="flex items-start justify-between gap-3 flex-wrap">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900">{entry.resource_title || entry.title}</p>
+                              {(entry.resource_type || entry.resource_grade_range) && (
+                                <p className="text-sm text-gray-500 mt-0.5 mb-1.5">
+                                  {[entry.resource_type, entry.resource_grade_range ? `Grade / Year level ${entry.resource_grade_range}` : ''].filter(Boolean).join(' · ')}
+                                </p>
+                              )}
+                              {entry.resource_license && (
+                                <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-md">{entry.resource_license} · free to use &amp; adapt</span>
+                              )}
+                            </div>
+                            {entry.resource_url && (
+                              <a href={entry.resource_url} target="_blank" rel="noopener noreferrer"
+                                className="flex-shrink-0 inline-flex items-center gap-1.5 text-sm text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium transition">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+                                Download
+                              </a>
+                            )}
+                          </div>
+                          {entry.body && <p className="text-sm text-gray-600 mt-2 pt-2 border-t border-gray-100 leading-snug">{entry.body}</p>}
+                        </div>
+                      </div>
+                    ) : entry.type === 'quote' ? (
+                      <div>
+                        <p className="font-medium text-gray-900">{entry.title}</p>
+                        {entry.body && <p className="text-sm text-gray-600 italic mt-0.5 leading-snug">"{entry.body}"</p>}
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="font-medium text-gray-900">{entry.title}</p>
+                        {entry.body && <p className="text-sm text-gray-600 mt-0.5 leading-snug">{entry.body}</p>}
+                      </div>
+                    )}
+                    {isCoOrganizer && (
+                      <div className="hidden group-hover:flex gap-3 mt-1">
+                        <button type="button" onClick={() => openEdit(entry)} className="text-xs text-blue-600 hover:text-blue-700 font-medium">Edit</button>
+                        <button type="button" onClick={() => deleteEntry(entry.id)} className="text-xs text-red-500 hover:text-red-600">Delete</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Action row */}
+        <div className="flex gap-3 flex-wrap pt-2 border-t border-gray-100">
+          <div className="flex-1 min-w-[180px] bg-blue-50 rounded-xl p-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="font-medium text-blue-800 text-sm">Make a one-page snapshot</p>
+              <p className="text-xs text-blue-600/80">Turns this journey into a printable report</p>
+            </div>
+            <button type="button" onClick={goToSnapshot}
+              className="whitespace-nowrap text-xs text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg font-medium transition">
+              Generate
+            </button>
+          </div>
+          {isCoOrganizer && (
+            <div className="flex-1 min-w-[180px] bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="font-medium text-gray-800 text-sm">Invite a funder to watch</p>
+                <p className="text-xs text-gray-500">Private, read-only link to this journey</p>
+              </div>
+              <button type="button" onClick={() => setShowFunderDialog(!showFunderDialog)}
+                className="whitespace-nowrap text-xs border border-gray-300 hover:bg-gray-100 px-3 py-1.5 rounded-lg font-medium transition">
+                Invite
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Funder invite dialog */}
+        {showFunderDialog && isCoOrganizer && (
+          <div className="border border-gray-200 rounded-xl p-4 bg-white space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-gray-900 text-sm">Funder invite — no account needed</h4>
+              <button type="button" onClick={() => { setShowFunderDialog(false); setFunderLink(''); }} className="text-gray-400 hover:text-gray-600"><X size={15} /></button>
+            </div>
+            {funderLink ? (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input readOnly value={funderLink} className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-xs bg-gray-50 font-mono min-w-0" />
+                  <button type="button" onClick={() => navigator.clipboard.writeText(funderLink)}
+                    className="flex-shrink-0 px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition">Copy</button>
+                </div>
+                <p className="text-xs text-gray-500">Grants read-only access to this journey only — no login required.</p>
+              </div>
+            ) : (
+              <button type="button" onClick={genFunderToken} disabled={generatingToken}
+                className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50">
+                {generatingToken ? 'Generating…' : 'Generate private link'}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Add update composer — co-org only */}
+        {isCoOrganizer && (
+          <div className="border-t border-gray-100 pt-5">
+            {!showComposer ? (
+              <button type="button" onClick={() => setShowComposer(true)}
+                className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-xl py-3 text-sm text-gray-400 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-600 transition">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                Add an update
+              </button>
+            ) : (
+              <div className="border border-gray-200 rounded-xl p-4 bg-white space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium text-gray-900 text-sm">{editingEntry ? 'Edit update' : 'Add an update'} <span className="text-xs font-normal text-gray-400">— org members only</span></h4>
+                  <button type="button" onClick={resetComposer} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+                </div>
+                <div className="flex gap-2">
+                  {[['milestone','Milestone'],['resource','Resource'],['quote','Quote']].map(([t, l]) => (
+                    <button key={t} type="button" onClick={() => setComposerType(t)}
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition ${composerType === t ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Label <span className="font-normal text-gray-400">(e.g. Week 4, Kickoff)</span></label>
+                    <input value={composerLabel} onChange={e => setComposerLabel(e.target.value)} placeholder="Week 4"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">State</label>
+                    <select value={composerState} onChange={e => setComposerState(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                      <option value="done">Done</option>
+                      <option value="in_progress">Happening now</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    {composerType === 'resource' ? 'Entry title' : composerType === 'quote' ? 'Attribution / heading' : 'What happened?'} <span className="text-red-500">*</span>
+                  </label>
+                  <input value={composerTitle} onChange={e => setComposerTitle(e.target.value)}
+                    placeholder={composerType === 'quote' ? 'e.g. First live session — all five schools met' : composerType === 'resource' ? 'e.g. Cross-Cultural Dialogue Starters' : 'e.g. Students presented final projects'}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    {composerType === 'quote' ? 'The quote' : 'Details'} <span className="font-normal text-gray-400">(optional)</span>
+                  </label>
+                  <textarea value={composerBody} onChange={e => setComposerBody(e.target.value)} rows={2}
+                    placeholder={composerType === 'quote' ? '"I never thought I\'d have a friend in Nairobi." — a student, age 14' : 'A sentence or two…'}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+                  {composerType === 'quote' && <p className="text-xs text-gray-400 mt-1">Attribute quotes generically — "a student, age 14" — never with a full name.</p>}
+                </div>
+                {composerType === 'resource' && (
+                  <div className="space-y-2 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <p className="text-xs font-medium text-gray-700">Resource details</p>
+                    <input value={composerResTitle} onChange={e => setComposerResTitle(e.target.value)} placeholder="Resource title"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input value={composerResType} onChange={e => setComposerResType(e.target.value)} placeholder="Type (e.g. Lesson plan)"
+                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                      <input value={composerResGrade} onChange={e => setComposerResGrade(e.target.value)} placeholder="Grade / Year level (e.g. 6–10)"
+                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                    </div>
+                    <input value={composerResLicense} onChange={e => setComposerResLicense(e.target.value)} placeholder="License (e.g. CC BY 4.0)"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                    <input value={composerResUrl} onChange={e => setComposerResUrl(e.target.value)} placeholder="Download URL"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                  </div>
+                )}
+                {composerFilter && !composerFilter.ok && (
+                  <div className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2.5">
+                    <p className="font-medium mb-1">⚠ Looks like this may include {composerFilter.reasons.join(', ')} — please review before posting.</p>
+                    <div className="flex gap-3">
+                      <button type="button" onClick={() => postEntry(true)} className="underline font-medium">Post anyway</button>
+                      <button type="button" onClick={() => setComposerFilter(null)} className="underline text-yellow-600">Edit first</button>
+                    </div>
+                  </div>
+                )}
+                {composerError && <p className="text-xs text-red-600">{composerError}</p>}
+                <div className="flex items-center justify-between pt-1">
+                  <label className="inline-flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+                    <input type="checkbox" checked={composerPublic} onChange={e => setComposerPublic(e.target.checked)} className="rounded" />
+                    Show on public journey
+                  </label>
+                  <button type="button" onClick={() => postEntry(false)} disabled={composerPosting || !composerTitle.trim()}
+                    className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50">
+                    {composerPosting ? 'Posting…' : editingEntry ? 'Save changes' : 'Post update'}
+                  </button>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => { setShowProfileModal(false); setSelectedOrg(null); }}
-                className="p-2 hover:bg-gray-100 rounded-full transition"
-              >
-                <X size={24} className="text-gray-600" />
+            )}
+          </div>
+        )}
+
+        {/* Add org panel — co-org only */}
+        {isCoOrganizer && (
+          <div>
+            {!showAddOrg ? (
+              <button type="button" onClick={() => setShowAddOrg(true)} className="text-sm text-gray-400 hover:text-gray-600 transition">
+                + Add a school or org to this exchange
+              </button>
+            ) : (
+              <div className="border border-gray-200 rounded-xl p-4 bg-white space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-900 text-sm">Add a school or org</h4>
+                    <p className="text-xs text-gray-500 mt-0.5">They won't appear publicly until they accept in their Inbox.</p>
+                  </div>
+                  <button type="button" onClick={() => { setShowAddOrg(false); setAddOrgError(''); setAddOrgSuccess(''); setAddOrgSearch(''); setAddOrgResult(null); }} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  <div className="flex-1 min-w-[180px]">
+                    <input value={addOrgSearch} onChange={e => { setAddOrgSearch(e.target.value); searchOrgForInvite(e.target.value); }}
+                      placeholder="Start typing to search orgs…"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+                    {addOrgSearch.length > 1 && addOrgResult !== null && (
+                      <p className={`text-xs mt-1 ${addOrgResult ? 'text-green-700' : 'text-gray-400'}`}>
+                        {addOrgResult ? `✓ ${addOrgResult.name} · ${addOrgResult.country}` : 'No org found with that name'}
+                      </p>
+                    )}
+                  </div>
+                  <select value={addOrgRole} onChange={e => setAddOrgRole(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-shrink-0">
+                    <option value="participant">Participant (taking part)</option>
+                    <option value="co_organizer">Co-organizer (can edit)</option>
+                  </select>
+                </div>
+                {addOrgError && <p className="text-xs text-red-600">{addOrgError}</p>}
+                {addOrgSuccess && <p className="text-xs text-green-600">{addOrgSuccess}</p>}
+                <button type="button" onClick={sendInvite} disabled={addOrgSending || !addOrgResult}
+                  className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50">
+                  {addOrgSending ? 'Sending…' : 'Send invite'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const JourneyContent = ({ org }) => {
+    const [exchanges, setExchanges] = React.useState([]);
+    const [userRoles, setUserRoles] = React.useState({});
+    const [loading, setLoading] = React.useState(true);
+    const [selectedExchange, setSelectedExchange] = React.useState(null);
+    const [showCreateForm, setShowCreateForm] = React.useState(false);
+    const [createForm, setCreateForm] = React.useState({ name: '', summary: '', status: 'planning', currentWeek: '', totalWeeks: '' });
+    const [creating, setCreating] = React.useState(false);
+    const [createError, setCreateError] = React.useState('');
+
+    const isOrgOwner = user?.id && org.claimed_by === user.id;
+
+    const loadExchanges = React.useCallback(async () => {
+      setLoading(true);
+      try {
+        const r = await fetch(`/api/journey?orgId=${org.id}`);
+        const d = await r.json();
+        setExchanges(d.exchanges || []);
+        setUserRoles(d.userRole || {});
+        if ((d.exchanges || []).length === 1) setSelectedExchange(d.exchanges[0]);
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    }, [org.id]);
+
+    React.useEffect(() => { loadExchanges(); }, [loadExchanges]);
+
+    const createExchange = async () => {
+      if (!createForm.name.trim()) { setCreateError('Exchange name is required'); return; }
+      setCreating(true); setCreateError('');
+      const r = await fetch('/api/journey', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create-exchange', userId: user?.id, ...createForm,
+          currentWeek: createForm.currentWeek || null, totalWeeks: createForm.totalWeeks || null })
+      });
+      const d = await r.json();
+      if (!r.ok) { setCreateError(d.error || 'Failed to create'); setCreating(false); return; }
+      setShowCreateForm(false);
+      setCreateForm({ name: '', summary: '', status: 'planning', currentWeek: '', totalWeeks: '' });
+      await loadExchanges();
+      setCreating(false);
+    };
+
+    if (loading) return <div className="flex items-center justify-center py-14"><div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
+
+    if (selectedExchange) return (
+      <ExchangeJourneyView
+        exchange={selectedExchange}
+        org={org}
+        userRole={userRoles[selectedExchange.id] || null}
+        onBack={exchanges.length > 1 ? () => setSelectedExchange(null) : null}
+        onRefresh={loadExchanges}
+      />
+    );
+
+    return (
+      <div className="pb-6">
+        {exchanges.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <path d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.159.69.159 1.006 0Z"/>
+              </svg>
+            </div>
+            <p className="text-gray-600 font-medium mb-1">No exchanges yet</p>
+            <p className="text-gray-400 text-sm mb-6 max-w-xs mx-auto">Journey tracking lets you document exchanges in real time — timeline, metrics, and resources in one place.</p>
+            {isOrgOwner && !showCreateForm && (
+              <button type="button" onClick={() => setShowCreateForm(true)}
+                className="inline-flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition text-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                Start an Exchange
+              </button>
+            )}
+          </div>
+        ) : (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-900">Exchanges</h3>
+              {isOrgOwner && (
+                <button type="button" onClick={() => setShowCreateForm(!showCreateForm)}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                  {showCreateForm ? 'Cancel' : '+ New exchange'}
+                </button>
+              )}
+            </div>
+            <div className="space-y-2">
+              {exchanges.map(ex => {
+                const confirmed = ex.orgs?.filter(o => o.confirmed) || [];
+                const others = confirmed.filter(o => o.org?.id !== org.id);
+                return (
+                  <button key={ex.id} type="button" onClick={() => setSelectedExchange(ex)}
+                    className="w-full text-left bg-white border border-gray-200 rounded-xl p-4 hover:bg-gray-50 hover:border-gray-300 transition">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900">{ex.name}</p>
+                        {others.length > 0 && (
+                          <p className="text-sm text-gray-500 mt-0.5 truncate">
+                            with {others.slice(0, 2).map(o => o.org?.name).join(', ')}{others.length > 2 ? ` +${others.length - 2}` : ''}
+                          </p>
+                        )}
+                      </div>
+                      <StatusPill status={ex.status} currentWeek={ex.current_week} totalWeeks={ex.total_weeks} />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {showCreateForm && isOrgOwner && (
+          <div className={`border border-gray-200 rounded-xl p-5 bg-gray-50 ${exchanges.length > 0 ? 'mt-4' : 'mt-0 max-w-lg mx-auto'}`}>
+            <h4 className="font-semibold text-gray-900 mb-4 text-sm">Start an Exchange</h4>
+            {createError && <p className="text-sm text-red-600 mb-3">{createError}</p>}
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Exchange name <span className="text-red-500">*</span></label>
+                <input value={createForm.name} onChange={e => setCreateForm(p => ({ ...p, name: e.target.value }))}
+                  placeholder="e.g., Global Campfires 2025"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">One-line description</label>
+                <input value={createForm.summary} onChange={e => setCreateForm(p => ({ ...p, summary: e.target.value }))}
+                  placeholder="What is this exchange about?"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
+                  <select value={createForm.status} onChange={e => setCreateForm(p => ({ ...p, status: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option value="planning">Planning</option>
+                    <option value="live">Live</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Current week</label>
+                  <input type="number" min="1" value={createForm.currentWeek} onChange={e => setCreateForm(p => ({ ...p, currentWeek: e.target.value }))}
+                    placeholder="5" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Total weeks</label>
+                  <input type="number" min="1" value={createForm.totalWeeks} onChange={e => setCreateForm(p => ({ ...p, totalWeeks: e.target.value }))}
+                    placeholder="8" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button type="button" onClick={createExchange} disabled={creating}
+                className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition text-sm disabled:opacity-50">
+                {creating ? 'Creating…' : 'Create Exchange'}
+              </button>
+              <button type="button" onClick={() => { setShowCreateForm(false); setCreateError(''); }}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Organization Profile Modal — pinned header + tab bar, scrollable body with fade masks
+  const OrganizationProfileModal = ({ org }) => {
+    if (!org) return null;
+    const [profileTab, setProfileTab] = React.useState('about');
+    const gradeLabel = getGradeLabel(org);
+    const close = () => { setShowProfileModal(false); setSelectedOrg(null); };
+
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={close}>
+        <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col overflow-hidden" style={{ maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
+
+          {/* PINNED: Header */}
+          <div className="flex-shrink-0 px-6 pt-5 pb-3">
+            <div className="flex justify-between items-start gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <h2 className="text-xl font-bold text-gray-900">{org.name}</h2>
+                  {org.verified && (
+                    <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0">
+                      <CheckCircle size={11} /> Verified
+                    </span>
+                  )}
+                  {org.claimed && (
+                    <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0">
+                      <CheckCircle size={11} /> Actively Managed
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
+                  <span className="flex items-center gap-1"><Globe size={13} />{org.country}</span>
+                  <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">{gradeLabel}</span>
+                  {org.students && <span>{org.students.toLocaleString()} students</span>}
+                </div>
+              </div>
+              <button type="button" onClick={close} className="flex-shrink-0 p-1.5 hover:bg-gray-100 rounded-full transition">
+                <X size={20} className="text-gray-500" />
               </button>
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-            {/* Description */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">About</h3>
-              <p className="text-gray-700">{org.description}</p>
-            </div>
-
-            {/* Languages */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Languages</h3>
-              <div className="flex flex-wrap gap-2">
-                {org.languages.map(lang => (
-                  <span key={lang} className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded text-sm">
-                    {lang}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Focus Areas */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Focus Areas</h3>
-              <div className="flex flex-wrap gap-2">
-                {org.interests.map(interest => (
-                  <span key={interest} className="bg-green-100 text-green-700 px-3 py-1.5 rounded text-sm">
-                    {interest}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Partnership Goals */}
-            {org.partnershipGoals && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Partnership Goals</h3>
-                <ul className="text-gray-700 space-y-2">
-                  {org.partnershipGoals.map((goal, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="text-blue-600 mt-1">•</span>
-                      <span>{goal}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Preferred Duration */}
-            {org.duration && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Preferred Duration</h3>
-                <div className="flex flex-wrap gap-2">
-                  {org.duration.map((dur, idx) => (
-                    <span key={idx} className="bg-purple-100 text-purple-700 px-3 py-1.5 rounded text-sm">
-                      {dur}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Technology */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Technology</h3>
-              {org.techAvailable && org.techAvailable.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {org.techAvailable.map((tech, idx) => (
-                    <span key={idx} className="bg-gray-100 text-gray-600 px-3 py-1.5 rounded text-sm">
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 italic">To be added when profile is claimed</p>
-              )}
-            </div>
-
-            {/* Contact Information - Only for Verified Profiles */}
-            {org.verified && (org.website || org.email || org.phone) && (
-              <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Contact Information</h3>
-                <div className="space-y-3">
-                  {org.website && (
-                    <div className="flex items-center gap-3">
-                      <Globe size={18} className="text-gray-400" />
-                      <a
-                        href={`https://${org.website}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        {org.website}
-                      </a>
-                    </div>
-                  )}
-                  {org.email && (
-                    <div className="flex items-center gap-3">
-                      <Mail size={18} className="text-gray-400" />
-                      <a
-                        href={`mailto:${org.email}`}
-                        className="text-gray-700 hover:text-blue-600"
-                      >
-                        {org.email}
-                      </a>
-                    </div>
-                  )}
-                  {org.phone && (
-                    <div className="flex items-center gap-3 text-gray-700">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                      </svg>
-                      <span>{org.phone}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Virtual Exchange Programs */}
-            {org.programs && org.programs.length > 0 && (
-              <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Virtual Exchange Programs</h3>
-                <div className="space-y-4">
-                  {org.programs.map((program, idx) => (
-                    <div key={idx} className={`rounded-lg p-4 ${program.status === 'current' ? 'bg-green-50 border border-green-200' : 'bg-blue-50 border border-blue-200'}`}>
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-semibold text-gray-900">{program.name}</h4>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${program.status === 'current' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
-                          {program.status === 'current' ? 'Open Now' : 'Upcoming'}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-700 mb-3">{program.description}</p>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <span className="font-semibold text-gray-600">Duration:</span> {program.duration}
-                        </div>
-                        <div>
-                          <span className="font-semibold text-gray-600">Participants:</span> {program.participants}
-                        </div>
-                        <div>
-                          <span className="font-semibold text-gray-600">Tech:</span> {program.technology}
-                        </div>
-                        <div>
-                          <span className="font-semibold text-gray-600">Cost:</span> {program.cost}
-                        </div>
-                      </div>
-                      {program.applicationDeadline && (
-                        <div className="mt-3 text-sm text-gray-600">
-                          <span className="font-semibold">Apply by:</span> {program.applicationDeadline}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+          {/* PINNED: Tab bar */}
+          <div className="flex-shrink-0 flex border-b border-gray-200 px-6 gap-0">
+            {[['about','About'],['programs','Programs'],['journey','Journey']].map(([tab, label]) => (
+              <button key={tab} type="button" onClick={() => setProfileTab(tab)}
+                className={`py-3 mr-6 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                  profileTab === tab ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}>
+                {label}
+              </button>
+            ))}
           </div>
 
-          {/* Action Buttons */}
-          <div className="border-t border-gray-200 p-6 space-y-3 bg-gray-50 rounded-b-2xl">
-            <div className="flex gap-3">
+          {/* SCROLLABLE: Body with top/bottom fade masks */}
+          <div className="relative flex-1 min-h-0">
+            <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none rounded-none" />
+            <div
+              className="h-full overflow-y-auto px-6 py-5"
+              style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(156,163,175,0.4) transparent', WebkitOverflowScrolling: 'touch' }}
+            >
+              <style>{`
+                .org-modal-scroll::-webkit-scrollbar { width: 3px; }
+                .org-modal-scroll::-webkit-scrollbar-track { background: transparent; }
+                .org-modal-scroll::-webkit-scrollbar-thumb { background: rgba(156,163,175,0.35); border-radius: 99px; transition: background 0.2s; }
+                .org-modal-scroll::-webkit-scrollbar-thumb:hover { background: rgba(107,114,128,0.6); }
+              `}</style>
+
+              {profileTab === 'about' && (
+                <div className="space-y-5 pb-6">
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">About</h3>
+                    <p className="text-gray-700 leading-relaxed">{org.description}</p>
+                  </div>
+                  {org.languages?.length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Languages</h3>
+                      <div className="flex flex-wrap gap-2">{org.languages.map(l => <span key={l} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-sm">{l}</span>)}</div>
+                    </div>
+                  )}
+                  {org.interests?.length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Focus Areas</h3>
+                      <div className="flex flex-wrap gap-2">{org.interests.map(i => <span key={i} className="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm">{i}</span>)}</div>
+                    </div>
+                  )}
+                  {org.partnershipGoals?.length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Partnership Goals</h3>
+                      <ul className="space-y-1.5">
+                        {org.partnershipGoals.map((g, i) => <li key={i} className="flex items-start gap-2 text-gray-700 text-sm"><span className="text-blue-500 mt-0.5 flex-shrink-0">•</span>{g}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                  {org.duration?.length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Preferred Duration</h3>
+                      <div className="flex flex-wrap gap-2">{org.duration.map((d, i) => <span key={i} className="bg-purple-100 text-purple-700 px-3 py-1 rounded-lg text-sm">{d}</span>)}</div>
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Technology</h3>
+                    {org.techAvailable?.length > 0
+                      ? <div className="flex flex-wrap gap-2">{org.techAvailable.map((t, i) => <span key={i} className="bg-gray-100 text-gray-600 px-3 py-1 rounded-lg text-sm">{t}</span>)}</div>
+                      : <p className="text-gray-400 text-sm italic">To be added when profile is claimed</p>}
+                  </div>
+                  {org.verified && (org.website || org.email || org.phone) && (
+                    <div className="border-t border-gray-100 pt-5">
+                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Contact</h3>
+                      <div className="space-y-2">
+                        {org.website && <div className="flex items-center gap-2 text-sm"><Globe size={14} className="text-gray-400 flex-shrink-0" /><a href={`https://${org.website}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">{org.website}</a></div>}
+                        {org.email && <div className="flex items-center gap-2 text-sm"><Mail size={14} className="text-gray-400 flex-shrink-0" /><a href={`mailto:${org.email}`} className="text-gray-700 hover:text-blue-600">{org.email}</a></div>}
+                        {org.phone && <div className="flex items-center gap-2 text-sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 flex-shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span className="text-gray-700">{org.phone}</span></div>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {profileTab === 'programs' && (
+                <div className="pb-6">
+                  {org.programs?.length > 0 ? (
+                    <div className="space-y-4">
+                      {org.programs.map((program, idx) => (
+                        <div key={idx} className={`rounded-xl p-4 border ${program.status === 'current' ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <h4 className="font-semibold text-gray-900">{program.name}</h4>
+                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${program.status === 'current' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
+                              {program.status === 'current' ? 'Open Now' : 'Upcoming'}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-3">{program.description}</p>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            {program.duration && <div><span className="font-medium text-gray-600">Duration:</span> {program.duration}</div>}
+                            {program.participants && <div><span className="font-medium text-gray-600">Participants:</span> {program.participants}</div>}
+                            {program.technology && <div><span className="font-medium text-gray-600">Tech:</span> {program.technology}</div>}
+                            {program.cost && <div><span className="font-medium text-gray-600">Cost:</span> {program.cost}</div>}
+                            {program.applicationDeadline && <div className="col-span-2"><span className="font-medium text-gray-600">Apply by:</span> {program.applicationDeadline}</div>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-400">
+                      <p className="text-sm">No programs listed yet.</p>
+                      {!org.claimed && <p className="text-xs mt-1">Claim this profile to add your programs.</p>}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {profileTab === 'journey' && <JourneyContent org={org} />}
+
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none" />
+          </div>
+
+          {/* PINNED: Footer actions */}
+          <div className="flex-shrink-0 border-t border-gray-100 px-5 py-4 bg-gray-50 rounded-b-2xl space-y-2">
+            <div className="flex gap-2">
               {user?.id !== org.claimed_by && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedOrgForRequest(org);
-                    setShowIntroductionRequestModal(true);
-                    setShowProfileModal(false);
-                  }}
-                  className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-                >
+                <button type="button" onClick={() => { setSelectedOrgForRequest(org); setShowIntroductionRequestModal(true); close(); }}
+                  className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition text-sm">
                   Request an Introduction
                 </button>
               )}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleFavorite(org);
-                }}
-                className={`px-4 py-3 border rounded-lg font-semibold transition ${
-                  isFavorited(org.id)
-                    ? 'border-red-500 bg-red-50 text-red-600 hover:bg-red-100'
-                    : 'border-gray-300 text-gray-600 hover:bg-gray-50'
-                }`}
-                title={isFavorited(org.id) ? 'Remove from favorites' : 'Add to favorites'}
-              >
-                <Heart
-                  size={20}
-                  fill={isFavorited(org.id) ? 'currentColor' : 'none'}
-                />
+              <button type="button" onClick={e => { e.stopPropagation(); toggleFavorite(org); }}
+                className={`px-4 py-2.5 border rounded-lg transition flex-shrink-0 ${isFavorited(org.id) ? 'border-red-400 bg-red-50 text-red-600' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}
+                title={isFavorited(org.id) ? 'Remove from favorites' : 'Add to favorites'}>
+                <Heart size={18} fill={isFavorited(org.id) ? 'currentColor' : 'none'} />
               </button>
             </div>
-            {org.claimed ? (
-              <div className="w-full py-3 flex items-center justify-center gap-2 bg-green-50 border border-green-200 rounded-lg text-green-700 font-medium">
-                <CheckCircle size={16} />
-                Actively Managed
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedOrgForRequest(org);
-                  setShowClaimProfileModal(true);
-                  setShowProfileModal(false);
-                }}
-                className="w-full py-3 border border-yellow-400 bg-yellow-50 text-yellow-800 rounded-lg font-semibold hover:bg-yellow-100 transition"
-              >
+            {!org.claimed && (
+              <button type="button" onClick={() => { setSelectedOrgForRequest(org); setShowClaimProfileModal(true); close(); }}
+                className="w-full py-2.5 border border-yellow-400 bg-yellow-50 text-yellow-800 rounded-lg font-semibold hover:bg-yellow-100 transition text-sm">
                 Claim this Profile
               </button>
             )}
             {user?.id && org.claimed_by === user.id && (
-              <button
-                type="button"
-                onClick={() => {
-                  setEditOrgForm({
-                    description: org.description || '',
-                    website: org.website || '',
-                    email: org.email || '',
-                    phone: org.phone || '',
-                    capacity: org.capacity || '',
-                    languages: (org.languages || []).join(', '),
-                    interests: (org.interests || []).join(', '),
-                    partnershipGoals: (org.partnershipGoals || []).join('\n')
-                  });
-                  setEditOrgError('');
-                  setShowEditOrgModal(true);
-                }}
-                className="w-full py-3 border border-blue-400 bg-blue-50 text-blue-800 rounded-lg font-semibold hover:bg-blue-100 transition"
-              >
+              <button type="button" onClick={() => { setEditOrgForm({ description: org.description || '', website: org.website || '', email: org.email || '', phone: org.phone || '', capacity: org.capacity || '', languages: (org.languages || []).join(', '), interests: (org.interests || []).join(', '), partnershipGoals: (org.partnershipGoals || []).join('\n') }); setEditOrgError(''); setShowEditOrgModal(true); }}
+                className="w-full py-2.5 border border-blue-400 bg-blue-50 text-blue-800 rounded-lg font-semibold hover:bg-blue-100 transition text-sm">
                 Edit Organization Profile
               </button>
             )}
@@ -4640,6 +5283,12 @@ const VirtualExchangePlatform = () => {
 
     const [showPreview, setShowPreview] = useState(false);
 
+    React.useEffect(() => {
+      if (!snapshotPrefill) return;
+      setFormData(prev => ({ ...prev, ...snapshotPrefill }));
+      setSnapshotPrefill(null);
+    }, [snapshotPrefill]);
+
     const handleInputChange = (field, value) => {
       setFormData(prev => ({ ...prev, [field]: value }));
     };
@@ -5913,6 +6562,130 @@ const VirtualExchangePlatform = () => {
   };
 
   // ── INBOX ────────────────────────────────────────────────────────────────
+  // ── FUNDER JOURNEY PAGE ───────────────────────────────────────────────────
+  const FunderJourneyPage = ({ token }) => {
+    const [exchange, setExchange] = React.useState(null);
+    const [entries, setEntries] = React.useState([]);
+    const [orgs, setOrgs] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState(null);
+
+    React.useEffect(() => {
+      if (!token) return;
+      fetch(`/api/journey?token=${encodeURIComponent(token)}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.error) { setError(d.error); return; }
+          setExchange(d.exchange);
+          setEntries(d.entries || []);
+          setOrgs(d.orgs || []);
+        })
+        .catch(() => setError('Failed to load journey'))
+        .finally(() => setLoading(false));
+    }, [token]);
+
+    if (loading) return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+
+    if (error || !exchange) return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center max-w-md">
+          <p className="text-xl font-semibold text-gray-800 mb-2">Link Not Found</p>
+          <p className="text-gray-500 text-sm">{error || 'This funder link may have expired or been revoked.'}</p>
+        </div>
+      </div>
+    );
+
+    const statusColor = exchange.status === 'live' ? 'bg-green-100 text-green-700' : exchange.status === 'completed' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600';
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        {/* Funder notice banner */}
+        <div className="bg-indigo-600 text-white text-center py-2 text-sm font-medium">
+          Private Funder View — Read Only
+        </div>
+
+        <div className="max-w-3xl mx-auto px-6 py-10">
+          {/* Header */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-8 mb-6">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h1 className="text-2xl font-bold text-gray-900">{exchange.name}</h1>
+              <span className={`shrink-0 text-xs font-semibold px-3 py-1 rounded-full capitalize ${statusColor}`}>{exchange.status}</span>
+            </div>
+            {exchange.summary && <p className="text-gray-600 mb-5">{exchange.summary}</p>}
+
+            {/* Participating orgs */}
+            {orgs.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-5">
+                {orgs.map(o => (
+                  <span key={o.id} className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-full">{o.name}</span>
+                ))}
+              </div>
+            )}
+
+            {/* Metrics */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {[
+                { label: 'Students Reached', value: exchange.students_reached },
+                { label: 'Teachers Reached', value: exchange.teachers_reached },
+                { label: 'Schools & Countries', value: exchange.schools_count ? `${exchange.schools_count} schools · ${exchange.countries_count || 0} countries` : null },
+                { label: 'Free Resources', value: entries.filter(e => e.type === 'resource').length || null },
+                { label: 'Times Reused', value: exchange.reuse_count },
+              ].filter(m => m.value).map(m => (
+                <div key={m.label} className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 mb-0.5">{m.label}</p>
+                  <p className="font-bold text-gray-900">{m.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {exchange.facilitator_org && (
+              <p className="text-xs text-gray-400 mt-4">Facilitated by {exchange.facilitator_org}{exchange.facilitator_count ? ` (${exchange.facilitator_count} facilitators)` : ''}</p>
+            )}
+          </div>
+
+          {/* Timeline */}
+          {entries.length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-200 p-8">
+              <h2 className="font-semibold text-gray-800 mb-6">Journey Timeline</h2>
+              <div className="space-y-6">
+                {[...entries].sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at)).map((entry, i) => {
+                  const nodeColor = entry.type === 'milestone' ? 'bg-green-500' : entry.type === 'resource' ? 'bg-blue-500' : 'bg-purple-400';
+                  return (
+                    <div key={entry.id} className="flex gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className={`w-3 h-3 rounded-full mt-1 shrink-0 ${nodeColor}`} />
+                        {i < entries.length - 1 && <div className="w-px flex-1 bg-gray-200 mt-1" />}
+                      </div>
+                      <div className="pb-4 flex-1 min-w-0">
+                        {entry.label && <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">{entry.label}</p>}
+                        <p className="font-semibold text-gray-900">{entry.title}</p>
+                        {entry.body && <p className="text-sm text-gray-600 mt-1">{entry.body}</p>}
+                        {entry.resource_url && (
+                          <a href={entry.resource_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline mt-2">
+                            {entry.resource_title || 'View Resource'} →
+                          </a>
+                        )}
+                        <p className="text-xs text-gray-400 mt-2">{new Date(entry.occurred_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <p className="text-center text-xs text-gray-400 mt-8">
+            Shared via The Virtual Exchange · <a href="/" className="hover:underline">thevirtualexchange.org</a>
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   const Inbox = () => {
     const [messages, setMessages] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
@@ -6056,6 +6829,54 @@ const VirtualExchangePlatform = () => {
                     <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
                       {activeThread.msgs.map(m => {
                         const mine = m.sender_id === user.id;
+                        // Try parsing structured invite messages
+                        let invite = null;
+                        try {
+                          const parsed = JSON.parse(m.body);
+                          if (parsed?.type === 'EXCHANGE_INVITE') invite = parsed;
+                        } catch (_) {}
+
+                        if (invite) {
+                          return (
+                            <div key={m.id} className="flex justify-start">
+                              <div className="max-w-[85%] bg-indigo-50 border border-indigo-200 rounded-2xl px-5 py-4">
+                                <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-1">Exchange Invitation</p>
+                                <p className="font-semibold text-gray-900 mb-1">{invite.exchangeName || 'Exchange'}</p>
+                                {invite.role && <p className="text-sm text-gray-600 mb-3">Role: <span className="font-medium capitalize">{invite.role.replace('_', ' ')}</span></p>}
+                                {!mine && (
+                                  <div className="flex gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        await fetch('/api/journey', {
+                                          method: 'POST',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ action: 'respond-invite', exchangeId: invite.exchangeId, userId: user.id, accept: true })
+                                        });
+                                        loadAll();
+                                      }}
+                                      className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium"
+                                    >Accept</button>
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        await fetch('/api/journey', {
+                                          method: 'POST',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ action: 'respond-invite', exchangeId: invite.exchangeId, userId: user.id, accept: false })
+                                        });
+                                        loadAll();
+                                      }}
+                                      className="px-4 py-1.5 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium"
+                                    >Decline</button>
+                                  </div>
+                                )}
+                                <p className="text-xs text-indigo-400 mt-3">{fmt(m.created_at)}</p>
+                              </div>
+                            </div>
+                          );
+                        }
+
                         return (
                           <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
                             <div className={`max-w-[75%] rounded-2xl px-4 py-3 ${mine ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
@@ -7118,8 +7939,11 @@ const VirtualExchangePlatform = () => {
         </div>
       )}
 
+      {/* Funder Journey — full page, no nav chrome */}
+      {activeTab === 'funder-journey' && funderToken && <FunderJourneyPage token={funderToken} />}
+
       {/* Main Content */}
-      {activeTab !== 'my-profile' && activeTab !== 'admin' && activeTab !== 'inbox' && activeTab !== 'privacy' && (
+      {activeTab !== 'my-profile' && activeTab !== 'admin' && activeTab !== 'inbox' && activeTab !== 'privacy' && activeTab !== 'funder-journey' && (
         <main className="max-w-7xl mx-auto px-6 py-12">
           {activeTab === 'home' && <HomePage />}
           {activeTab === 'browse' && <BrowsePage />}
